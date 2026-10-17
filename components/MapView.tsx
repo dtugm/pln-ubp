@@ -206,6 +206,8 @@ export default function MapView({
   const [orthophotoOn, setOrthophotoOn] = useState(false);
 
   const [terrainOn, setTerrainOn] = useState(false);
+  const [activeLayerTab, setActiveLayerTab] = useState<"data" | "terrain">("data");
+  const [activeTerrain, setActiveTerrain] = useState<"aws" | "dtm" | null>(null);
 
   const [zoomLevel, setZoomLevel] = useState(14.2);
 
@@ -947,40 +949,71 @@ export default function MapView({
     setOrthophotoOn(turningOn);
   }
 
-  function toggleTerrain() {
+  function activateTerrain(kind: "aws" | "dtm" | null) {
     const map = mapRef.current;
-
     if (!map) return;
 
-    const tilejson = process.env.NEXT_PUBLIC_TERRAIN_TILEJSON_URL;
-
-    if (!tilejson) {
-      alert("Terrain 3D belum tersedia");
-
+    if (!map.isStyleLoaded()) {
+      map.once("idle", () => activateTerrain(kind));
       return;
     }
 
-    if (!terrainOn) {
-      if (!map.getSource("terrain-dem")) {
-        map.addSource("terrain-dem", {
-          type: "raster-dem",
-          url: tilejson,
-          tileSize: 256,
-          encoding: "mapbox",
-        });
+    // Pilihan Off mematikan relief 3D tanpa mengubah basemap atau layer digitasi.
+    if (kind === null) {
+      map.setTerrain(null);
+      map.easeTo({ pitch: 0, duration: 700 });
+      setTerrainOn(false);
+      setActiveTerrain(null);
+      return;
+    }
+
+    const sourceId = kind === "aws" ? "terrain-dem-aws" : "terrain-dem-dtm";
+    const dtmTileJSON = process.env.NEXT_PUBLIC_DTM_TERRAIN_TILEJSON_URL?.trim();
+    const dtmEncoding = process.env.NEXT_PUBLIC_DTM_TERRAIN_ENCODING?.trim() || "mapbox";
+
+    if (kind === "dtm" && !dtmTileJSON) {
+      window.alert(
+        "DTM Lokal belum dikonfigurasi. Isi NEXT_PUBLIC_DTM_TERRAIN_TILEJSON_URL di .env.local dengan URL TileJSON DEM lokal. Pastikan tile DTM sudah dikodekan sebagai Terrain RGB (mapbox) atau Terrarium.",
+      );
+      return;
+    }
+
+    try {
+      if (!map.getSource(sourceId)) {
+        if (kind === "aws") {
+          // AWS Terrain Tiles menggunakan encoding Terrarium.
+          map.addSource(sourceId, {
+            type: "raster-dem",
+            tiles: [
+              "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
+            ],
+            tileSize: 256,
+            encoding: "terrarium",
+            minzoom: 0,
+            maxzoom: 15,
+            attribution: "Elevation data: AWS Terrain Tiles",
+          });
+        } else {
+          map.addSource(sourceId, {
+            type: "raster-dem",
+            url: dtmTileJSON,
+            tileSize: 256,
+            encoding: dtmEncoding === "terrarium" ? "terrarium" : "mapbox",
+          });
+        }
       }
 
-      map.setTerrain({ source: "terrain-dem", exaggeration: 1.2 });
-
+      map.setTerrain({ source: sourceId, exaggeration: 1.2 });
       map.easeTo({ pitch: 60, duration: 800 });
-
       setTerrainOn(true);
-    } else {
-      map.setTerrain(null);
-
-      map.easeTo({ pitch: 0, duration: 800 });
-
-      setTerrainOn(false);
+      setActiveTerrain(kind);
+    } catch (error) {
+      console.error(`Gagal mengaktifkan terrain ${kind}:`, error);
+      window.alert(
+        kind === "aws"
+          ? "AWS Terrarium gagal diaktifkan. Periksa koneksi internet dan Console browser."
+          : "DTM Lokal gagal diaktifkan. Periksa URL TileJSON, encoding DEM, dan Console browser.",
+      );
     }
   }
 
@@ -1413,20 +1446,28 @@ export default function MapView({
               </div>
 
               <div className="layer-tabs">
-                <button type="button" className="selected">
+                <button
+                  type="button"
+                  className={activeLayerTab === "data" ? "selected" : ""}
+                  onClick={() => setActiveLayerTab("data")}
+                  aria-pressed={activeLayerTab === "data"}
+                >
                   Data
                 </button>
 
                 <button
                   type="button"
-                  onClick={toggleTerrain}
-                  className={terrainOn ? "terrain-active" : ""}
+                  className={activeLayerTab === "terrain" ? "selected" : ""}
+                  onClick={() => setActiveLayerTab("terrain")}
+                  aria-pressed={activeLayerTab === "terrain"}
                 >
                   Terrain 3D
                 </button>
               </div>
 
               <div className="layer-list-scroll">
+                {activeLayerTab === "data" ? (
+                  <>
                 {/* <p className="section-label">LAYER DIGITASI</p> */}
 
                 {digitasiGroups.map((group) => {
@@ -1762,6 +1803,73 @@ export default function MapView({
                     </section>
                   );
                 })}
+                  </>
+                ) : (
+                  <div style={{ display: "grid", gap: 10, padding: "4px 2px 12px" }}>
+                    <div style={{ padding: "2px 2px 0", fontSize: 11, fontWeight: 800, letterSpacing: "1.2px", color: "#168aa4" }}>
+                      TERRAIN 3D
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => activateTerrain("aws")}
+                      aria-pressed={activeTerrain === "aws"}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 9, width: "100%", padding: "8px 10px",
+                        textAlign: "left", borderRadius: 10,
+                        border: activeTerrain === "aws" ? "2px solid #159bb2" : "1px solid #dce7eb",
+                        background: activeTerrain === "aws" ? "#f2fafb" : "#fff", cursor: "pointer", color: "#284456",
+                      }}
+                    >
+                      <span style={{ width: 36, height: 36, flex: "0 0 36px", borderRadius: 8, display: "grid", placeItems: "center", background: "#f0f4f5", color: "#334e5b" }} aria-hidden="true">
+                        <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 19 10 5l4 8 2-3 5 9H3Z" />
+                        </svg>
+                      </span>
+                      <span style={{ display: "block", flex: 1, minWidth: 0 }}>
+                        <strong style={{ display: "block", fontSize: 13 }}>AWS Terrarium</strong>
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => window.alert("DTM Lokal belum tersedia.")}
+                      aria-pressed={false}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 9, width: "100%", padding: "8px 10px",
+                        textAlign: "left", borderRadius: 10,
+                        border: "1px solid #dce7eb",
+                        background: "#fff", cursor: "pointer", color: "#284456",
+                      }}
+                    >
+                      <span style={{ width: 36, height: 36, flex: "0 0 36px", borderRadius: 8, display: "grid", placeItems: "center", background: "#f0f4f5", color: "#526b76" }} aria-hidden="true">
+                        <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m4 8 12-3 4 2-12 3-4-2Z" />
+                          <path d="m4 13 12-3 4 2-12 3-4-2Z" />
+                          <path d="m4 18 12-3 4 2-12 3-4-2Z" />
+                        </svg>
+                      </span>
+                      <span style={{ display: "block", flex: 1, minWidth: 0 }}>
+                        <strong style={{ display: "block", fontSize: 13 }}>DTM Lokal</strong>
+                      </span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#7c8991" }}>Belum tersedia</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => activateTerrain(null)}
+                      disabled={!terrainOn}
+                      style={{
+                        width: "100%", padding: "10px 12px", border: "1px solid #dce7eb", borderRadius: 10,
+                        background: terrainOn ? "#f6f9fa" : "#f8fafb", color: terrainOn ? "#385667" : "#a1adb5",
+                        cursor: terrainOn ? "pointer" : "not-allowed", fontSize: 12, fontWeight: 700,
+                      }}
+                    >
+                      Matikan Terrain 3D
+                    </button>
+
+                  </div>
+                )}
               </div>
 
               {/* <div className="panel-bottom">
