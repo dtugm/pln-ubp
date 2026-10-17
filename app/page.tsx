@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import MapView from "@/components/MapView";
@@ -11,8 +11,7 @@ export default function Home() {
   const [checkingLogin, setCheckingLogin] = useState(true);
 
   useEffect(() => {
-    const savedLogin =
-      sessionStorage.getItem("pln-map-login") === "true";
+    const savedLogin = sessionStorage.getItem("pln-map-login") === "true";
 
     if (savedLogin) {
       setLoggedIn(true);
@@ -21,16 +20,15 @@ export default function Home() {
   }, []);
 
   function handleLogin(event: React.FormEvent<HTMLFormElement>) {
-  event.preventDefault();
+    event.preventDefault();
 
-  if (username === "pln" && password === "pln2026!") {
-    // Simpan status login agar tetap masuk saat refresh.
-    sessionStorage.setItem("pln-map-login", "true");
-    setLoggedIn(true);
-  } else {
-    alert("Username atau password salah!");
+    if (username === "pln" && password === "pln2026!") {
+      sessionStorage.setItem("pln-map-login", "true");
+      setLoggedIn(true);
+    } else {
+      alert("Username atau password salah!");
+    }
   }
-}
 
   if (!loggedIn) {
     return (
@@ -50,23 +48,62 @@ export default function Home() {
           <p className="login-subtitle">Unit Pelaksana Proyek</p>
           <label className="form-field">
             <span>Username</span>
-            <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Masukkan username" autoComplete="username" required />
+            <input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Masukkan username"
+              autoComplete="username"
+              required
+            />
           </label>
           <label className="form-field">
             <span>Password</span>
-            <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Masukkan password" autoComplete="current-password" required />
+            <input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              placeholder="Masukkan password"
+              autoComplete="current-password"
+              required
+            />
           </label>
           <div className="login-options">
-            <label className="remember"><input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} /> Ingat saya</label>
-            <button type="button" className="text-button" onClick={() => alert("Fitur pemulihan password perlu dihubungkan ke sistem autentikasi.")}>Lupa password?</button>
+            <label className="remember">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+              />{" "}
+              Ingat saya
+            </label>
+            <button
+              type="button"
+              className="text-button"
+              onClick={() =>
+                alert(
+                  "Fitur pemulihan password perlu dihubungkan ke sistem autentikasi.",
+                )
+              }
+            >
+              Lupa password?
+            </button>
           </div>
-          <button className="primary-button" type="submit">Masuk <span>→</span></button>
-          <p className="prototype-note">Prototype awal · login belum terhubung ke server</p>
+          <button className="primary-button" type="submit">
+            Masuk <span>→</span>
+          </button>
+          {/* <p className="prototype-note">Prototype awal · login belum terhubung ke server</p> */}
         </form>
-        <div className="login-footer">PLN WebGIS TambakLorok <span>•</span> Unit Pelaksana Proyek</div>
+        <div className="login-footer">
+          PLN WebGIS TambakLorok <span>•</span> Unit Pelaksana Proyek
+        </div>
       </main>
     );
   }
 
-  return <MapView username={username || "Pengguna"} onLogout={() => setLoggedIn(false)} />;
+  return (
+    <MapView
+      username={username || "Pengguna"}
+      onLogout={() => setLoggedIn(false)}
+    />
+  );
 }
