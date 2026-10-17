@@ -885,15 +885,9 @@ export default function MapView({
       return;
     }
 
-    const tileUrl = process.env.NEXT_PUBLIC_ORTHOPHOTO_TILE_URL?.trim();
-
-    if (!tileUrl) {
-      alert(
-        "URL tile Orthophoto belum diatur. Isi NEXT_PUBLIC_ORTHOPHOTO_TILE_URL di .env.local dengan URL template XYZ, misalnya https://domain-publik/orthophoto/{z}/{x}/{y}.webp.",
-      );
-
-      return;
-    }
+    // Gunakan route internal agar browser tidak meminta tile langsung ke R2.
+    // Route server mengambil tile asli dari Cloudflare R2.
+    const tileUrl = "/api/orthophoto/{z}/{x}/{y}.webp";
 
     const sourceId = "orthophoto-source";
 
