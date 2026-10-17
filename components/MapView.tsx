@@ -58,7 +58,7 @@ type PhotonFeature = {
   geometry?: { coordinates?: [number, number] };
 };
 
-const R2_DATA_BASE = "https://pub-b1a30761571c4deda99b775a859ed84c.r2.dev/data";
+const R2_DATA_BASE = "/api/data";
 
 const digitasiLayers: DigitasiLayer[] = [
   {
