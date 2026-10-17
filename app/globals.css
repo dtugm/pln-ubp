@@ -1,74 +1,48 @@
 @tailwind base;
-
 @tailwind components;
-
 @tailwind utilities;
 
-
-
 :root {
-
   --cyan: #a5e1e9;
-
   --turq: #20b4c9;
-
   --teal: #078ca6;
-
   --deep: #07566b;
-
   --ink: #183746;
-
   --muted: #718590;
-
   --line: #dce8ec;
-
   --pale: #f2fbfc;
-
 }
-
-
 
 * {
-
   box-sizing: border-box;
-
 }
 
-
-
 html,
-
 body {
-
   margin: 0;
 
   min-height: 100%;
 
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 
   color: var(--ink);
-
 }
-
-
 
 button,
-
 input {
-
   font: inherit;
-
 }
-
-
 
 button {
-
   cursor: pointer;
-
 }
-
-
 
 /* =========================
 
@@ -76,10 +50,7 @@ button {
 
 ========================= */
 
-
-
 .login-screen {
-
   min-height: 100vh;
 
   display: grid;
@@ -93,17 +64,11 @@ button {
   overflow: hidden;
 
   background:
-
     radial-gradient(ellipse at 10% 18%, #e0f8fa 0, transparent 42%),
-
     linear-gradient(135deg, #fbffff, #e2f7f9 60%, #f8ffff);
-
 }
 
-
-
 .login-orbit {
-
   position: absolute;
 
   border: 1px solid rgba(32, 180, 201, 0.18);
@@ -111,13 +76,9 @@ button {
   border-radius: 50%;
 
   pointer-events: none;
-
 }
 
-
-
 .orbit-one {
-
   width: 75vw;
 
   height: 75vw;
@@ -125,13 +86,9 @@ button {
   left: -48vw;
 
   bottom: -52vw;
-
 }
 
-
-
 .orbit-two {
-
   width: 68vw;
 
   height: 68vw;
@@ -139,13 +96,9 @@ button {
   right: -42vw;
 
   top: -48vw;
-
 }
 
-
-
 .login-card {
-
   position: relative;
 
   z-index: 1;
@@ -161,15 +114,11 @@ button {
   border-radius: 24px;
 
   box-shadow: 0 24px 70px rgba(20, 100, 120, 0.12);
-
 }
-
-
 
 /* Logo PLN pada halaman login: grup logo dipusatkan */
 
 .pln-brand {
-
   display: flex;
 
   align-items: center;
@@ -183,13 +132,9 @@ button {
   margin: 0 auto 25px;
 
   text-align: center;
-
 }
 
-
-
 .pln-login-logo {
-
   display: block;
 
   width: 180px;
@@ -205,15 +150,11 @@ button {
   margin: 0 auto;
 
   flex-shrink: 0;
-
 }
-
-
 
 /* Logo PLN berbentuk simbol + teks, jika masih digunakan */
 
 .pln-symbol {
-
   width: 42px;
 
   height: 42px;
@@ -229,13 +170,9 @@ button {
   font-size: 26px;
 
   font-weight: 900;
-
 }
 
-
-
 .pln-word {
-
   font-size: 30px;
 
   font-weight: 900;
@@ -243,13 +180,9 @@ button {
   letter-spacing: 4px;
 
   color: #149ed0;
-
 }
 
-
-
 .eyebrow {
-
   font-size: 10px;
 
   letter-spacing: 0.13em;
@@ -259,25 +192,15 @@ button {
   color: #078ca6;
 
   margin: 0 0 8px;
-
 }
-
-
 
 .login-card > .eyebrow,
-
 .login-card h1,
-
 .login-subtitle {
-
   text-align: center;
-
 }
 
-
-
 .login-card h1 {
-
   font-size: 25px;
 
   letter-spacing: -0.04em;
@@ -285,35 +208,23 @@ button {
   color: var(--deep);
 
   margin: 0 0 7px;
-
 }
 
-
-
 .login-subtitle {
-
   font-size: 14px;
 
   color: var(--muted);
 
   margin: 0 0 28px;
-
 }
 
-
-
 .form-field {
-
   display: block;
 
   margin-top: 15px;
-
 }
 
-
-
 .form-field > span {
-
   display: block;
 
   font-size: 12px;
@@ -323,13 +234,9 @@ button {
   color: #536d7b;
 
   margin-bottom: 7px;
-
 }
 
-
-
 .form-field input {
-
   width: 100%;
 
   padding: 13px 14px;
@@ -343,23 +250,15 @@ button {
   background: #fff;
 
   font-size: 14px;
-
 }
 
-
-
 .form-field input:focus {
-
   border-color: var(--turq);
 
   box-shadow: 0 0 0 3px #20b4c91c;
-
 }
 
-
-
 .login-options {
-
   display: flex;
 
   justify-content: space-between;
@@ -373,35 +272,22 @@ button {
   font-size: 12px;
 
   color: #657d88;
-
 }
 
-
-
 .remember {
-
   display: flex;
 
   align-items: center;
 
   gap: 7px;
-
 }
-
-
 
 .remember input,
-
 .layer-row input {
-
   accent-color: var(--teal);
-
 }
 
-
-
 .text-button {
-
   border: 0;
 
   background: none;
@@ -411,13 +297,9 @@ button {
   padding: 0;
 
   font-size: 12px;
-
 }
 
-
-
 .primary-button {
-
   display: flex;
 
   align-items: center;
@@ -441,21 +323,13 @@ button {
   font-weight: 750;
 
   box-shadow: 0 8px 20px #078da626;
-
 }
-
-
 
 .primary-button:hover {
-
   filter: brightness(0.97);
-
 }
 
-
-
 .prototype-note {
-
   text-align: center;
 
   color: #91a2ab;
@@ -463,13 +337,9 @@ button {
   font-size: 10px;
 
   margin: 18px 0 0;
-
 }
 
-
-
 .login-footer {
-
   position: absolute;
 
   bottom: 20px;
@@ -477,20 +347,13 @@ button {
   color: #7b9ba5;
 
   font-size: 11px;
-
 }
 
-
-
 .login-footer span {
-
   padding: 0 8px;
 
   color: #21afc1;
-
 }
-
-
 
 /* =========================
 
@@ -498,10 +361,7 @@ button {
 
 ========================= */
 
-
-
 .app-shell {
-
   height: 100vh;
 
   min-height: 620px;
@@ -513,13 +373,9 @@ button {
   display: grid;
 
   grid-template-rows: 72px minmax(0, 1fr);
-
 }
 
-
-
 .topbar {
-
   display: flex;
 
   align-items: center;
@@ -533,15 +389,11 @@ button {
   border-bottom: 1px solid var(--line);
 
   z-index: 5;
-
 }
-
-
 
 /* Logo pada header dashboard */
 
 .pln-logo {
-
   display: block;
 
   width: 125px;
@@ -553,13 +405,9 @@ button {
   object-position: left center;
 
   flex-shrink: 0;
-
 }
 
-
-
 .app-brand {
-
   display: flex;
 
   align-items: center;
@@ -567,77 +415,48 @@ button {
   gap: 9px;
 
   min-width: 290px;
-
 }
 
-
-
 .pln-symbol.small {
-
   width: 34px;
 
   height: 34px;
 
   font-size: 21px;
-
 }
-
-
 
 .small-word {
-
   font-size: 24px;
-
 }
 
-
-
 .brand-divider {
-
   height: 34px;
 
   border-left: 1px solid #d8e5e9;
 
   margin: 0 6px;
-
 }
-
-
 
 .brand-copy strong,
-
 .brand-copy span {
-
   display: block;
-
 }
 
-
-
 .brand-copy strong {
-
   font-size: 14px;
 
   color: #143e51;
-
 }
 
-
-
 .brand-copy span {
-
   font-size: 11px;
 
   color: var(--muted);
 
   margin-top: 3px;
-
 }
 
-
-
 .global-search {
-
   display: flex;
 
   align-items: center;
@@ -657,23 +476,15 @@ button {
   padding: 0 8px 0 12px;
 
   background: #fbfefe;
-
 }
 
-
-
 .global-search > span {
-
   font-size: 23px;
 
   color: #8097a1;
-
 }
 
-
-
 .global-search input {
-
   min-width: 0;
 
   flex: 1;
@@ -687,13 +498,9 @@ button {
   padding: 10px 0;
 
   font-size: 12px;
-
 }
 
-
-
 .global-search button {
-
   border: 0;
 
   border-radius: 6px;
@@ -707,25 +514,17 @@ button {
   font-size: 11px;
 
   font-weight: 700;
-
 }
 
-
-
 .account {
-
   display: flex;
 
   align-items: center;
 
   gap: 9px;
-
 }
 
-
-
 .avatar {
-
   width: 34px;
 
   height: 34px;
@@ -743,15 +542,10 @@ button {
   font-size: 12px;
 
   font-weight: 800;
-
 }
 
-
-
 .account-copy strong,
-
 .account-copy span {
-
   display: block;
 
   max-width: 140px;
@@ -761,33 +555,21 @@ button {
   text-overflow: ellipsis;
 
   white-space: nowrap;
-
 }
-
-
 
 .account-copy strong {
-
   font-size: 12px;
-
 }
 
-
-
 .account-copy span {
-
   font-size: 10px;
 
   color: var(--muted);
 
   margin-top: 3px;
-
 }
 
-
-
 .logout-button {
-
   border: 1px solid var(--line);
 
   background: #fff;
@@ -801,10 +583,7 @@ button {
   font-size: 11px;
 
   margin-left: 4px;
-
 }
-
-
 
 /* =========================
 
@@ -812,22 +591,15 @@ button {
 
 ========================= */
 
-
-
 .main-layout {
-
   display: grid;
 
   grid-template-columns: 174px 294px minmax(0, 1fr);
 
   min-height: 0;
-
 }
 
-
-
 .sidebar {
-
   display: flex;
 
   flex-direction: column;
@@ -837,13 +609,9 @@ button {
   border-right: 1px solid var(--line);
 
   padding: 17px 10px;
-
 }
 
-
-
 .nav-item {
-
   display: flex;
 
   align-items: center;
@@ -867,49 +635,33 @@ button {
   font-size: 12px;
 
   margin: 2px 0;
-
 }
 
-
-
 .nav-item > span {
-
   width: 20px;
 
   text-align: center;
 
   font-size: 17px;
-
 }
 
-
-
 .nav-item.active {
-
   background: #e5f8fa;
 
   color: var(--teal);
 
   font-weight: 750;
-
 }
 
-
-
 .sidebar-bottom {
-
   margin-top: auto;
 
   border-top: 1px solid #edf2f4;
 
   padding-top: 12px;
-
 }
 
-
-
 .layer-panel {
-
   position: relative;
 
   display: flex;
@@ -923,33 +675,21 @@ button {
   padding: 20px 15px;
 
   overflow: auto;
-
 }
 
-
-
 .panel-heading {
-
   display: flex;
 
   align-items: center;
 
   justify-content: space-between;
-
 }
-
-
 
 .panel-heading .eyebrow {
-
   font-size: 9px;
-
 }
 
-
-
 .panel-heading h2 {
-
   font-size: 19px;
 
   margin: 0;
@@ -957,13 +697,9 @@ button {
   color: #153e50;
 
   letter-spacing: -0.03em;
-
 }
 
-
-
 .layer-count {
-
   font-size: 10px;
 
   color: #078ca6;
@@ -973,25 +709,17 @@ button {
   padding: 6px 8px;
 
   border-radius: 20px;
-
 }
 
-
-
 .layer-tabs {
-
   display: flex;
 
   border-bottom: 1px solid var(--line);
 
   margin: 17px 0 20px;
-
 }
 
-
-
 .layer-tabs button {
-
   flex: 1;
 
   border: 0;
@@ -1005,27 +733,18 @@ button {
   color: #7a8c95;
 
   font-size: 11px;
-
 }
 
-
-
 .layer-tabs button.selected,
-
 .layer-tabs button.terrain-active {
-
   border-bottom-color: var(--turq);
 
   color: var(--teal);
 
   font-weight: 750;
-
 }
 
-
-
 .section-label {
-
   font-size: 9px;
 
   font-weight: 850;
@@ -1035,13 +754,9 @@ button {
   color: #91a1a9;
 
   margin: 0 0 8px;
-
 }
 
-
-
 .layer-row {
-
   display: flex;
 
   align-items: center;
@@ -1057,33 +772,20 @@ button {
   color: #455e6b;
 
   cursor: pointer;
-
 }
 
-
-
 .layer-row input {
-
   width: 13px;
 
   height: 13px;
-
 }
-
-
 
 .layer-name {
-
   line-height: 1.35;
-
 }
 
-
-
 .legend-line,
-
 .legend-dash {
-
   width: 23px;
 
   height: 3px;
@@ -1093,23 +795,19 @@ button {
   background: var(--legend);
 
   flex: none;
-
 }
-
-
 
 .legend-dash {
-
   height: 2px;
 
-  background: repeating-linear-gradient(90deg, var(--legend) 0 5px, transparent 5px 8px);
-
+  background: repeating-linear-gradient(
+    90deg,
+    var(--legend) 0 5px,
+    transparent 5px 8px
+  );
 }
 
-
-
 .legend-point {
-
   width: 10px;
 
   height: 10px;
@@ -1125,13 +823,9 @@ button {
   margin: 0 6px;
 
   flex: none;
-
 }
 
-
-
 .data-note {
-
   display: flex;
 
   gap: 8px;
@@ -1145,13 +839,9 @@ button {
   padding: 10px;
 
   margin-top: 18px;
-
 }
 
-
-
 .data-note > span {
-
   display: grid;
 
   place-items: center;
@@ -1171,13 +861,9 @@ button {
   font-size: 10px;
 
   font-weight: 800;
-
 }
 
-
-
 .data-note p {
-
   font-size: 10px;
 
   line-height: 1.5;
@@ -1185,13 +871,9 @@ button {
   color: #66818d;
 
   margin: 0;
-
 }
 
-
-
 .panel-bottom {
-
   display: flex;
 
   align-items: center;
@@ -1205,13 +887,9 @@ button {
   margin-top: auto;
 
   padding-top: 20px;
-
 }
 
-
-
 .status-dot {
-
   width: 7px;
 
   height: 7px;
@@ -1219,10 +897,7 @@ button {
   background: #19a875;
 
   border-radius: 50%;
-
 }
-
-
 
 /* =========================
 
@@ -1230,10 +905,7 @@ button {
 
 ========================= */
 
-
-
 .map-area {
-
   position: relative;
 
   min-width: 0;
@@ -1241,23 +913,15 @@ button {
   min-height: 0;
 
   background: #e7f4f6;
-
 }
 
-
-
 .map-container {
-
   position: absolute;
 
   inset: 0;
-
 }
 
-
-
 .map-title-card {
-
   position: absolute;
 
   z-index: 3;
@@ -1283,13 +947,9 @@ button {
   box-shadow: 0 4px 18px #173f5010;
 
   pointer-events: none;
-
 }
 
-
-
 .map-pin {
-
   display: grid;
 
   place-items: center;
@@ -1305,45 +965,28 @@ button {
   color: #078ca6;
 
   font-size: 22px;
-
 }
-
-
 
 .map-title-card strong,
-
 .map-title-card span {
-
   display: block;
-
 }
 
-
-
 .map-title-card strong {
-
   font-size: 12px;
 
   color: #19475a;
-
 }
 
-
-
 .map-title-card div > span {
-
   font-size: 10px;
 
   color: #7c8e97;
 
   margin-top: 4px;
-
 }
 
-
-
 .map-legend {
-
   position: absolute;
 
   z-index: 3;
@@ -1367,13 +1010,9 @@ button {
   padding: 12px;
 
   box-shadow: 0 4px 18px #173f5010;
-
 }
 
-
-
 .map-legend strong {
-
   font-size: 9px;
 
   letter-spacing: 0.1em;
@@ -1381,13 +1020,9 @@ button {
   color: #83959e;
 
   margin-bottom: 2px;
-
 }
 
-
-
 .map-legend span {
-
   display: flex;
 
   align-items: center;
@@ -1397,25 +1032,17 @@ button {
   font-size: 10px;
 
   color: #5c737e;
-
 }
 
-
-
 .map-legend i {
-
   width: 9px;
 
   height: 9px;
 
   border-radius: 50%;
-
 }
 
-
-
 .stats-strip {
-
   position: absolute;
 
   z-index: 3;
@@ -1441,102 +1068,62 @@ button {
   padding: 12px 6px;
 
   box-shadow: 0 5px 22px #173f5015;
-
 }
 
-
-
 .stats-strip > div {
-
   padding: 0 18px;
 
   border-right: 1px solid #e6eef0;
-
 }
-
-
 
 .stats-strip > div:last-child {
-
   border: 0;
-
 }
-
-
 
 .stats-strip span,
-
 .stats-strip strong {
-
   display: block;
-
 }
 
-
-
 .stats-strip span {
-
   font-size: 10px;
 
   color: #788b94;
 
   margin-bottom: 5px;
-
 }
 
-
-
 .stats-strip strong {
-
   font-size: 17px;
 
   color: #15495b;
-
 }
 
-
-
 .stats-strip small {
-
   font-size: 10px;
 
   color: #78909a;
 
   font-weight: 500;
-
 }
 
-
-
 .maplibregl-ctrl-top-right {
-
   top: 84px !important;
 
   right: 14px !important;
-
 }
 
-
-
 .maplibregl-ctrl-group {
-
   border-radius: 9px !important;
 
   overflow: hidden;
 
   box-shadow: 0 2px 10px #173f5012 !important;
-
 }
-
-
 
 .maplibregl-ctrl-bottom-left {
-
   bottom: 68px !important;
-
 }
-
-
 
 /* =========================
 
@@ -1544,58 +1131,32 @@ button {
 
 ========================= */
 
-
-
 @media (max-width: 1100px) {
-
   .main-layout {
-
     grid-template-columns: 60px 260px minmax(0, 1fr);
-
   }
 
-
-
   .sidebar .nav-item {
-
     justify-content: center;
 
     font-size: 0;
-
   }
-
-
 
   .sidebar .nav-item > span {
-
     font-size: 18px;
-
   }
-
-
 
   .app-brand {
-
     min-width: 245px;
-
   }
-
-
 
   .stats-strip > div {
-
     padding: 0 10px;
-
   }
-
 }
 
-
-
 @media (max-width: 760px) {
-
   .app-shell {
-
     height: auto;
 
     min-height: 100vh;
@@ -1603,93 +1164,56 @@ button {
     overflow: visible;
 
     grid-template-rows: auto minmax(680px, 1fr);
-
   }
 
-
-
   .topbar {
-
     padding: 10px 12px;
 
     flex-wrap: wrap;
 
     gap: 10px;
-
   }
 
-
-
   .app-brand {
-
     min-width: 0;
 
     flex: 1;
-
   }
 
-
-
   .pln-logo {
-
     width: 100px;
 
     height: 36px;
-
   }
-
-
 
   .brand-copy strong {
-
     font-size: 12px;
-
   }
-
-
 
   .brand-copy span {
-
     font-size: 10px;
-
   }
 
-
-
   .global-search {
-
     order: 3;
 
     max-width: none;
 
     flex-basis: 100%;
-
   }
-
-
 
   .account-copy,
-
   .logout-button {
-
     display: none;
-
   }
 
-
-
   .main-layout {
-
     grid-template-columns: 1fr;
 
     grid-template-rows: auto auto minmax(520px, 1fr);
-
   }
 
-
-
   .sidebar {
-
     flex-direction: row;
 
     padding: 5px;
@@ -1699,13 +1223,9 @@ button {
     border-right: 0;
 
     border-bottom: 1px solid var(--line);
-
   }
 
-
-
   .sidebar .nav-item {
-
     width: auto;
 
     min-width: 50px;
@@ -1713,53 +1233,33 @@ button {
     justify-content: center;
 
     margin: 0;
-
   }
-
-
 
   .sidebar-bottom {
-
     display: none;
-
   }
 
-
-
   .layer-panel {
-
     max-height: 340px;
 
     border-right: 0;
 
     border-bottom: 1px solid var(--line);
-
   }
-
-
 
   .map-area {
-
     min-height: 520px;
-
   }
 
-
-
   .map-legend {
-
     top: 100px;
 
     right: 10px;
 
     min-width: 110px;
-
   }
 
-
-
   .stats-strip {
-
     left: 10px;
 
     right: 10px;
@@ -1771,77 +1271,44 @@ button {
     white-space: normal;
 
     bottom: 12px;
-
   }
-
-
 
   .stats-strip > div {
-
     padding: 0 7px;
-
   }
-
-
 
   .stats-strip span {
-
     font-size: 9px;
-
   }
-
-
 
   .stats-strip strong {
-
     font-size: 14px;
-
   }
 
-
-
   .map-title-card {
-
     left: 10px;
 
     top: 10px;
-
   }
 
-
-
   .login-card {
-
     width: min(550px, 100%);
 
     padding: 30px 24px;
-
   }
 
-
-
   .pln-login-logo {
-
     width: 160px;
 
     height: 54px;
-
   }
-
-
 
   .login-footer {
-
     font-size: 10px;
-
   }
-
 }
 
-
-
 .login-logo-login {
-
   display: flex;
 
   align-items: center;
@@ -1851,13 +1318,9 @@ button {
   width: 100%;
 
   margin: 0 auto 25px;
-
 }
 
-
-
 .pln-login-logo {
-
   display: block;
 
   width: 180px;
@@ -1873,23 +1336,16 @@ button {
   margin: 0 auto;
 
   flex-shrink: 0;
-
 }
-
-
 
 /* Penyesuaian untuk layar kecil */
 
 @media (max-width: 760px) {
-
   .pln-login-logo {
-
     width: 160px;
 
     height: 54px;
-
   }
-
 }
 
 /* =========================================================
@@ -2142,7 +1598,7 @@ button {
   border-radius: 8px;
   background: #fff;
   color: #21495b;
-  box-shadow: 0 3px 12px rgba(24, 57, 70, .13);
+  box-shadow: 0 3px 12px rgba(24, 57, 70, 0.13);
   font: inherit;
   font-size: 12px;
   font-weight: 700;
@@ -2171,7 +1627,7 @@ button {
   border: 1px solid #d9e5e9;
   border-radius: 9px;
   background: #fff;
-  box-shadow: 0 5px 18px rgba(24, 57, 70, .15);
+  box-shadow: 0 5px 18px rgba(24, 57, 70, 0.15);
 }
 
 .map-area-full .basemap-option {
@@ -2209,18 +1665,57 @@ button {
   background-color: #f0eee6;
   background-image:
     /* taman / ruang hijau */
-    linear-gradient(0deg, transparent 0 8%, #d8e8c9 8% 27%, transparent 27% 100%),
-    linear-gradient(90deg, transparent 0 66%, #d9e8cc 66% 84%, transparent 84% 100%),
+    linear-gradient(
+      0deg,
+      transparent 0 8%,
+      #d8e8c9 8% 27%,
+      transparent 27% 100%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 0 66%,
+      #d9e8cc 66% 84%,
+      transparent 84% 100%
+    ),
     /* blok bangunan dan jalan lokal */
-    linear-gradient(25deg, transparent 0 39%, #fff 39.5% 44%, #d8d2c5 44.5% 46%, transparent 46.5%),
-    linear-gradient(125deg, transparent 0 47%, #fff 47.5% 53%, #d8d2c5 53.5% 55%, transparent 55.5%),
-    linear-gradient(90deg, transparent 0 19%, #e2ddd1 19% 20%, transparent 20% 100%),
-    linear-gradient(0deg, transparent 0 64%, #e2ddd1 64% 66%, transparent 66% 100%);
+    linear-gradient(
+        25deg,
+        transparent 0 39%,
+        #fff 39.5% 44%,
+        #d8d2c5 44.5% 46%,
+        transparent 46.5%
+      ),
+    linear-gradient(
+      125deg,
+      transparent 0 47%,
+      #fff 47.5% 53%,
+      #d8d2c5 53.5% 55%,
+      transparent 55.5%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 0 19%,
+      #e2ddd1 19% 20%,
+      transparent 20% 100%
+    ),
+    linear-gradient(
+      0deg,
+      transparent 0 64%,
+      #e2ddd1 64% 66%,
+      transparent 66% 100%
+    );
   background-size: 100% 100%;
 }
 
 .map-area-full .basemap-preview-satellite {
-  background: linear-gradient(145deg, #4f6750, #8c9673 35%, #536c73 36%, #344d43 60%, #a1a080);
+  background: linear-gradient(
+    145deg,
+    #4f6750,
+    #8c9673 35%,
+    #536c73 36%,
+    #344d43 60%,
+    #a1a080
+  );
 }
 
 /* Legenda sejajar dengan kontrol zoom bawah; isi terbuka ke atas */
@@ -2256,8 +1751,8 @@ button {
   padding: 12px;
   border: 1px solid #d9e5e9;
   border-radius: 9px;
-  background: rgba(255,255,255,.96);
-  box-shadow: 0 4px 16px rgba(24,57,70,.13);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 4px 16px rgba(24, 57, 70, 0.13);
   color: #486775;
   font-size: 11px;
 }
@@ -2347,7 +1842,6 @@ button {
   }
 }
 
-
 /* Basemap bergaya Google Maps: kartu preview dengan gradasi biru */
 .map-area-full .basemap-control {
   top: 16px !important;
@@ -2363,17 +1857,19 @@ button {
   width: 112px;
   padding: 0;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,.95);
+  border: 1px solid rgba(255, 255, 255, 0.95);
   border-radius: 12px;
   background: linear-gradient(145deg, #f8feff 0%, #e8f7fb 48%, #cfeaf2 100%);
   color: #244b60;
-  box-shadow: 0 3px 12px rgba(25, 78, 100, .22);
+  box-shadow: 0 3px 12px rgba(25, 78, 100, 0.22);
   cursor: pointer;
-  transition: transform .15s ease, box-shadow .15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .map-area-full .basemap-card-toggle:hover {
   transform: translateY(-1px);
-  box-shadow: 0 5px 15px rgba(25, 78, 100, .25);
+  box-shadow: 0 5px 15px rgba(25, 78, 100, 0.25);
 }
 .map-area-full .basemap-card-preview {
   position: relative;
@@ -2381,13 +1877,39 @@ button {
   height: 72px;
   width: 100%;
   overflow: hidden;
-  background: linear-gradient(135deg, #dff2f5 0%, #b8dfe9 36%, #9ecbdc 68%, #d9eef2 100%);
+  background: linear-gradient(
+    135deg,
+    #dff2f5 0%,
+    #b8dfe9 36%,
+    #9ecbdc 68%,
+    #d9eef2 100%
+  );
 }
 .map-area-full .basemap-card-preview::before {
   content: "";
   position: absolute;
   inset: -20%;
-  background: linear-gradient(33deg, transparent 0 37%, rgba(255,255,255,.92) 38% 42%, #b5cbd4 42.5% 44%, transparent 44.5%), linear-gradient(118deg, transparent 0 49%, rgba(255,255,255,.95) 49.5% 54%, #bfd5dd 54.5% 56%, transparent 56.5%), linear-gradient(0deg, transparent 0 61%, rgba(255,255,255,.7) 61.5% 64%, transparent 64.5%);
+  background:
+    linear-gradient(
+      33deg,
+      transparent 0 37%,
+      rgba(255, 255, 255, 0.92) 38% 42%,
+      #b5cbd4 42.5% 44%,
+      transparent 44.5%
+    ),
+    linear-gradient(
+      118deg,
+      transparent 0 49%,
+      rgba(255, 255, 255, 0.95) 49.5% 54%,
+      #bfd5dd 54.5% 56%,
+      transparent 56.5%
+    ),
+    linear-gradient(
+      0deg,
+      transparent 0 61%,
+      rgba(255, 255, 255, 0.7) 61.5% 64%,
+      transparent 64.5%
+    );
   transform: rotate(-3deg);
 }
 .map-area-full .basemap-card-preview .preview-water {
@@ -2396,7 +1918,11 @@ button {
   height: 90px;
   right: -9px;
   top: -10px;
-  background: linear-gradient(180deg, rgba(105,174,199,.25), rgba(73,151,183,.55));
+  background: linear-gradient(
+    180deg,
+    rgba(105, 174, 199, 0.25),
+    rgba(73, 151, 183, 0.55)
+  );
   transform: rotate(24deg);
   border-radius: 45%;
 }
@@ -2404,40 +1930,91 @@ button {
   position: absolute;
   display: block;
   height: 5px;
-  border: 1px solid rgba(255,255,255,.95);
+  border: 1px solid rgba(255, 255, 255, 0.95);
   background: #e9e7d9;
   border-radius: 8px;
-  box-shadow: 0 0 0 1px rgba(150,181,192,.35);
+  box-shadow: 0 0 0 1px rgba(150, 181, 192, 0.35);
 }
-.map-area-full .preview-road-one { width: 140px; left: -13px; top: 30px; transform: rotate(-24deg); }
-.map-area-full .preview-road-two { width: 120px; left: 14px; top: 46px; transform: rotate(34deg); }
-.map-area-full .preview-road-three { width: 88px; left: 44px; top: 14px; transform: rotate(72deg); }
+.map-area-full .preview-road-one {
+  width: 140px;
+  left: -13px;
+  top: 30px;
+  transform: rotate(-24deg);
+}
+.map-area-full .preview-road-two {
+  width: 120px;
+  left: 14px;
+  top: 46px;
+  transform: rotate(34deg);
+}
+.map-area-full .preview-road-three {
+  width: 88px;
+  left: 44px;
+  top: 14px;
+  transform: rotate(72deg);
+}
 .map-area-full .basemap-card-preview .preview-block {
   position: absolute;
   display: block;
-  background: rgba(234, 244, 231, .8);
-  border: 1px solid rgba(152,190,186,.65);
+  background: rgba(234, 244, 231, 0.8);
+  border: 1px solid rgba(152, 190, 186, 0.65);
   border-radius: 3px;
 }
-.map-area-full .preview-block-one { width: 20px; height: 14px; left: 12px; top: 9px; }
-.map-area-full .preview-block-two { width: 23px; height: 16px; right: 18px; bottom: 8px; }
+.map-area-full .preview-block-one {
+  width: 20px;
+  height: 14px;
+  left: 12px;
+  top: 9px;
+}
+.map-area-full .preview-block-two {
+  width: 23px;
+  height: 16px;
+  right: 18px;
+  bottom: 8px;
+}
 .map-area-full .basemap-card-preview.is-street {
   background-color: #eeeadd;
-  background-image: linear-gradient(0deg, transparent 0 67%, rgba(205,225,194,.95) 67% 100%), linear-gradient(145deg, #eeeadd 0%, #e7e2d5 100%);
+  background-image:
+    linear-gradient(
+      0deg,
+      transparent 0 67%,
+      rgba(205, 225, 194, 0.95) 67% 100%
+    ),
+    linear-gradient(145deg, #eeeadd 0%, #e7e2d5 100%);
 }
 .map-area-full .basemap-card-preview.is-street::before {
   inset: -20%;
-  background-image: linear-gradient(33deg, transparent 0 35%, #fff 35.5% 40%, #d0ccc1 40.5% 42%, transparent 42.5%), linear-gradient(118deg, transparent 0 48%, #fff 48.5% 53%, #d0ccc1 53.5% 55%, transparent 55.5%), linear-gradient(0deg, transparent 0 60%, rgba(255,255,255,.9) 60.5% 63%, transparent 63.5%);
+  background-image:
+    linear-gradient(
+      33deg,
+      transparent 0 35%,
+      #fff 35.5% 40%,
+      #d0ccc1 40.5% 42%,
+      transparent 42.5%
+    ),
+    linear-gradient(
+      118deg,
+      transparent 0 48%,
+      #fff 48.5% 53%,
+      #d0ccc1 53.5% 55%,
+      transparent 55.5%
+    ),
+    linear-gradient(
+      0deg,
+      transparent 0 60%,
+      rgba(255, 255, 255, 0.9) 60.5% 63%,
+      transparent 63.5%
+    );
   transform: rotate(-3deg);
 }
 .map-area-full .basemap-card-preview.is-street .preview-water {
   background: #b8dce8;
-  opacity: .95;
+  opacity: 0.95;
 }
 .map-area-full .basemap-card-preview.is-street .preview-road {
   background: #fff;
   border-color: #d5d0c4;
-  box-shadow: 0 0 0 1px rgba(190,185,173,.35);
+  box-shadow: 0 0 0 1px rgba(190, 185, 173, 0.35);
 }
 .map-area-full .basemap-card-preview.is-street .preview-block {
   background: #d4cfc4;
@@ -2445,12 +2022,36 @@ button {
   border-radius: 1px;
 }
 .map-area-full .basemap-card-preview.is-satellite {
-  background: linear-gradient(135deg, #203f4e 0%, #52766f 24%, #7e927e 43%, #294f62 62%, #a5b6a5 100%);
+  background: linear-gradient(
+    135deg,
+    #203f4e 0%,
+    #52766f 24%,
+    #7e927e 43%,
+    #294f62 62%,
+    #a5b6a5 100%
+  );
 }
 .map-area-full .basemap-card-preview.is-satellite::before {
-  background: linear-gradient(25deg, transparent 0 35%, rgba(205,218,201,.8) 36% 40%, rgba(76,105,92,.9) 41% 46%, transparent 47%), linear-gradient(130deg, transparent 0 49%, rgba(192,210,206,.85) 50% 54%, rgba(44,76,91,.85) 55% 59%, transparent 60%);
+  background:
+    linear-gradient(
+      25deg,
+      transparent 0 35%,
+      rgba(205, 218, 201, 0.8) 36% 40%,
+      rgba(76, 105, 92, 0.9) 41% 46%,
+      transparent 47%
+    ),
+    linear-gradient(
+      130deg,
+      transparent 0 49%,
+      rgba(192, 210, 206, 0.85) 50% 54%,
+      rgba(44, 76, 91, 0.85) 55% 59%,
+      transparent 60%
+    );
 }
-.map-area-full .basemap-card-preview.is-satellite .preview-block { background: rgba(45,77,68,.55); border-color: rgba(205,221,214,.4); }
+.map-area-full .basemap-card-preview.is-satellite .preview-block {
+  background: rgba(45, 77, 68, 0.55);
+  border-color: rgba(205, 221, 214, 0.4);
+}
 .map-area-full .basemap-card-label {
   display: flex;
   align-items: center;
@@ -2460,7 +2061,7 @@ button {
   background: linear-gradient(180deg, #ffffff 0%, #eaf8fc 100%);
   font-size: 12px;
   font-weight: 750;
-  letter-spacing: .01em;
+  letter-spacing: 0.01em;
 }
 .map-area-full .basemap-options {
   position: absolute;
@@ -2471,37 +2072,53 @@ button {
   z-index: 12;
 }
 @media (max-width: 760px) {
-  .map-area-full .basemap-control { top: 10px !important; right: 10px !important; width: 96px !important; }
-  .map-area-full .basemap-card-toggle { width: 96px; border-radius: 10px; }
-  .map-area-full .basemap-card-preview { height: 60px; }
-  .map-area-full .basemap-card-label { min-height: 30px; font-size: 11px; }
-  .map-area-full .basemap-options { width: min(220px, calc(100vw - 20px)); }
+  .map-area-full .basemap-control {
+    top: 10px !important;
+    right: 10px !important;
+    width: 96px !important;
+  }
+  .map-area-full .basemap-card-toggle {
+    width: 96px;
+    border-radius: 10px;
+  }
+  .map-area-full .basemap-card-preview {
+    height: 60px;
+  }
+  .map-area-full .basemap-card-label {
+    min-height: 30px;
+    font-size: 11px;
+  }
+  .map-area-full .basemap-options {
+    width: min(220px, calc(100vw - 20px));
+  }
 }
-
 
 /* Pilihan basemap: OpenStreetMap, Google Satellite, Orthophoto */
 .map-area-full .basemap-preview-orthophoto {
-  background: linear-gradient(145deg, #b4c9a0 0 20%, #647d5a 20% 34%, #d7d0ae 34% 45%, #79956c 45% 65%, #b5b08e 65% 78%, #54745d 78% 100%);
+  background: linear-gradient(
+    145deg,
+    #b4c9a0 0 20%,
+    #647d5a 20% 34%,
+    #d7d0ae 34% 45%,
+    #79956c 45% 65%,
+    #b5b08e 65% 78%,
+    #54745d 78% 100%
+  );
   position: relative;
 }
-.map-area-full .basemap-preview-orthophoto::after {
-  content: "";
-  display: block;
-  width: 120%;
-  height: 4px;
-  position: absolute;
-  left: -5%;
-  top: 45%;
-  transform: rotate(-28deg);
-  background: rgba(245, 239, 211, .9);
-  box-shadow: 0 0 0 1px rgba(111, 125, 100, .45);
-}
+/* Garis diagonal pada thumbnail Orthophoto sengaja dihilangkan. */
 .map-area-full .basemap-card-preview.is-orthophoto {
-  background: linear-gradient(145deg, #b4c9a0 0 18%, #647d5a 18% 34%, #d7d0ae 34% 45%, #79956c 45% 65%, #b5b08e 65% 78%, #54745d 78% 100%);
+  background: linear-gradient(
+    145deg,
+    #b4c9a0 0 18%,
+    #647d5a 18% 34%,
+    #d7d0ae 34% 45%,
+    #79956c 45% 65%,
+    #b5b08e 65% 78%,
+    #54745d 78% 100%
+  );
 }
-.map-area-full .basemap-card-preview.is-orthophoto::before {
-  background: linear-gradient(25deg, transparent 0 35%, rgba(240, 235, 207, .9) 36% 40%, rgba(135, 150, 116, .9) 41% 46%, transparent 47%), linear-gradient(130deg, transparent 0 49%, rgba(226, 219, 184, .85) 50% 54%, rgba(73, 103, 73, .85) 55% 59%, transparent 60%);
-}
+/* Tidak menambahkan garis dekoratif pada preview Orthophoto. */
 .map-area-full .basemap-options {
   width: 248px;
 }
@@ -2519,7 +2136,6 @@ button {
     width: min(248px, calc(100vw - 20px));
   }
 }
-
 
 /* =========================================================
    Basemap compact ala Google Maps: kartu kecil di kanan atas,
@@ -2557,10 +2173,14 @@ button {
   max-width: calc(100vw - 120px) !important;
   margin: 0 !important;
   padding: 7px !important;
-  border: 1px solid rgba(203, 228, 237, .95) !important;
+  border: 1px solid rgba(203, 228, 237, 0.95) !important;
   border-radius: 12px !important;
-  background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(231,247,252,.98)) !important;
-  box-shadow: 0 8px 24px rgba(30, 85, 108, .22) !important;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(231, 247, 252, 0.98)
+  ) !important;
+  box-shadow: 0 8px 24px rgba(30, 85, 108, 0.22) !important;
   backdrop-filter: blur(10px);
 }
 .map-area-full .basemap-option {
@@ -2575,11 +2195,21 @@ button {
 }
 @media (max-width: 760px) {
   .map-area-full .basemap-control {
-    top: 10px !important; right: 10px !important; left: auto !important; width: 72px !important;
+    top: 10px !important;
+    right: 10px !important;
+    left: auto !important;
+    width: 72px !important;
   }
-  .map-area-full .basemap-card-toggle { width: 72px !important; }
-  .map-area-full .basemap-card-preview { height: 43px !important; }
-  .map-area-full .basemap-card-label { min-height: 25px !important; font-size: 10px !important; }
+  .map-area-full .basemap-card-toggle {
+    width: 72px !important;
+  }
+  .map-area-full .basemap-card-preview {
+    height: 43px !important;
+  }
+  .map-area-full .basemap-card-label {
+    min-height: 25px !important;
+    font-size: 10px !important;
+  }
   .map-area-full .basemap-options {
     right: calc(100% + 7px) !important;
     width: min(218px, calc(100vw - 100px)) !important;
@@ -2618,10 +2248,14 @@ button {
   margin: 0 !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
-  border: 1px solid rgba(197, 224, 235, .95) !important;
+  border: 1px solid rgba(197, 224, 235, 0.95) !important;
   border-radius: 14px !important;
-  background: linear-gradient(135deg, rgba(255,255,255,.98), rgba(224,245,252,.98)) !important;
-  box-shadow: 0 8px 24px rgba(30, 85, 108, .22) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(224, 245, 252, 0.98)
+  ) !important;
+  box-shadow: 0 8px 24px rgba(30, 85, 108, 0.22) !important;
   backdrop-filter: blur(10px);
 }
 
@@ -2647,13 +2281,13 @@ button {
 }
 
 .map-area-full .basemap-options .basemap-option:hover {
-  background: rgba(219, 242, 250, .8) !important;
+  background: rgba(219, 242, 250, 0.8) !important;
 }
 
 .map-area-full .basemap-options .basemap-option.active {
   border-color: #31b6d1 !important;
   background: linear-gradient(160deg, #eefbff, #d9f3fa) !important;
-  box-shadow: 0 0 0 1px rgba(49, 182, 209, .12) inset !important;
+  box-shadow: 0 0 0 1px rgba(49, 182, 209, 0.12) inset !important;
 }
 
 .map-area-full .basemap-options .basemap-preview {
@@ -2763,14 +2397,26 @@ button {
   }
 }
 
-
 /* Basemap chooser: area klik berada di atas canvas peta */
-.map-area-full .basemap-control { z-index: 1000 !important; pointer-events: auto !important; }
-.map-area-full .basemap-options { z-index: 1001 !important; pointer-events: auto !important; }
-.map-area-full .basemap-options .basemap-option { cursor: pointer !important; pointer-events: auto !important; touch-action: manipulation; }
-.map-area-full .basemap-options .basemap-option > * { pointer-events: none; }
-.map-area-full .basemap-options .basemap-option.active { outline: none !important; }
-
+.map-area-full .basemap-control {
+  z-index: 1000 !important;
+  pointer-events: auto !important;
+}
+.map-area-full .basemap-options {
+  z-index: 1001 !important;
+  pointer-events: auto !important;
+}
+.map-area-full .basemap-options .basemap-option {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+.map-area-full .basemap-options .basemap-option > * {
+  pointer-events: none;
+}
+.map-area-full .basemap-options .basemap-option.active {
+  outline: none !important;
+}
 
 /* Panel layer: sisakan ruang di bawah agar tidak bertumpuk dengan indikator zoom */
 .map-area-full .floating-layer-panel {
@@ -2801,7 +2447,6 @@ button {
   }
 }
 
-
 /* Membulatkan keempat sudut panel layer */
 .map-area-full .floating-layer-panel {
   border-radius: 16px !important;
@@ -2809,7 +2454,6 @@ button {
   overflow-y: auto !important;
   clip-path: inset(0 round 16px);
 }
-
 
 /* Header dan tab tetap diam saat daftar layer di-scroll */
 .map-area-full .floating-layer-panel {
@@ -2857,7 +2501,6 @@ button {
   }
 }
 
-
 /* Simbol klasifikasi geometri pada daftar layer */
 .geometry-symbol {
   display: inline-block;
@@ -2893,4 +2536,535 @@ button {
   height: 3px;
   background: var(--legend);
   border-radius: 999px;
+}
+
+/* =========================================================
+   PANEL STATISTIK PETA — ringkas, bisa ditutup, di bawah-tengah
+   Menjaga jarak dari tepi dan tidak menggeser kontrol peta.
+   ========================================================= */
+.map-area-full .stats-dock {
+  position: absolute !important;
+  z-index: 18 !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: 10px !important;
+  width: max-content;
+  max-width: calc(100% - 100px);
+  transform: translateX(-50%) !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.map-area-full .stats-dock.is-open {
+  padding-top: 0;
+}
+
+.map-area-full .stats-dock .stats-toggle-handle {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  z-index: 2;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #dce8ec;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.98);
+  color: #526d79;
+  box-shadow: 0 2px 7px rgba(24, 57, 70, 0.14);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.map-area-full .stats-dock .stats-toggle-handle span {
+  display: block;
+  width: auto;
+  height: auto;
+  border: 0;
+  background: transparent;
+}
+
+.map-area-full .stats-dock .stats-strip {
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 !important;
+  padding: 7px 4px !important;
+  border: 1px solid #e0eaee;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 3px 12px rgba(23, 63, 80, 0.12);
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.map-area-full .stats-dock .stats-strip > div {
+  padding: 0 9px !important;
+  border-right: 1px solid #e6eef0;
+}
+
+.map-area-full .stats-dock .stats-strip > div:last-child {
+  border-right: 0;
+}
+
+.map-area-full .stats-dock .stats-strip span {
+  margin-bottom: 3px;
+  font-size: 9px;
+}
+
+.map-area-full .stats-dock .stats-strip strong {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.map-area-full .stats-dock.is-collapsed {
+  width: 44px;
+  height: 10px;
+  left: 50% !important;
+  right: auto !important;
+  bottom: 10px !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #dce8ec;
+  box-shadow: 0 2px 8px rgba(23, 63, 80, 0.12);
+  pointer-events: auto;
+}
+
+.map-area-full .stats-dock.is-collapsed .stats-toggle-handle {
+  position: static;
+  width: 44px;
+  height: 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.map-area-full .stats-dock.is-collapsed .stats-toggle-handle span {
+  width: 22px;
+  height: 3px;
+  border-radius: 999px;
+  background: #9aafb8;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .stats-dock {
+    left: 50% !important;
+    right: auto !important;
+    bottom: 8px !important;
+    max-width: calc(100% - 84px);
+    transform: translateX(-50%) !important;
+  }
+
+  .map-area-full .stats-dock .stats-strip {
+    padding: 6px 3px !important;
+  }
+
+  .map-area-full .stats-dock .stats-strip > div {
+    padding: 0 7px !important;
+  }
+
+  .map-area-full .stats-dock .stats-strip span {
+    font-size: 8px;
+  }
+
+  .map-area-full .stats-dock .stats-strip strong {
+    font-size: 13px;
+  }
+
+  .map-area-full .stats-dock.is-collapsed {
+    left: 50% !important;
+    bottom: 8px !important;
+  }
+}
+
+/* Revisi panel statistik: sedikit lebih besar, tombol X kontras,
+   dan panel turun ke tepi bawah ketika ditutup (PC, tablet, dan HP). */
+.map-area-full .stats-dock {
+  bottom: 12px !important;
+  transition:
+    bottom 220ms ease,
+    opacity 180ms ease;
+}
+
+.map-area-full .stats-dock .stats-strip {
+  padding: 9px 7px !important;
+  border-radius: 11px;
+  box-shadow: 0 4px 14px rgba(23, 63, 80, 0.16);
+}
+
+.map-area-full .stats-dock .stats-strip > div {
+  padding: 0 13px !important;
+}
+
+.map-area-full .stats-dock .stats-strip span {
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+
+.map-area-full .stats-dock .stats-strip strong {
+  font-size: 15px;
+}
+
+.map-area-full .stats-dock .stats-toggle-handle {
+  top: -8px;
+  right: -8px;
+  width: 23px;
+  height: 23px;
+  color: #26343a;
+  background: rgba(70, 78, 82, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.22);
+  font-size: 17px;
+}
+
+.map-area-full .stats-dock .stats-toggle-handle:hover {
+  background: rgba(48, 56, 60, 0.9);
+  color: #fff;
+}
+
+.map-area-full .stats-dock.is-collapsed {
+  bottom: -5px !important;
+  width: 54px;
+  height: 15px;
+  overflow: hidden;
+  border-radius: 999px 999px 0 0;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 -1px 7px rgba(23, 63, 80, 0.12);
+}
+
+.map-area-full .stats-dock.is-collapsed .stats-toggle-handle {
+  width: 54px;
+  height: 15px;
+  min-height: 15px;
+}
+
+.map-area-full .stats-dock.is-collapsed .stats-toggle-handle span {
+  width: 25px;
+  height: 3px;
+  background: #8b9da4;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .stats-dock {
+    bottom: 10px !important;
+    max-width: calc(100% - 76px);
+  }
+
+  .map-area-full .stats-dock .stats-strip {
+    padding: 8px 5px !important;
+  }
+
+  .map-area-full .stats-dock .stats-strip > div {
+    padding: 0 10px !important;
+  }
+
+  .map-area-full .stats-dock .stats-strip span {
+    font-size: 9px;
+  }
+
+  .map-area-full .stats-dock .stats-strip strong {
+    font-size: 14px;
+  }
+
+  .map-area-full .stats-dock.is-collapsed {
+    bottom: -5px !important;
+  }
+}
+
+/* =========================================================
+   PENYESUAIAN AKHIR — tombol statistik dan kontrol bawah
+   Berdasarkan global.css yang dikirim pada 17 Oktober 2026.
+   ========================================================= */
+.map-area-full .stats-dock {
+  bottom: 18px !important;
+  z-index: 30 !important;
+}
+
+/* Tombol silang selalu di atas kartu statistik dan lebih mudah terlihat. */
+.map-area-full .stats-dock.is-open .stats-toggle-handle {
+  position: absolute !important;
+  top: -11px !important;
+  right: -10px !important;
+  z-index: 50 !important;
+  width: 27px !important;
+  height: 27px !important;
+  min-width: 27px !important;
+  min-height: 27px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid rgba(255, 255, 255, 0.9) !important;
+  border-radius: 50% !important;
+  background: rgba(55, 65, 70, 0.86) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24) !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.map-area-full .stats-dock.is-open .stats-toggle-handle:hover {
+  background: rgba(35, 43, 47, 0.96) !important;
+  color: #fff !important;
+}
+
+/* Panel sedikit lebih lebar, tetap di tengah dan menjauhi attribution. */
+.map-area-full .stats-dock.is-open .stats-strip {
+  padding: 9px 10px !important;
+}
+
+.map-area-full .stats-dock.is-open .stats-strip > div {
+  padding-left: 15px !important;
+  padding-right: 15px !important;
+}
+
+/* Turunkan tombol +/− agar berada tepat di atas attribution. */
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+  margin-bottom: 26px !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .stats-dock {
+    bottom: 16px !important;
+    max-width: calc(100% - 72px) !important;
+  }
+
+  .map-area-full .stats-dock.is-open .stats-toggle-handle {
+    top: -10px !important;
+    right: -8px !important;
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    min-height: 26px !important;
+  }
+
+  .map-area-full .stats-dock.is-open .stats-strip {
+    padding: 8px 7px !important;
+  }
+
+  .map-area-full .stats-dock.is-open .stats-strip > div {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+    margin-bottom: 26px !important;
+  }
+}
+
+/* Revisi lanjutan: tombol tutup lebih besar, panel sedikit naik/lebar,
+   dan kontrol zoom diturunkan mendekati attribution. */
+.map-area-full .stats-dock {
+  bottom: 28px !important;
+  z-index: 40 !important;
+}
+
+.map-area-full .stats-dock.is-open .stats-toggle-handle {
+  top: -15px !important;
+  right: -13px !important;
+  z-index: 999 !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  font-size: 20px !important;
+  border-width: 1px !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+.map-area-full .stats-dock.is-open .stats-strip {
+  padding: 10px 14px !important;
+  min-width: 190px !important;
+}
+
+.map-area-full .stats-dock.is-open .stats-strip > div {
+  padding-left: 17px !important;
+  padding-right: 17px !important;
+}
+
+/* Nilai margin lebih kecil menurunkan grup zoom; attribution tidak diubah. */
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+  margin-bottom: 10px !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .stats-dock {
+    bottom: 25px !important;
+    max-width: calc(100% - 64px) !important;
+  }
+
+  .map-area-full .stats-dock.is-open .stats-toggle-handle {
+    top: -14px !important;
+    right: -11px !important;
+    width: 31px !important;
+    height: 31px !important;
+    min-width: 31px !important;
+    min-height: 31px !important;
+    font-size: 20px !important;
+  }
+
+  .map-area-full .stats-dock.is-open .stats-strip {
+    padding: 9px 10px !important;
+    min-width: 184px !important;
+  }
+
+  .map-area-full .stats-dock.is-open .stats-strip > div {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+    margin-bottom: 8px !important;
+  }
+}
+
+/* Revisi terakhir: geser panel statistik sedikit ke kanan tanpa mengubah ukuran. */
+.map-area-full .stats-dock {
+  left: calc(50% + 14px) !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .stats-dock {
+    left: calc(50% + 10px) !important;
+  }
+}
+
+/* Penyesuaian akhir: panel statistik sedikit dinaikkan dan digeser ke kanan.
+   Ukuran panel, tombol silang, kontrol zoom, dan attribution tetap dipertahankan. */
+.map-area-full .stats-dock {
+  bottom: 38px !important;
+  left: calc(50% + 26px) !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .stats-dock {
+    bottom: 34px !important;
+    left: calc(50% + 18px) !important;
+  }
+}
+
+/* Koreksi akhir posisi horizontal: geser panel statistik lebih ke kanan.
+   Semua ukuran dan posisi vertikal dipertahankan dari v4. */
+.map-area-full .stats-dock {
+  left: calc(50% + 44px) !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .stats-dock {
+    left: calc(50% + 34px) !important;
+  }
+}
+
+/* Final polish: close button slightly smaller, centred, and translucent. */
+.map-area-full .stats-dock.is-open .stats-toggle-handle {
+  top: -11px !important;
+  right: 0px !important;
+  z-index: 1000 !important;
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+  min-height: 26px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  font-size: 17px !important;
+  border-radius: 50% !important;
+  background: rgba(49, 59, 64, 0.78) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.72) !important;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.2) !important;
+  transform: none !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .stats-dock.is-open .stats-toggle-handle {
+    top: -10px !important;
+    right: 0px !important;
+    width: 25px !important;
+    height: 25px !important;
+    min-width: 25px !important;
+    min-height: 25px !important;
+    font-size: 16px !important;
+  }
+}
+
+/* Sentuhan akhir: pusatkan tombol secara konsisten, geser simbol × sedikit ke pojok kanan atas. */
+.map-area-full .stats-dock.is-open .stats-toggle-handle {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 0 1px 1px !important;
+  line-height: 1 !important;
+  text-indent: 1px !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .stats-dock.is-open .stats-toggle-handle {
+    padding: 0 0 1px 1px !important;
+    text-indent: 1px !important;
+  }
+}
+
+/* Final alignment: keep the × exactly centred, move the whole close button slightly right into the white corner. */
+.map-area-full .stats-dock.is-open .stats-toggle-handle {
+  right: -8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  text-indent: 0 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  transform: none !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .stats-dock.is-open .stats-toggle-handle {
+    right: -7px !important;
+    padding: 0 !important;
+    text-indent: 0 !important;
+  }
+}
+
+@media (min-width: 761px) {
+  .map-area-full .stats-dock {
+    left: calc(50% - 80px) !important;
+  }
+}
+
+@media (min-width: 761px) {
+  .map-area-full .stats-dock {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .map-area-full .stats-dock.is-collapsed {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+  }
 }
