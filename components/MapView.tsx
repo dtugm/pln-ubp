@@ -1226,15 +1226,33 @@ export default function MapView({
   // Dengan begitu urutannya: OSM/Satelit -> Orthophoto -> seluruh layer digitasi.
 
   function getFirstDigitasiLayerId(map: MapLibreMap): string | undefined {
-    for (const item of digitasiLayers) {
-      for (const kind of ["fill", "line", "point"]) {
-        const id = `digitasi-${item.key}-${kind}`;
+    // Cari layer vektor digitasi yang benar-benar ada di style saat ini.
+    // Ini lebih aman daripada mengandalkan urutan konfigurasi saja.
+    const styleLayers = map.getStyle().layers ?? [];
+    const firstDigitasi = styleLayers.find((layer) =>
+      layer.id.startsWith("digitasi-"),
+    );
+    if (firstDigitasi) return firstDigitasi.id;
 
+    // Fallback untuk struktur layer lama.
+    for (const item of digitasiLayers) {
+      for (const kind of ["fill", "line-polygon-outline", "line-casing", "line", "point"]) {
+        const id = `digitasi-${item.key}-${kind}`;
         if (map.getLayer(id)) return id;
       }
     }
-
     return undefined;
+  }
+
+  function keepRasterBelowDigitasi(map: MapLibreMap, rasterLayerId: string) {
+    if (!map.getLayer(rasterLayerId)) return;
+
+    const firstDigitasiLayerId = getFirstDigitasiLayerId(map);
+    if (firstDigitasiLayerId && rasterLayerId !== firstDigitasiLayerId) {
+      // Tempatkan raster tepat sebelum layer digitasi pertama agar semua
+      // poligon, garis, titik, dan outline tetap dirender di atas ortofoto.
+      map.moveLayer(rasterLayerId, firstDigitasiLayerId);
+    }
   }
 
   function changeBasemap(next: "osm" | "google" | "none") {
@@ -1318,6 +1336,14 @@ export default function MapView({
       setOrthophotoOn(false);
     }
 
+    // Pertahankan urutan raster dasar di bawah overlay ortofoto dan digitasi.
+    if (map.getLayer("orthophoto-base") && orthophotoOn) {
+      keepRasterBelowDigitasi(map, "orthophoto-base");
+    }
+    if (map.getLayer(googleLayerId) && map.getLayer("orthophoto-base")) {
+      map.moveLayer(googleLayerId, "orthophoto-base");
+    }
+
     setBasemap(next);
   }
 
@@ -1372,15 +1398,20 @@ export default function MapView({
 
             layout: { visibility: "visible" },
 
-            paint: { "raster-opacity": 0.82 },
+            paint: { "raster-opacity": 1 },
           },
           getFirstDigitasiLayerId(map),
         );
       } else {
         map.setLayoutProperty(layerId, "visibility", "visible");
 
-        map.setPaintProperty(layerId, "raster-opacity", 0.82);
+        map.setPaintProperty(layerId, "raster-opacity", 1);
       }
+
+      // Penting: ortofoto harus berada di bawah SEMUA layer vektor.
+      // Opacity raster tidak bisa menggantikan urutan layer yang benar.
+      map.setPaintProperty(layerId, "raster-opacity", 1);
+      keepRasterBelowDigitasi(map, layerId);
     } else if (map.getLayer(layerId)) {
       map.setLayoutProperty(layerId, "visibility", "none");
     }
