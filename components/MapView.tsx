@@ -1886,6 +1886,8 @@ export default function MapView({
                                           "sungai",
                                           "kontur-mayor",
                                           "kontur-minor",
+                                          "opsi-jalur-pipa-1",
+                                          "opsi-jalur-pipa-2",
                                         ].includes(item.key)
                                       ? "geometry-symbol geometry-line"
                                       : "geometry-symbol geometry-polygon"
