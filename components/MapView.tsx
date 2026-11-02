@@ -866,9 +866,38 @@ export default function MapView({
             return;
           }
 
-          const feature = event.features?.[0];
+          // Ambil semua fitur yang benar-benar berada di titik klik dari seluruh
+          // layer digitasi. Jangan hanya memakai event.features[0], karena event
+          // layer yang bertumpuk bisa lebih dulu memilih poligon di bawah bangunan.
+          const clickableLayerIds = digitasiLayers
+            .flatMap((layerItem) => [
+              `digitasi-${layerItem.key}-fill`,
+              `digitasi-${layerItem.key}-line`,
+              `digitasi-${layerItem.key}-point`,
+            ])
+            .filter((layerId) => Boolean(map.getLayer(layerId)));
+
+          const renderedFeatures = clickableLayerIds.length
+            ? map.queryRenderedFeatures(event.point, {
+                layers: clickableLayerIds,
+              })
+            : (event.features ?? []);
+
+          // Prioritaskan Bangunan jika ada tepat di lokasi klik. Jika tidak,
+          // gunakan fitur paling atas yang ditemukan oleh MapLibre.
+          const feature =
+            renderedFeatures.find((candidate) =>
+              candidate.layer?.id.startsWith("digitasi-bangunan-"),
+            ) ?? renderedFeatures[0];
 
           if (!feature) return;
+
+          // Tentukan nama layer dari fitur terpilih, bukan dari handler layer
+          // yang kebetulan menerima event lebih dahulu.
+          const selectedLayerItem = digitasiLayers.find((layerItem) =>
+            feature.layer?.id.startsWith(`digitasi-${layerItem.key}-`),
+          );
+          const selectedLayerLabel = selectedLayerItem?.label ?? item.label;
 
           // Sorot fitur yang dipilih. Salin sebagai GeoJSON Feature agar dapat
           // ditampilkan kembali di atas seluruh layer tanpa mengubah data sumber.
@@ -924,7 +953,7 @@ export default function MapView({
                 .join("")
             : '<div style="padding:10px 0;color:#64748b;">Tidak ada atribut pada fitur ini.</div>';
 
-          const popupHtml = `<div style="font-family:Arial,sans-serif;min-width:160px;max-width:240px;color:#1f2937;"><div style="font-size:12px;font-weight:700;padding:1px 1px 5px;margin-bottom:3px;color:#29485d;letter-spacing:-0.2px;">${escapePopupHtml(item.label)}</div><div style="max-height:180px;overflow:auto;font-size:10px;scrollbar-width:thin;">${rows}</div>${entries.length > 30 ? `<div style="font-size:10px;color:#718096;padding-top:5px;">Menampilkan 30 dari ${entries.length} atribut.</div>` : ""}</div>`;
+          const popupHtml = `<div style="font-family:Arial,sans-serif;min-width:160px;max-width:240px;color:#1f2937;"><div style="font-size:12px;font-weight:700;padding:1px 1px 5px;margin-bottom:3px;color:#29485d;letter-spacing:-0.2px;">${escapePopupHtml(selectedLayerLabel)}</div><div style="max-height:180px;overflow:auto;font-size:10px;scrollbar-width:thin;">${rows}</div>${entries.length > 30 ? `<div style="font-size:10px;color:#718096;padding-top:5px;">Menampilkan 30 dari ${entries.length} atribut.</div>` : ""}</div>`;
 
           featurePopupRef.current?.remove();
           featurePopupRef.current = new maplibregl.Popup({
