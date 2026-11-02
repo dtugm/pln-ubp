@@ -1368,6 +1368,15 @@ export default function MapView({
         }
       }
 
+      // Label kontur harus berada di atas seluruh layer digitasi. Sebelumnya
+      // label dibuat tepat setelah garis kontur, sehingga layer yang ditambahkan
+      // kemudian (mis. poligon rawa/bangunan) dapat menutup teks elevasinya.
+      // Pindahkan label ke urutan paling atas setelah urutan render layer selesai.
+      for (const key of ["kontur-mayor", "kontur-minor"] as const) {
+        const labelId = `digitasi-${key}-line-elevation-label`;
+        if (map.getLayer(labelId)) map.moveLayer(labelId);
+      }
+
       // Pastikan outline bangunan berada di atas fill bangunan dan layer tematik lain.
       const buildingOutlineId = "digitasi-bangunan-line-polygon-outline";
       if (map.getLayer(buildingOutlineId)) map.moveLayer(buildingOutlineId);
