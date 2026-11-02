@@ -214,6 +214,7 @@ export default function MapView({
     Record<DigitasiKey, boolean>
   >(initialDigitasiLayers);
   // Label fitur dikontrol terpisah dari visibilitas layernya.
+  // Label selalu OFF saat halaman pertama kali dibuka, terpisah dari status layer data.
   const [showFeatureLabels, setShowFeatureLabels] = useState({
     "kontur-mayor": false,
     "kontur-minor": false,
@@ -890,6 +891,9 @@ export default function MapView({
               "text-opacity": 0.95,
             },
           });
+          // Paksa label kontur tetap tersembunyi saat peta pertama kali dibuka.
+          // Label hanya akan tampil setelah tombol 123 untuk layer ini diaktifkan.
+          map.setLayoutProperty(`${lineId}-elevation-label`, "visibility", "none");
         }
 
         // Label keterangan untuk Bangunan dan Tangki. Mendukung variasi kapitalisasi
@@ -924,6 +928,9 @@ export default function MapView({
               "text-opacity": 0.98,
             },
           });
+          // Paksa label bangunan/tangki tersembunyi saat awal, meskipun layer datanya aktif.
+          // Label hanya tampil jika tombol abc diaktifkan oleh pengguna.
+          map.setLayoutProperty(`${lineId}-keterangan-label`, "visibility", "none");
         }
 
         map.addLayer({
