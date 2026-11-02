@@ -213,6 +213,11 @@ export default function MapView({
   const [digitasiVisibility, setDigitasiVisibility] = useState<
     Record<DigitasiKey, boolean>
   >(initialDigitasiLayers);
+  // Label elevasi kontur dikontrol terpisah dari visibilitas garisnya.
+  const [showContourLabels, setShowContourLabels] = useState({
+    "kontur-mayor": false,
+    "kontur-minor": false,
+  });
 
   const [query, setQuery] = useState("");
 
@@ -848,6 +853,43 @@ export default function MapView({
           },
         });
 
+        // Label elevasi untuk Kontur Mayor/Minor. Label membaca langsung
+        // properti ELEVATION dari GeoJSON dan tidak mengubah tampilan garis.
+        if (item.key === "kontur-mayor" || item.key === "kontur-minor") {
+          map.addLayer({
+            id: `${lineId}-elevation-label`,
+            type: "symbol",
+            source: sourceId,
+            filter: [
+              "all",
+              ["==", ["geometry-type"], "LineString"],
+              ["has", "ELEVATION"],
+              ["!=", ["to-string", ["get", "ELEVATION"]], ""],
+            ],
+            layout: {
+              visibility: "none",
+              "symbol-placement": "line-center",
+              "symbol-spacing": item.key === "kontur-mayor" ? 420 : 600,
+              "text-field": ["to-string", ["get", "ELEVATION"]],
+              "text-font": ["Open Sans Regular"],
+              "text-size": ["interpolate", ["linear"], ["zoom"], 13, 9, 16, 11, 19, 12],
+              "text-keep-upright": true,
+              "text-rotation-alignment": "map",
+              "text-pitch-alignment": "viewport",
+              "text-padding": 3,
+              "text-allow-overlap": false,
+              "text-ignore-placement": false,
+            },
+            paint: {
+              "text-color": item.key === "kontur-mayor" ? "#70402e" : "#806544",
+              "text-halo-color": "#ffffff",
+              "text-halo-width": 1.5,
+              "text-halo-blur": 0.3,
+              "text-opacity": 0.95,
+            },
+          });
+        }
+
         map.addLayer({
           id: pointId,
 
@@ -1393,8 +1435,19 @@ export default function MapView({
           map.setLayoutProperty(id, "visibility", visibility);
         }
       });
+
+      if (item.key === "kontur-mayor" || item.key === "kontur-minor") {
+        const labelId = `digitasi-${item.key}-line-elevation-label`;
+        if (map.getLayer(labelId)) {
+          map.setLayoutProperty(
+            labelId,
+            "visibility",
+            digitasiVisibility[item.key] && showContourLabels[item.key] ? "visible" : "none",
+          );
+        }
+      }
     });
-  }, [digitasiVisibility]);
+  }, [digitasiVisibility, showContourLabels]);
 
   // Semua raster (basemap dan orthophoto) diletakkan sebelum layer digitasi pertama.
 
@@ -2473,6 +2526,40 @@ export default function MapView({
                               />
 
                               <span className="layer-name">{item.label}</span>
+                              {(item.key === "kontur-mayor" || item.key === "kontur-minor") && (
+                                <button
+                                  type="button"
+                                  title={`${showContourLabels[item.key] ? "Sembunyikan" : "Tampilkan"} label elevasi ${item.label}`}
+                                  aria-label={`${showContourLabels[item.key] ? "Sembunyikan" : "Tampilkan"} label elevasi ${item.label}`}
+                                  aria-pressed={showContourLabels[item.key]}
+                                  onClick={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    setShowContourLabels((old) => ({
+                                      ...old,
+                                      [item.key]: !old[item.key as "kontur-mayor" | "kontur-minor"],
+                                    }));
+                                  }}
+                                  style={{
+                                    flex: "0 0 26px",
+                                    width: 26,
+                                    height: 24,
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    border: showContourLabels[item.key] ? "1px solid #0d9db5" : "1px solid #dbe5eb",
+                                    borderRadius: 6,
+                                    background: showContourLabels[item.key] ? "#e5f8fb" : "#ffffff",
+                                    color: showContourLabels[item.key] ? "#087e95" : "#64748b",
+                                    fontSize: 10,
+                                    fontWeight: 800,
+                                    cursor: "pointer",
+                                    padding: 0,
+                                  }}
+                                >
+                                  123
+                                </button>
+                              )}
                               <button
                                 type="button"
                                 title={`Zoom ke ${item.label}`}
