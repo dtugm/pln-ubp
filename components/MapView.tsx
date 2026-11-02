@@ -908,7 +908,16 @@ export default function MapView({
           // tiles/viewport. Recupera la geometría completa desde el GeoJSON original.
           // Así el highlight conserva la forma entera al hacer zoom o mover el mapa.
           let fullFeature: any = feature;
-          if (selectedLayerItem) {
+
+          // Kontur sering memiliki banyak fitur dengan properti identik
+          // (mis. LAYER dan ELEVATION). Pencocokan berdasarkan properti saja
+          // dapat mengambil garis kontur lain yang lokasinya jauh dari klik.
+          // Untuk kontur, pertahankan geometri fitur yang benar-benar diklik.
+          const isContourLayer =
+            selectedLayerItem?.key === "kontur-mayor" ||
+            selectedLayerItem?.key === "kontur-minor";
+
+          if (selectedLayerItem && !isContourLayer) {
             try {
               const fullResponse = await fetch(
                 `${R2_DATA_BASE}/${encodeURIComponent(selectedLayerItem.file)}`,
@@ -975,8 +984,9 @@ export default function MapView({
             }
           }
 
-          // Sorot geometri penuh dari GeoJSON asli, bukan geometri yang mungkin
-          // terpotong di viewport/tile oleh queryRenderedFeatures().
+          // Sorot geometri fitur yang dipilih. Untuk layer biasa, gunakan geometri
+          // lengkap dari GeoJSON asli; untuk kontur, gunakan geometri hasil klik
+          // agar tidak salah mengambil kontur lain yang atributnya sama.
           const highlightSource = map.getSource(
             "selected-feature-highlight-source",
           ) as maplibregl.GeoJSONSource | undefined;
