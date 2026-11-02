@@ -858,7 +858,7 @@ export default function MapView({
 
         const popupLayerIds = [fillId, lineId, pointId];
 
-        map.on("click", popupLayerIds, (event) => {
+        map.on("click", popupLayerIds, async (event) => {
           // Saat Measure aktif, klik layer hanya menjadi input titik ukur.
           // Jangan munculkan popup atribut yang menutupi peta.
           if (measureModeRef.current !== null) {
@@ -899,21 +899,89 @@ export default function MapView({
           );
           const selectedLayerLabel = selectedLayerItem?.label ?? item.label;
 
-          // Sorot fitur yang dipilih. Salin sebagai GeoJSON Feature agar dapat
-          // ditampilkan kembali di atas seluruh layer tanpa mengubah data sumber.
+          // queryRenderedFeatures puede devolver geometrías recortadas por los
+          // tiles/viewport. Recupera la geometría completa desde el GeoJSON original.
+          // Así el highlight conserva la forma entera al hacer zoom o mover el mapa.
+          let fullFeature: any = feature;
+          if (selectedLayerItem) {
+            try {
+              const fullResponse = await fetch(
+                `${R2_DATA_BASE}/${encodeURIComponent(selectedLayerItem.file)}`,
+              );
+              if (fullResponse.ok) {
+                const originalGeoJSON = await fullResponse.json();
+                const originalFeatures = Array.isArray(originalGeoJSON.features)
+                  ? originalGeoJSON.features
+                  : [];
+                const clickedProperties = feature.properties ?? {};
+
+                // Prioridad: ID GeoJSON, lalu atribut id/fid, kemudian kecocokan
+                // seluruh properti. Jangan gunakan geometri hasil render sebagai
+                // sumber utama karena dapat berupa potongan tile.
+                let matched = feature.id != null
+                  ? originalFeatures.find((candidate: any) => candidate.id === feature.id)
+                  : undefined;
+
+                if (!matched) {
+                  const identifierKeys = ["id", "fid", "ID", "FID", "objectid", "OBJECTID"];
+                  const identifierKey = identifierKeys.find(
+                    (key) => clickedProperties[key] !== undefined && clickedProperties[key] !== null,
+                  );
+                  if (identifierKey) {
+                    matched = originalFeatures.find(
+                      (candidate: any) => candidate.properties?.[identifierKey] === clickedProperties[identifierKey],
+                    );
+                  }
+                }
+
+                if (!matched) {
+                  const stableStringify = (value: any): string => {
+                    if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+                    if (value && typeof value === "object") {
+                      return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+                    }
+                    return JSON.stringify(value);
+                  };
+                  const clickedSignature = stableStringify(clickedProperties);
+                  matched = originalFeatures.find(
+                    (candidate: any) => stableStringify(candidate.properties ?? {}) === clickedSignature,
+                  );
+                }
+
+                if (matched?.geometry) {
+                  const originalGeometry = matched.geometry;
+                  const needsConversion =
+                    selectedLayerItem.key === "bangunan" ||
+                    ((selectedLayerItem.key === "kontur-mayor" || selectedLayerItem.key === "kontur-minor") &&
+                      coordinatesLookProjected(originalGeometry.coordinates));
+                  fullFeature = {
+                    ...matched,
+                    geometry: needsConversion
+                      ? { ...originalGeometry, coordinates: mercatorToLonLat(originalGeometry.coordinates) }
+                      : originalGeometry,
+                  };
+                }
+              }
+            } catch (error) {
+              console.warn("Tidak bisa mengambil geometri GeoJSON asli untuk highlight; memakai geometri hasil render.", error);
+            }
+          }
+
+          // Sorot geometri penuh dari GeoJSON asli, bukan geometri yang mungkin
+          // terpotong di viewport/tile oleh queryRenderedFeatures().
           const highlightSource = map.getSource(
             "selected-feature-highlight-source",
           ) as maplibregl.GeoJSONSource | undefined;
 
-          if (highlightSource && feature.geometry) {
+          if (highlightSource && fullFeature.geometry) {
             highlightSource.setData({
               type: "FeatureCollection",
               features: [
                 {
                   type: "Feature",
-                  id: feature.id,
-                  properties: feature.properties ?? {},
-                  geometry: feature.geometry,
+                  id: fullFeature.id ?? feature.id,
+                  properties: fullFeature.properties ?? feature.properties ?? {},
+                  geometry: fullFeature.geometry,
                 },
               ],
             } as GeoJSON.FeatureCollection);
