@@ -2902,7 +2902,8 @@ export default function MapView({
                 style={{
                   position: "absolute",
                   right: 50,
-                  top: 0,
+                  top: "50%",
+                  transform: "translateY(-50%)",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "stretch",
@@ -2918,6 +2919,7 @@ export default function MapView({
                 {([
                   { key: "length", label: "Panjang", icon: "length" },
                   { key: "area", label: "Luas", icon: "area" },
+                  { key: "height", label: "Tinggi", icon: "height" },
                   { key: "profile", label: "Profil", icon: "profile" },
                 ] as const).map((tool) => {
                   const isSelected = selectedMeasureTool === tool.key;
@@ -2959,7 +2961,9 @@ export default function MapView({
                           setMeasureResult(
                             tool.key === "area"
                               ? "Mode Luas dipilih. Fungsi pengukuran luas belum diaktifkan."
-                              : "Mode Profil dipilih. Fungsi profil elevasi belum diaktifkan.",
+                              : tool.key === "height"
+                                ? "Mode Tinggi dipilih. Fungsi pengukuran tinggi belum diaktifkan."
+                                : "Mode Profil dipilih. Fungsi profil elevasi belum diaktifkan.",
                           );
                         }
                       }}
@@ -3000,6 +3004,11 @@ export default function MapView({
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="m5 4 14 2 2 12-13 2-4-9Z" />
                           <path d="M5 4 8 20" strokeDasharray="2 2" />
+                        </svg>
+                      ) : tool.icon === "height" ? (
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4" />
+                          <path d="M5 7h3M5 12h3M5 17h3M16 7h3M16 12h3M16 17h3" />
                         </svg>
                       ) : (
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
