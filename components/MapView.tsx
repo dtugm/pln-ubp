@@ -894,7 +894,6 @@ export default function MapView({
             for (const highlightLayerId of [
               "selected-feature-highlight-fill",
               "selected-feature-highlight-polygon-outline",
-              "selected-feature-highlight-casing",
               "selected-feature-highlight-line",
               "selected-feature-highlight-point",
             ]) {
@@ -971,27 +970,6 @@ export default function MapView({
           "line-color": "#b00000",
           "line-width": 2,
           "line-opacity": 0.95,
-        },
-        layout: {
-          "line-join": "round",
-          "line-cap": "round",
-        },
-      });
-
-      // Outline putih tipis di bawah highlight garis supaya tegas pada peta.
-      map.addLayer({
-        id: "selected-feature-highlight-casing",
-        type: "line",
-        source: "selected-feature-highlight-source",
-        filter: [
-          "any",
-          ["==", "$type", "LineString"],
-          ["==", "$type", "Polygon"],
-        ],
-        paint: {
-          "line-color": "#ffffff",
-          "line-width": 4,
-          "line-opacity": 0.72,
         },
         layout: {
           "line-join": "round",
