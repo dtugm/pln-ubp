@@ -213,10 +213,12 @@ export default function MapView({
   const [digitasiVisibility, setDigitasiVisibility] = useState<
     Record<DigitasiKey, boolean>
   >(initialDigitasiLayers);
-  // Label elevasi kontur dikontrol terpisah dari visibilitas garisnya.
-  const [showContourLabels, setShowContourLabels] = useState({
+  // Label fitur dikontrol terpisah dari visibilitas layernya.
+  const [showFeatureLabels, setShowFeatureLabels] = useState({
     "kontur-mayor": false,
     "kontur-minor": false,
+    bangunan: false,
+    tangki: false,
   });
 
   const [query, setQuery] = useState("");
@@ -868,8 +870,8 @@ export default function MapView({
             ],
             layout: {
               visibility: "none",
-              "symbol-placement": "line-center",
-              "symbol-spacing": item.key === "kontur-mayor" ? 420 : 600,
+              "symbol-placement": "line",
+              "symbol-spacing": item.key === "kontur-mayor" ? 320 : 420,
               "text-field": ["to-string", ["get", "ELEVATION"]],
               "text-font": ["Open Sans Regular"],
               "text-size": ["interpolate", ["linear"], ["zoom"], 13, 9, 16, 11, 19, 12],
@@ -886,6 +888,40 @@ export default function MapView({
               "text-halo-width": 1.5,
               "text-halo-blur": 0.3,
               "text-opacity": 0.95,
+            },
+          });
+        }
+
+        // Label keterangan untuk Bangunan dan Tangki. Mendukung variasi kapitalisasi
+        // nama properti GeoJSON: keterangan, KETERANGAN, atau Keterangan.
+        if (item.key === "bangunan" || item.key === "tangki") {
+          const keteranganExpression = [
+            "to-string",
+            ["coalesce", ["get", "keterangan"], ["get", "KETERANGAN"], ["get", "Keterangan"], ""],
+          ] as any;
+
+          map.addLayer({
+            id: `${lineId}-keterangan-label`,
+            type: "symbol",
+            source: sourceId,
+            filter: ["!=", keteranganExpression, ""],
+            layout: {
+              visibility: "none",
+              "symbol-placement": "point",
+              "text-field": keteranganExpression,
+              "text-font": ["Open Sans Regular"],
+              "text-size": ["interpolate", ["linear"], ["zoom"], 13, 9, 16, 11, 19, 12],
+              "text-allow-overlap": false,
+              "text-ignore-placement": false,
+              "text-padding": 2,
+              "text-max-width": 12,
+            },
+            paint: {
+              "text-color": item.key === "bangunan" ? "#63351f" : "#713c3a",
+              "text-halo-color": "#ffffff",
+              "text-halo-width": 1.4,
+              "text-halo-blur": 0.25,
+              "text-opacity": 0.98,
             },
           });
         }
@@ -1369,7 +1405,22 @@ export default function MapView({
       const buildingOutlineId = "digitasi-bangunan-line-polygon-outline";
       if (map.getLayer(buildingOutlineId)) map.moveLayer(buildingOutlineId);
 
-      // Draw measurement graphics above all thematic layers.
+      // Label kontur harus dipindahkan PALING ATAS setelah semua layer tematik
+      // diurutkan. Jika tidak, fill/garis yang ditambahkan belakangan dapat
+      // menutupi teks label walaupun tombol 123 sudah aktif.
+      for (const id of [
+        "digitasi-kontur-mayor-line-elevation-label",
+        "digitasi-kontur-minor-line-elevation-label",
+        "digitasi-bangunan-line-keterangan-label",
+        "digitasi-tangki-line-keterangan-label",
+      ]) {
+        if (map.getLayer(id)) {
+          map.moveLayer(id);
+        }
+      }
+
+      // Draw measurement graphics above thematic layers. Label kontur tetap
+      // berada di atas fitur peta agar nilai elevasinya terbaca.
       for (const id of ["measure-line-layer", "measure-line-label", "measure-points-layer"]) {
         if (map.getLayer(id)) map.moveLayer(id);
       }
@@ -1439,12 +1490,23 @@ export default function MapView({
           map.setLayoutProperty(
             labelId,
             "visibility",
-            digitasiVisibility[item.key] && showContourLabels[item.key] ? "visible" : "none",
+            digitasiVisibility[item.key] && showFeatureLabels[item.key] ? "visible" : "none",
+          );
+        }
+      }
+
+      if (item.key === "bangunan" || item.key === "tangki") {
+        const labelId = `digitasi-${item.key}-line-keterangan-label`;
+        if (map.getLayer(labelId)) {
+          map.setLayoutProperty(
+            labelId,
+            "visibility",
+            digitasiVisibility[item.key] && showFeatureLabels[item.key] ? "visible" : "none",
           );
         }
       }
     });
-  }, [digitasiVisibility, showContourLabels]);
+  }, [digitasiVisibility, showFeatureLabels]);
 
   // Semua raster (basemap dan orthophoto) diletakkan sebelum layer digitasi pertama.
 
@@ -2523,18 +2585,19 @@ export default function MapView({
                               />
 
                               <span className="layer-name">{item.label}</span>
-                              {(item.key === "kontur-mayor" || item.key === "kontur-minor") && (
+                              {(["kontur-mayor", "kontur-minor", "bangunan", "tangki"] as DigitasiKey[]).includes(item.key) && (
                                 <button
                                   type="button"
-                                  title={`${showContourLabels[item.key] ? "Sembunyikan" : "Tampilkan"} label elevasi ${item.label}`}
-                                  aria-label={`${showContourLabels[item.key] ? "Sembunyikan" : "Tampilkan"} label elevasi ${item.label}`}
-                                  aria-pressed={showContourLabels[item.key]}
+                                  title={`${showFeatureLabels[item.key as keyof typeof showFeatureLabels] ? "Sembunyikan" : "Tampilkan"} label ${item.key === "bangunan" || item.key === "tangki" ? "keterangan" : "elevasi"} ${item.label}`}
+                                  aria-label={`${showFeatureLabels[item.key as keyof typeof showFeatureLabels] ? "Sembunyikan" : "Tampilkan"} label ${item.label}`}
+                                  aria-pressed={showFeatureLabels[item.key as keyof typeof showFeatureLabels]}
                                   onClick={(event) => {
                                     event.preventDefault();
                                     event.stopPropagation();
-                                    setShowContourLabels((old) => ({
+                                    const labelKey = item.key as keyof typeof showFeatureLabels;
+                                    setShowFeatureLabels((old) => ({
                                       ...old,
-                                      [item.key]: !old[item.key as "kontur-mayor" | "kontur-minor"],
+                                      [labelKey]: !old[labelKey],
                                     }));
                                   }}
                                   style={{
@@ -2544,17 +2607,17 @@ export default function MapView({
                                     display: "inline-flex",
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    border: showContourLabels[item.key] ? "1px solid #0d9db5" : "1px solid #dbe5eb",
+                                    border: showFeatureLabels[item.key as keyof typeof showFeatureLabels] ? "1px solid #0d9db5" : "1px solid #dbe5eb",
                                     borderRadius: 6,
-                                    background: showContourLabels[item.key] ? "#e5f8fb" : "#ffffff",
-                                    color: showContourLabels[item.key] ? "#087e95" : "#64748b",
+                                    background: showFeatureLabels[item.key as keyof typeof showFeatureLabels] ? "#e5f8fb" : "#ffffff",
+                                    color: showFeatureLabels[item.key as keyof typeof showFeatureLabels] ? "#087e95" : "#64748b",
                                     fontSize: 10,
                                     fontWeight: 800,
                                     cursor: "pointer",
                                     padding: 0,
                                   }}
                                 >
-                                  123
+                                  {item.key === "bangunan" || item.key === "tangki" ? "ABC" : "123"}
                                 </button>
                               )}
                               <button
