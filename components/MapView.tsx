@@ -892,6 +892,11 @@ export default function MapView({
 
           if (!feature) return;
 
+          // Tutup seleksi sebelumnya lebih awal. Event close akan membersihkan
+          // highlight lama sebelum geometri fitur baru dipasang.
+          featurePopupRef.current?.remove();
+          featurePopupRef.current = null;
+
           // Tentukan nama layer dari fitur terpilih, bukan dari handler layer
           // yang kebetulan menerima event lebih dahulu.
           const selectedLayerItem = digitasiLayers.find((layerItem) =>
@@ -1023,13 +1028,30 @@ export default function MapView({
 
           const popupHtml = `<div style="font-family:Arial,sans-serif;min-width:160px;max-width:240px;color:#1f2937;"><div style="font-size:12px;font-weight:700;padding:1px 1px 5px;margin-bottom:3px;color:#29485d;letter-spacing:-0.2px;">${escapePopupHtml(selectedLayerLabel)}</div><div style="max-height:180px;overflow:auto;font-size:10px;scrollbar-width:thin;">${rows}</div>${entries.length > 30 ? `<div style="font-size:10px;color:#718096;padding-top:5px;">Menampilkan 30 dari ${entries.length} atribut.</div>` : ""}</div>`;
 
-          featurePopupRef.current?.remove();
-          featurePopupRef.current = new maplibregl.Popup({
+          const popup = new maplibregl.Popup({
             closeButton: true,
             closeOnClick: true,
             maxWidth: "260px",
             className: "soft-attribute-popup",
-          })
+          });
+
+          // Saat popup ditutup (tombol ×, klik peta, atau remove()), hapus
+          // hanya sumber highlight seleksi. Layer/data asli tetap utuh.
+          popup.on("close", () => {
+            // Abaikan event dari popup lama jika sudah ada popup yang lebih baru.
+            if (featurePopupRef.current !== popup) return;
+            featurePopupRef.current = null;
+            const source = map.getSource(
+              "selected-feature-highlight-source",
+            ) as maplibregl.GeoJSONSource | undefined;
+            source?.setData({
+              type: "FeatureCollection",
+              features: [],
+            } as GeoJSON.FeatureCollection);
+          });
+
+          featurePopupRef.current = popup;
+          popup
             .setLngLat(event.lngLat)
             .setHTML(popupHtml)
             .addTo(map);
