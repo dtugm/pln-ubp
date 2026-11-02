@@ -969,8 +969,12 @@ export default function MapView({
         filter: ["==", "$type", "Polygon"],
         paint: {
           "line-color": "#b00000",
-          "line-width": 4,
-          "line-opacity": 1,
+          "line-width": 2,
+          "line-opacity": 0.95,
+        },
+        layout: {
+          "line-join": "round",
+          "line-cap": "round",
         },
       });
 
@@ -986,8 +990,12 @@ export default function MapView({
         ],
         paint: {
           "line-color": "#ffffff",
-          "line-width": 8,
-          "line-opacity": 0.9,
+          "line-width": 4,
+          "line-opacity": 0.72,
+        },
+        layout: {
+          "line-join": "round",
+          "line-cap": "round",
         },
       });
 
@@ -1005,7 +1013,11 @@ export default function MapView({
           "line-width": 5,
           "line-opacity": 0.62,
           "line-gap-width": 0,
-          "line-blur": 0,
+          "line-blur": 0.2,
+        },
+        layout: {
+          "line-join": "round",
+          "line-cap": "round",
         },
       });
 
