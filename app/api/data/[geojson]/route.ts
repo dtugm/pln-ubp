@@ -27,7 +27,10 @@ const ALLOWED_FILES = new Set([
   "Tangki.geojson",
 ]);
 
-export async function GET(_request, context) {
+export async function GET(
+  _request: Request,
+  context: { params: Promise<{ geojson: string }> },
+) {
   try {
     // Next.js versi baru mengirim params sebagai Promise.
     const params = await context.params;
