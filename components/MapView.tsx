@@ -1415,16 +1415,32 @@ export default function MapView({
       // Label kontur harus dipindahkan PALING ATAS setelah semua layer tematik
       // diurutkan. Jika tidak, fill/garis yang ditambahkan belakangan dapat
       // menutupi teks label walaupun tombol 123 sudah aktif.
-      for (const id of [
+      const featureLabelLayerIds = [
         "digitasi-kontur-mayor-line-elevation-label",
         "digitasi-kontur-minor-line-elevation-label",
         "digitasi-bangunan-line-keterangan-label",
         "digitasi-tangki-line-keterangan-label",
-      ]) {
+      ];
+
+      for (const id of featureLabelLayerIds) {
         if (map.getLayer(id)) {
           map.moveLayer(id);
+          // Default aman: semua label dimatikan saat peta pertama kali dibuka.
+          // Tombol abc/123 akan mengaktifkannya melalui showFeatureLabels.
+          map.setLayoutProperty(id, "visibility", "none");
         }
       }
+
+      // MapLibre dapat menyelesaikan pemuatan sumber setelah layer dibuat.
+      // Terapkan kembali kondisi awal saat peta siap agar label Bangunan/Tangki
+      // tidak sempat tampil hanya karena layer data aktif dari awal.
+      map.once("idle", () => {
+        for (const id of featureLabelLayerIds) {
+          if (map.getLayer(id)) {
+            map.setLayoutProperty(id, "visibility", "none");
+          }
+        }
+      });
 
       // Draw measurement graphics above thematic layers. Label kontur tetap
       // berada di atas fitur peta agar nilai elevasinya terbaca.
