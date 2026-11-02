@@ -1102,7 +1102,10 @@ export default function MapView({
         id: "selected-feature-highlight-line",
         type: "line",
         source: "selected-feature-highlight-source",
-        filter: ["==", "$type", "LineString"],
+        // Jangan batasi dengan filter $type LineString. Data kontur dapat
+        // tersimpan sebagai MultiLineString atau geometri campuran; layer line
+        // MapLibre bisa merender garis dan batas poligon dari sumber highlight.
+        // Ini memastikan Kontur Mayor/Minor juga terlihat saat dipilih.
         paint: {
           // Garis merah transparan dengan outline putih agar kontras
           // di atas layer berwarna, tanpa menutupi peta.
