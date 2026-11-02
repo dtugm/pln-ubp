@@ -935,6 +935,39 @@ export default function MapView({
       }
 
       // Lapisan sorotan ditambahkan paling atas agar fitur terpilih terlihat jelas.
+      // Highlight poligon ala QGIS Identify: isi merah transparan
+      // dan outline merah tegas yang mengikuti bentuk fitur.
+      map.addLayer({
+        id: "selected-feature-highlight-fill",
+        type: "fill",
+        source: "selected-feature-highlight-source",
+        filter: [
+          "any",
+          ["==", ["geometry-type"], "Polygon"],
+          ["==", ["geometry-type"], "MultiPolygon"],
+        ],
+        paint: {
+          "fill-color": "#e53935",
+          "fill-opacity": 0.38,
+        },
+      });
+
+      map.addLayer({
+        id: "selected-feature-highlight-polygon-outline",
+        type: "line",
+        source: "selected-feature-highlight-source",
+        filter: [
+          "any",
+          ["==", ["geometry-type"], "Polygon"],
+          ["==", ["geometry-type"], "MultiPolygon"],
+        ],
+        paint: {
+          "line-color": "#c62828",
+          "line-width": 3,
+          "line-opacity": 1,
+        },
+      });
+
       // Outline putih tipis di bawah highlight garis supaya tegas pada peta.
       map.addLayer({
         id: "selected-feature-highlight-casing",
@@ -964,8 +997,6 @@ export default function MapView({
           "any",
           ["==", ["geometry-type"], "LineString"],
           ["==", ["geometry-type"], "MultiLineString"],
-          ["==", ["geometry-type"], "Polygon"],
-          ["==", ["geometry-type"], "MultiPolygon"],
         ],
         paint: {
           // Garis merah transparan dengan outline putih agar kontras
