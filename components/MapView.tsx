@@ -1145,8 +1145,8 @@ export default function MapView({
         source: "selected-feature-highlight-source",
         filter: ["==", "$type", "Polygon"],
         paint: {
-          "fill-color": "#ff302f",
-          "fill-opacity": 0.32,
+          "fill-color": "#ff3026",
+          "fill-opacity": 0.48,
         },
       });
 
@@ -1159,10 +1159,10 @@ export default function MapView({
         source: "selected-feature-highlight-source",
         filter: ["==", "$type", "Polygon"],
         paint: {
-          "line-color": "#ff302f",
-          "line-width": 10,
-          "line-opacity": 0.42,
-          "line-blur": 5,
+          "line-color": "#ff2018",
+          "line-width": 13,
+          "line-opacity": 0.62,
+          "line-blur": 6,
         },
         layout: {
           "line-join": "round",
@@ -1176,9 +1176,9 @@ export default function MapView({
         source: "selected-feature-highlight-source",
         filter: ["==", "$type", "Polygon"],
         paint: {
-          "line-color": "#a91520",
-          "line-width": 1.6,
-          "line-opacity": 0.96,
+          "line-color": "#a80012",
+          "line-width": 1.8,
+          "line-opacity": 1,
         },
         layout: {
           "line-join": "round",
@@ -1193,10 +1193,10 @@ export default function MapView({
         type: "line",
         source: "selected-feature-highlight-source",
         paint: {
-          "line-color": "#ff302f",
-          "line-width": 11,
-          "line-opacity": 0.48,
-          "line-blur": 5,
+          "line-color": "#ff2018",
+          "line-width": 14,
+          "line-opacity": 0.68,
+          "line-blur": 6,
         },
         layout: {
           "line-join": "round",
@@ -1211,10 +1211,10 @@ export default function MapView({
         type: "line",
         source: "selected-feature-highlight-source",
         paint: {
-          "line-color": "#a91520",
-          "line-width": 5,
-          "line-opacity": 0.9,
-          "line-blur": 0.2,
+          "line-color": "#a80012",
+          "line-width": 4.8,
+          "line-opacity": 0.96,
+          "line-blur": 0.15,
         },
         layout: {
           "line-join": "round",
@@ -1228,10 +1228,10 @@ export default function MapView({
         type: "line",
         source: "selected-feature-highlight-source",
         paint: {
-          "line-color": "#ff3b36",
-          "line-width": 2.8,
-          "line-opacity": 0.98,
-          "line-blur": 0.15,
+          "line-color": "#ff3026",
+          "line-width": 3.2,
+          "line-opacity": 1,
+          "line-blur": 0.1,
         },
         layout: {
           "line-join": "round",
@@ -1784,6 +1784,74 @@ export default function MapView({
       for (const layer of map.getStyle().layers ?? []) {
         if (layer.id.startsWith(prefix)) {
           map.setLayoutProperty(layer.id, "visibility", "visible");
+        }
+      }
+
+      // Zoom dari ikon kaca pembesar juga menampilkan highlight. Karena ikon ini
+      // bekerja pada level LAYER (bukan satu fitur), highlight mencakup fitur-fitur
+      // dalam layer tersebut. Klik langsung pada peta tetap menyorot satu fitur saja.
+      // Tutup popup fitur sebelumnya supaya popup lama tidak tertinggal saat
+      // pengguna berpindah ke aksi zoom layer. Highlight layer dipasang setelahnya.
+      featurePopupRef.current?.remove();
+      featurePopupRef.current = null;
+
+      const selectedSource = map.getSource(
+        "selected-feature-highlight-source",
+      ) as maplibregl.GeoJSONSource | undefined;
+      if (selectedSource) {
+        const highlightFeatures = features
+          .filter((feature: any) => feature?.geometry)
+          .map((feature: any) => {
+            const coordinates = feature.geometry.coordinates;
+            const featureLooksProjected = coordinates
+              ? (() => {
+                  const stack = [coordinates];
+                  while (stack.length) {
+                    const value = stack.pop();
+                    if (!Array.isArray(value)) continue;
+                    if (value.length >= 2 && typeof value[0] === "number" && typeof value[1] === "number") {
+                      if (Math.abs(value[0]) > 180 || Math.abs(value[1]) > 90) return true;
+                    } else {
+                      stack.push(...value);
+                    }
+                  }
+                  return false;
+                })()
+              : false;
+            const convertCoordinates = (value: any): any => {
+              if (!Array.isArray(value)) return value;
+              if (value.length >= 2 && typeof value[0] === "number" && typeof value[1] === "number") {
+                if (!shouldConvert || !featureLooksProjected) return value;
+                const lon = (value[0] / 20037508.342789244) * 180;
+                const lat = (Math.atan(Math.sinh(value[1] / 6378137)) * 180) / Math.PI;
+                return [lon, lat, ...value.slice(2)];
+              }
+              return value.map(convertCoordinates);
+            };
+            return {
+              type: "Feature",
+              id: feature.id,
+              properties: feature.properties ?? {},
+              geometry: {
+                ...feature.geometry,
+                ...(coordinates ? { coordinates: convertCoordinates(coordinates) } : {}),
+              },
+            };
+          });
+        selectedSource.setData({
+          type: "FeatureCollection",
+          features: highlightFeatures,
+        } as GeoJSON.FeatureCollection);
+        for (const highlightLayerId of [
+          "selected-feature-highlight-fill",
+          "selected-feature-highlight-polygon-glow",
+          "selected-feature-highlight-polygon-outline",
+          "selected-feature-highlight-line-glow",
+          "selected-feature-highlight-line-casing",
+          "selected-feature-highlight-line",
+          "selected-feature-highlight-point",
+        ]) {
+          if (map.getLayer(highlightLayerId)) map.moveLayer(highlightLayerId);
         }
       }
 
