@@ -823,7 +823,7 @@ export default function MapView({
 
           source: sourceId,
 
-          filter: ["==", ["geometry-type"], "Point"],
+          filter: ["==", "$type", "Point"],
 
           paint: {
             "circle-radius": 5.5,
@@ -888,6 +888,20 @@ export default function MapView({
                 },
               ],
             } as GeoJSON.FeatureCollection);
+
+            // Pastikan highlight berada di atas layer lain, termasuk layer
+            // yang ditambahkan setelah proses inisialisasi utama.
+            for (const highlightLayerId of [
+              "selected-feature-highlight-fill",
+              "selected-feature-highlight-polygon-outline",
+              "selected-feature-highlight-casing",
+              "selected-feature-highlight-line",
+              "selected-feature-highlight-point",
+            ]) {
+              if (map.getLayer(highlightLayerId)) {
+                map.moveLayer(highlightLayerId);
+              }
+            }
           }
 
           const properties = feature.properties ?? {};
@@ -941,14 +955,10 @@ export default function MapView({
         id: "selected-feature-highlight-fill",
         type: "fill",
         source: "selected-feature-highlight-source",
-        filter: [
-          "any",
-          ["==", ["geometry-type"], "Polygon"],
-          ["==", ["geometry-type"], "MultiPolygon"],
-        ],
+        filter: ["==", "$type", "Polygon"],
         paint: {
-          "fill-color": "#e53935",
-          "fill-opacity": 0.38,
+          "fill-color": "#ff0000",
+          "fill-opacity": 0.62,
         },
       });
 
@@ -956,14 +966,10 @@ export default function MapView({
         id: "selected-feature-highlight-polygon-outline",
         type: "line",
         source: "selected-feature-highlight-source",
-        filter: [
-          "any",
-          ["==", ["geometry-type"], "Polygon"],
-          ["==", ["geometry-type"], "MultiPolygon"],
-        ],
+        filter: ["==", "$type", "Polygon"],
         paint: {
-          "line-color": "#c62828",
-          "line-width": 3,
+          "line-color": "#b00000",
+          "line-width": 4,
           "line-opacity": 1,
         },
       });
@@ -975,10 +981,8 @@ export default function MapView({
         source: "selected-feature-highlight-source",
         filter: [
           "any",
-          ["==", ["geometry-type"], "LineString"],
-          ["==", ["geometry-type"], "MultiLineString"],
-          ["==", ["geometry-type"], "Polygon"],
-          ["==", ["geometry-type"], "MultiPolygon"],
+          ["==", "$type", "LineString"],
+          ["==", "$type", "Polygon"],
         ],
         paint: {
           "line-color": "#ffffff",
@@ -993,11 +997,7 @@ export default function MapView({
         id: "selected-feature-highlight-line",
         type: "line",
         source: "selected-feature-highlight-source",
-        filter: [
-          "any",
-          ["==", ["geometry-type"], "LineString"],
-          ["==", ["geometry-type"], "MultiLineString"],
-        ],
+        filter: ["==", "$type", "LineString"],
         paint: {
           // Garis merah transparan dengan outline putih agar kontras
           // di atas layer berwarna, tanpa menutupi peta.
