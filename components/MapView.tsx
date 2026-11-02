@@ -460,6 +460,38 @@ export default function MapView({
         }
         return;
       }
+      // Jika highlight berasal dari tombol Zoom To, hapus saat pengguna
+      // mengeklik area peta yang tidak memiliki fitur digitasi.
+      // Klik pada fitur digitasi tidak menghapusnya di sini; handler fitur
+      // akan mengganti highlight dengan fitur yang diklik dan menampilkan popup.
+      const digitasiClickableLayerIds = (map.getStyle().layers ?? [])
+        .map((layer) => layer.id)
+        .filter(
+          (layerId) =>
+            layerId.startsWith("digitasi-") &&
+            (layerId.endsWith("-fill") ||
+              layerId.endsWith("-line") ||
+              layerId.endsWith("-point")) &&
+            Boolean(map.getLayer(layerId)),
+        );
+
+      const clickedDigitasiFeatures = digitasiClickableLayerIds.length
+        ? map.queryRenderedFeatures(event.point, {
+            layers: digitasiClickableLayerIds,
+          })
+        : [];
+
+      if (clickedDigitasiFeatures.length === 0) {
+        const highlightSource = map.getSource(
+          "selected-feature-highlight-source",
+        ) as maplibregl.GeoJSONSource | undefined;
+
+        highlightSource?.setData({
+          type: "FeatureCollection",
+          features: [],
+        } as GeoJSON.FeatureCollection);
+      }
+
       if (!streetViewPickRef.current) return;
       streetViewPickRef.current = false;
       setStreetViewPicking(false);
