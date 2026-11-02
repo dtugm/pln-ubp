@@ -2900,14 +2900,19 @@ export default function MapView({
                 role="group"
                 aria-label="Pilihan alat ukur"
                 style={{
+                  position: "absolute",
+                  right: 50,
+                  top: 0,
                   display: "flex",
-                  alignItems: "center",
-                  gap: 6,
+                  flexDirection: "column",
+                  alignItems: "stretch",
+                  gap: 5,
                   padding: 5,
                   border: "1px solid #d7e0e5",
                   borderRadius: 10,
                   background: "rgba(255,255,255,0.98)",
                   boxShadow: "0 2px 10px rgba(0,0,0,0.16)",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {([
@@ -2966,19 +2971,20 @@ export default function MapView({
                       aria-label={tool.label}
                       aria-pressed={isSelected}
                       style={{
-                        minWidth: 66,
-                        height: 36,
+                        width: 48,
+                        minWidth: 48,
+                        height: 48,
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
                         justifyContent: "center",
-                        gap: 2,
-                        padding: "3px 8px",
+                        gap: 3,
+                        padding: "4px 3px",
                         border: isSelected ? "1px solid #78c9bd" : "1px solid transparent",
                         borderRadius: 7,
                         background: isSelected ? "#e8f6f4" : "transparent",
                         color: "#29485d",
-                        fontSize: 11,
+                        fontSize: 10,
                         fontWeight: 600,
                         whiteSpace: "nowrap",
                         cursor: "pointer",
@@ -3023,10 +3029,10 @@ export default function MapView({
                 alignItems: "center",
                 justifyContent: "center",
                 padding: 0,
-                border: showMeasureMenu || measureMode ? "1px solid #78c9bd" : "1px solid #d7e0e5",
+                border: showMeasureMenu || measureMode || selectedMeasureTool !== null ? "1px solid #78c9bd" : "1px solid #d7e0e5",
                 borderRadius: 7,
-                background: showMeasureMenu || measureMode ? "#29485d" : "#ffffff",
-                color: showMeasureMenu || measureMode ? "#ffffff" : "#29485d",
+                background: showMeasureMenu || measureMode || selectedMeasureTool !== null ? "#29485d" : "#ffffff",
+                color: showMeasureMenu || measureMode || selectedMeasureTool !== null ? "#ffffff" : "#29485d",
                 boxShadow: "0 1px 4px rgba(0,0,0,0.22)",
                 cursor: "pointer",
                 touchAction: "manipulation",
