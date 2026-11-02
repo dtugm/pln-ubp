@@ -935,18 +935,27 @@ export default function MapView({
       }
 
       // Lapisan sorotan ditambahkan paling atas agar fitur terpilih terlihat jelas.
+      // Outline putih tipis di bawah highlight garis supaya tegas pada peta.
       map.addLayer({
-        id: "selected-feature-highlight-fill",
-        type: "fill",
+        id: "selected-feature-highlight-casing",
+        type: "line",
         source: "selected-feature-highlight-source",
-        filter: ["==", ["geometry-type"], "Polygon"],
+        filter: [
+          "any",
+          ["==", ["geometry-type"], "LineString"],
+          ["==", ["geometry-type"], "MultiLineString"],
+          ["==", ["geometry-type"], "Polygon"],
+          ["==", ["geometry-type"], "MultiPolygon"],
+        ],
         paint: {
-          "fill-color": "#fff200",
-          "fill-opacity": 0.28,
-          "fill-outline-color": "#ffbf00",
+          "line-color": "#ffffff",
+          "line-width": 8,
+          "line-opacity": 0.9,
         },
       });
 
+      // Highlight hanya mengikuti geometri asli yang dipilih.
+      // Tidak ada fill Polygon, agar highlight tidak membentuk kotak/area.
       map.addLayer({
         id: "selected-feature-highlight-line",
         type: "line",
@@ -954,14 +963,18 @@ export default function MapView({
         filter: [
           "any",
           ["==", ["geometry-type"], "LineString"],
-          ["==", ["geometry-type"], "Polygon"],
           ["==", ["geometry-type"], "MultiLineString"],
+          ["==", ["geometry-type"], "Polygon"],
           ["==", ["geometry-type"], "MultiPolygon"],
         ],
         paint: {
-          "line-color": "#ffbf00",
-          "line-width": 6,
-          "line-opacity": 1,
+          // Garis merah transparan dengan outline putih agar kontras
+          // di atas layer berwarna, tanpa menutupi peta.
+          "line-color": "#d9485f",
+          "line-width": 5,
+          "line-opacity": 0.62,
+          "line-gap-width": 0,
+          "line-blur": 0,
         },
       });
 
@@ -971,9 +984,9 @@ export default function MapView({
         source: "selected-feature-highlight-source",
         filter: ["==", ["geometry-type"], "Point"],
         paint: {
-          "circle-radius": 9,
-          "circle-color": "#fff200",
-          "circle-opacity": 0.95,
+          "circle-radius": 8,
+          "circle-color": "#d9485f",
+          "circle-opacity": 0.45,
           "circle-stroke-color": "#ffffff",
           "circle-stroke-width": 2.5,
         },
