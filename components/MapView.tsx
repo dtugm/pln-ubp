@@ -625,6 +625,16 @@ export default function MapView({
         );
       }
 
+      // Sumber sementara untuk menyorot fitur yang sedang dipilih.
+      // Datanya diisi saat pengguna mengeklik fitur pada peta.
+      map.addSource("selected-feature-highlight-source", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [],
+        },
+      });
+
       for (const item of digitasiLayers) {
         const sourceId = `digitasi-${item.key}-source`;
 
@@ -860,6 +870,26 @@ export default function MapView({
 
           if (!feature) return;
 
+          // Sorot fitur yang dipilih. Salin sebagai GeoJSON Feature agar dapat
+          // ditampilkan kembali di atas seluruh layer tanpa mengubah data sumber.
+          const highlightSource = map.getSource(
+            "selected-feature-highlight-source",
+          ) as maplibregl.GeoJSONSource | undefined;
+
+          if (highlightSource && feature.geometry) {
+            highlightSource.setData({
+              type: "FeatureCollection",
+              features: [
+                {
+                  type: "Feature",
+                  id: feature.id,
+                  properties: feature.properties ?? {},
+                  geometry: feature.geometry,
+                },
+              ],
+            } as GeoJSON.FeatureCollection);
+          }
+
           const properties = feature.properties ?? {};
 
           const entries = Object.entries(properties).filter(
@@ -903,6 +933,51 @@ export default function MapView({
           map.getCanvas().style.cursor = "";
         });
       }
+
+      // Lapisan sorotan ditambahkan paling atas agar fitur terpilih terlihat jelas.
+      map.addLayer({
+        id: "selected-feature-highlight-fill",
+        type: "fill",
+        source: "selected-feature-highlight-source",
+        filter: ["==", ["geometry-type"], "Polygon"],
+        paint: {
+          "fill-color": "#fff200",
+          "fill-opacity": 0.28,
+          "fill-outline-color": "#ffbf00",
+        },
+      });
+
+      map.addLayer({
+        id: "selected-feature-highlight-line",
+        type: "line",
+        source: "selected-feature-highlight-source",
+        filter: [
+          "any",
+          ["==", ["geometry-type"], "LineString"],
+          ["==", ["geometry-type"], "Polygon"],
+          ["==", ["geometry-type"], "MultiLineString"],
+          ["==", ["geometry-type"], "MultiPolygon"],
+        ],
+        paint: {
+          "line-color": "#ffbf00",
+          "line-width": 6,
+          "line-opacity": 1,
+        },
+      });
+
+      map.addLayer({
+        id: "selected-feature-highlight-point",
+        type: "circle",
+        source: "selected-feature-highlight-source",
+        filter: ["==", ["geometry-type"], "Point"],
+        paint: {
+          "circle-radius": 9,
+          "circle-color": "#fff200",
+          "circle-opacity": 0.95,
+          "circle-stroke-color": "#ffffff",
+          "circle-stroke-width": 2.5,
+        },
+      });
 
       // Terapkan visibilitas awal langsung ke layer MapLibre setelah semuanya dibuat.
       // Efek React yang mengatur visibility bisa berjalan sebelum layer selesai dimuat,
