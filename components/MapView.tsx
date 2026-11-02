@@ -996,6 +996,7 @@ export default function MapView({
             for (const highlightLayerId of [
               "selected-feature-highlight-fill",
               "selected-feature-highlight-polygon-outline",
+              "selected-feature-highlight-line-casing",
               "selected-feature-highlight-line",
               "selected-feature-highlight-point",
             ]) {
@@ -1096,24 +1097,35 @@ export default function MapView({
         },
       });
 
-      // Highlight hanya mengikuti geometri asli yang dipilih.
-      // Tidak ada fill Polygon, agar highlight tidak membentuk kotak/area.
+      // Lapisan dasar highlight garis: merah tua tipis sebagai outline/casing.
+      // Tidak memakai filter geometri agar LineString dan MultiLineString
+      // sama-sama bisa disorot, termasuk data kontur.
+      map.addLayer({
+        id: "selected-feature-highlight-line-casing",
+        type: "line",
+        source: "selected-feature-highlight-source",
+        paint: {
+          "line-color": "#8f0000",
+          "line-width": 6,
+          "line-opacity": 0.95,
+          "line-blur": 0,
+        },
+        layout: {
+          "line-join": "round",
+          "line-cap": "round",
+        },
+      });
+
+      // Garis merah utama di atas casing supaya highlight jelas tetapi tetap halus.
       map.addLayer({
         id: "selected-feature-highlight-line",
         type: "line",
         source: "selected-feature-highlight-source",
-        // Jangan batasi dengan filter $type LineString. Data kontur dapat
-        // tersimpan sebagai MultiLineString atau geometri campuran; layer line
-        // MapLibre bisa merender garis dan batas poligon dari sumber highlight.
-        // Ini memastikan Kontur Mayor/Minor juga terlihat saat dipilih.
         paint: {
-          // Garis merah transparan dengan outline putih agar kontras
-          // di atas layer berwarna, tanpa menutupi peta.
-          "line-color": "#d9485f",
-          "line-width": 5,
-          "line-opacity": 0.62,
-          "line-gap-width": 0,
-          "line-blur": 0.2,
+          "line-color": "#ff2424",
+          "line-width": 3.5,
+          "line-opacity": 0.95,
+          "line-blur": 0,
         },
         layout: {
           "line-join": "round",
