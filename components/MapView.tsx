@@ -955,10 +955,13 @@ export default function MapView({
 
                 if (matched?.geometry) {
                   const originalGeometry = matched.geometry;
+                  // Samakan konversi highlight dengan konversi yang diterapkan saat
+                  // memuat layer ke peta. Opsi Jalur Pipa juga bisa memakai koordinat
+                  // proyeksi (mis. EPSG:3857); tanpa konversi, garis highlight berada
+                  // jauh dari garis yang terlihat meskipun popup berhasil dibuka.
                   const needsConversion =
                     selectedLayerItem.key === "bangunan" ||
-                    ((selectedLayerItem.key === "kontur-mayor" || selectedLayerItem.key === "kontur-minor") &&
-                      coordinatesLookProjected(originalGeometry.coordinates));
+                    coordinatesLookProjected(originalGeometry.coordinates);
                   fullFeature = {
                     ...matched,
                     geometry: needsConversion
