@@ -204,7 +204,7 @@ export default function MapView({
   const [measureMode, setMeasureMode] = useState<"length" | "width" | "height" | null>(null);
   const [measureResult, setMeasureResult] = useState("");
   const [showMeasureMenu, setShowMeasureMenu] = useState(false);
-  const [selectedMeasureTool, setSelectedMeasureTool] = useState<"length" | "area" | "profile" | null>(null);
+  const [selectedMeasureTool, setSelectedMeasureTool] = useState<"length" | "area" | "height" | "profile" | null>(null);
   const measureModeRef = useRef<"length" | "width" | "height" | null>(null);
   const measurePointsRef = useRef<[number, number, number | null][]>([]);
   const measureMarkersRef = useRef<Marker[]>([]);
