@@ -2908,11 +2908,11 @@ export default function MapView({
                   flexDirection: "column",
                   alignItems: "stretch",
                   gap: 5,
-                  padding: 5,
-                  border: "1px solid #d7e0e5",
-                  borderRadius: 10,
-                  background: "rgba(255,255,255,0.98)",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.16)",
+                  padding: 0,
+                  border: "none",
+                  borderRadius: 0,
+                  background: "transparent",
+                  boxShadow: "none",
                   whiteSpace: "nowrap",
                 }}
               >
@@ -2975,43 +2975,44 @@ export default function MapView({
                       aria-label={tool.label}
                       aria-pressed={isSelected}
                       style={{
-                        width: 48,
-                        minWidth: 48,
+                        width: 140,
+                        minWidth: 140,
                         height: 48,
                         display: "flex",
-                        flexDirection: "column",
+                        flexDirection: "row",
                         alignItems: "center",
-                        justifyContent: "center",
-                        gap: 3,
-                        padding: "4px 3px",
-                        border: isSelected ? "1px solid #78c9bd" : "1px solid transparent",
-                        borderRadius: 7,
-                        background: isSelected ? "#e8f6f4" : "transparent",
+                        justifyContent: "flex-start",
+                        gap: 10,
+                        padding: "0 12px",
+                        border: isSelected ? "1px solid #78c9bd" : "1px solid rgba(215,224,229,0.55)",
+                        borderRadius: 11,
+                        background: isSelected ? "#e8f6f4" : "#ffffff",
                         color: "#29485d",
-                        fontSize: 10,
-                        fontWeight: 600,
+                        fontSize: 14,
+                        fontWeight: 500,
+                        boxShadow: "0 1px 4px rgba(0,0,0,0.14)",
                         whiteSpace: "nowrap",
                         cursor: "pointer",
                         touchAction: "manipulation",
                       }}
                     >
                       {tool.icon === "length" ? (
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="M3 17.5 17.5 3 21 6.5 6.5 21 3 17.5Z" />
                           <path d="m7 13 2 2m1-6 2 2m1-6 2 2m-6 10 2 2" />
                         </svg>
                       ) : tool.icon === "area" ? (
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="m5 4 14 2 2 12-13 2-4-9Z" />
                           <path d="M5 4 8 20" strokeDasharray="2 2" />
                         </svg>
                       ) : tool.icon === "height" ? (
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4" />
                           <path d="M5 7h3M5 12h3M5 17h3M16 7h3M16 12h3M16 17h3" />
                         </svg>
                       ) : (
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="M3 19h18M4 16l4-5 4 2 5-8 3 3" />
                           <circle cx="8" cy="11" r="1" />
                           <circle cx="12" cy="13" r="1" />
@@ -3032,8 +3033,8 @@ export default function MapView({
               aria-expanded={showMeasureMenu}
               aria-pressed={!!measureMode}
               style={{
-                width: 42,
-                height: 42,
+                width: 52,
+                height: 52,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -3047,7 +3048,7 @@ export default function MapView({
                 touchAction: "manipulation",
               }}
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 17.5 17.5 3 21 6.5 6.5 21 3 17.5Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
                 <path d="m7 13 2 2m1-6 2 2m1-6 2 2m-6 10 2 2" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
