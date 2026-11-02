@@ -868,8 +868,8 @@ export default function MapView({
             ],
             layout: {
               visibility: "none",
-              "symbol-placement": "line-center",
-              "symbol-spacing": item.key === "kontur-mayor" ? 420 : 600,
+              "symbol-placement": "line",
+              "symbol-spacing": item.key === "kontur-mayor" ? 320 : 420,
               "text-field": ["to-string", ["get", "ELEVATION"]],
               "text-font": ["Open Sans Regular"],
               "text-size": ["interpolate", ["linear"], ["zoom"], 13, 9, 16, 11, 19, 12],
@@ -1369,7 +1369,20 @@ export default function MapView({
       const buildingOutlineId = "digitasi-bangunan-line-polygon-outline";
       if (map.getLayer(buildingOutlineId)) map.moveLayer(buildingOutlineId);
 
-      // Draw measurement graphics above all thematic layers.
+      // Label kontur harus dipindahkan PALING ATAS setelah semua layer tematik
+      // diurutkan. Jika tidak, fill/garis yang ditambahkan belakangan dapat
+      // menutupi teks label walaupun tombol 123 sudah aktif.
+      for (const id of [
+        "digitasi-kontur-mayor-line-elevation-label",
+        "digitasi-kontur-minor-line-elevation-label",
+      ]) {
+        if (map.getLayer(id)) {
+          map.moveLayer(id);
+        }
+      }
+
+      // Draw measurement graphics above thematic layers. Label kontur tetap
+      // berada di atas fitur peta agar nilai elevasinya terbaca.
       for (const id of ["measure-line-layer", "measure-line-label", "measure-points-layer"]) {
         if (map.getLayer(id)) map.moveLayer(id);
       }
