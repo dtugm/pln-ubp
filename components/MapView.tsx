@@ -917,57 +917,111 @@ export default function MapView({
             selectedLayerItem?.key === "kontur-mayor" ||
             selectedLayerItem?.key === "kontur-minor";
 
-          if (selectedLayerItem && !isContourLayer) {
+          if (selectedLayerItem) {
             try {
               const fullResponse = await fetch(
                 `${R2_DATA_BASE}/${encodeURIComponent(selectedLayerItem.file)}`,
               );
               if (fullResponse.ok) {
                 const originalGeoJSON = await fullResponse.json();
-                const originalFeatures = Array.isArray(originalGeoJSON.features)
+                const originalFeatures: any[] = Array.isArray(originalGeoJSON.features)
                   ? originalGeoJSON.features
                   : [];
                 const clickedProperties = feature.properties ?? {};
+                let matched: any;
 
-                // Prioridad: ID GeoJSON, lalu atribut id/fid, kemudian kecocokan
-                // seluruh properti. Jangan gunakan geometri hasil render sebagai
-                // sumber utama karena dapat berupa potongan tile.
-                let matched = feature.id != null
-                  ? originalFeatures.find((candidate: any) => candidate.id === feature.id)
-                  : undefined;
+                if (isContourLayer) {
+                  // Kontur dapat memiliki atribut berulang dan MapLibre memotong
+                  // geometri saat render. Cari fitur sumber yang atributnya cocok
+                  // lalu pilih geometri yang paling dekat dengan titik klik layar.
+                  const relevantKeys = ["NAME", "LAYER", "MAP_NAME", "ELEVATION", "CLOSED_CON"];
+                  const candidates = originalFeatures.filter((candidate) => {
+                    if (!candidate.geometry) return false;
+                    const props = candidate.properties ?? {};
+                    return relevantKeys.every((key) =>
+                      clickedProperties[key] == null || props[key] == null ||
+                      String(props[key]) === String(clickedProperties[key]),
+                    );
+                  });
 
-                if (!matched) {
-                  const identifierKeys = ["id", "fid", "ID", "FID", "objectid", "OBJECTID"];
-                  const identifierKey = identifierKeys.find(
-                    (key) => clickedProperties[key] !== undefined && clickedProperties[key] !== null,
-                  );
-                  if (identifierKey) {
+                  const clickPoint = event.point;
+                  const geometryDistance = (geometry: any): number => {
+                    const projected: [number, number][] = [];
+                    const walk = (value: any) => {
+                      if (!Array.isArray(value)) return;
+                      if (value.length >= 2 && typeof value[0] === "number" && typeof value[1] === "number") {
+                        const needsConversion = Math.abs(value[0]) > 180 || Math.abs(value[1]) > 90;
+                        const coord = needsConversion ? mercatorToLonLat(value) : value;
+                        const point = map.project([coord[0], coord[1]]);
+                        projected.push([point.x, point.y]);
+                      } else {
+                        value.forEach(walk);
+                      }
+                    };
+                    walk(geometry.coordinates);
+                    if (!projected.length) return Number.POSITIVE_INFINITY;
+                    if (projected.length === 1) {
+                      return Math.hypot(projected[0][0] - clickPoint.x, projected[0][1] - clickPoint.y);
+                    }
+                    let min = Number.POSITIVE_INFINITY;
+                    for (let i = 1; i < projected.length; i++) {
+                      const [x1, y1] = projected[i - 1];
+                      const [x2, y2] = projected[i];
+                      const dx = x2 - x1;
+                      const dy = y2 - y1;
+                      const length2 = dx * dx + dy * dy;
+                      const t = length2 === 0 ? 0 : Math.max(0, Math.min(1,
+                        ((clickPoint.x - x1) * dx + (clickPoint.y - y1) * dy) / length2,
+                      ));
+                      min = Math.min(min, Math.hypot(clickPoint.x - (x1 + t * dx), clickPoint.y - (y1 + t * dy)));
+                    }
+                    return min;
+                  };
+
+                  let bestDistance = Number.POSITIVE_INFINITY;
+                  for (const candidate of candidates) {
+                    const distance = geometryDistance(candidate.geometry);
+                    if (distance < bestDistance) {
+                      bestDistance = distance;
+                      matched = candidate;
+                    }
+                  }
+                  // Batasi jarak agar tidak mengambil garis kontur lain yang jauh.
+                  if (bestDistance > 18) matched = undefined;
+                } else {
+                  matched = feature.id != null
+                    ? originalFeatures.find((candidate: any) => candidate.id === feature.id)
+                    : undefined;
+
+                  if (!matched) {
+                    const identifierKeys = ["id", "fid", "ID", "FID", "objectid", "OBJECTID"];
+                    const identifierKey = identifierKeys.find(
+                      (key) => clickedProperties[key] !== undefined && clickedProperties[key] !== null,
+                    );
+                    if (identifierKey) {
+                      matched = originalFeatures.find(
+                        (candidate: any) => candidate.properties?.[identifierKey] === clickedProperties[identifierKey],
+                      );
+                    }
+                  }
+
+                  if (!matched) {
+                    const stableStringify = (value: any): string => {
+                      if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+                      if (value && typeof value === "object") {
+                        return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+                      }
+                      return JSON.stringify(value);
+                    };
+                    const clickedSignature = stableStringify(clickedProperties);
                     matched = originalFeatures.find(
-                      (candidate: any) => candidate.properties?.[identifierKey] === clickedProperties[identifierKey],
+                      (candidate: any) => stableStringify(candidate.properties ?? {}) === clickedSignature,
                     );
                   }
                 }
 
-                if (!matched) {
-                  const stableStringify = (value: any): string => {
-                    if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
-                    if (value && typeof value === "object") {
-                      return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
-                    }
-                    return JSON.stringify(value);
-                  };
-                  const clickedSignature = stableStringify(clickedProperties);
-                  matched = originalFeatures.find(
-                    (candidate: any) => stableStringify(candidate.properties ?? {}) === clickedSignature,
-                  );
-                }
-
                 if (matched?.geometry) {
                   const originalGeometry = matched.geometry;
-                  // Samakan konversi highlight dengan konversi yang diterapkan saat
-                  // memuat layer ke peta. Opsi Jalur Pipa juga bisa memakai koordinat
-                  // proyeksi (mis. EPSG:3857); tanpa konversi, garis highlight berada
-                  // jauh dari garis yang terlihat meskipun popup berhasil dibuka.
                   const needsConversion =
                     selectedLayerItem.key === "bangunan" ||
                     coordinatesLookProjected(originalGeometry.coordinates);
@@ -985,8 +1039,8 @@ export default function MapView({
           }
 
           // Sorot geometri fitur yang dipilih. Untuk layer biasa, gunakan geometri
-          // lengkap dari GeoJSON asli; untuk kontur, gunakan geometri hasil klik
-          // agar tidak salah mengambil kontur lain yang atributnya sama.
+          // lengkap dari GeoJSON asli, termasuk kontur yang dipilih berdasarkan jarak
+          // geometri ke titik klik agar garis utuh dan tidak tertukar dengan kontur lain.
           const highlightSource = map.getSource(
             "selected-feature-highlight-source",
           ) as maplibregl.GeoJSONSource | undefined;
