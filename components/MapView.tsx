@@ -1327,18 +1327,15 @@ export default function MapView({
         },
       });
 
-      // Terapkan visibilitas awal langsung ke layer MapLibre setelah semuanya dibuat.
-      // Efek React yang mengatur visibility bisa berjalan sebelum layer selesai dimuat,
-      // sehingga layer Kontur dan BM perlu disembunyikan juga pada saat inisialisasi peta.
-      for (const key of [
-        "kontur-mayor",
-        "kontur-minor",
-        "bm",
-      ] as DigitasiKey[]) {
-        const prefix = `digitasi-${key}-`;
+      // Terapkan visibilitas awal berdasarkan state React untuk SEMUA layer.
+      // Jangan mematikan kontur secara paksa: jika tidak, garis bisa tetap tersembunyi
+      // walaupun checkbox sudah aktif karena effect React dapat berjalan sebelum layer dibuat.
+      for (const item of digitasiLayers) {
+        const visible = digitasiVisibility[item.key] ? "visible" : "none";
+        const prefix = `digitasi-${item.key}-`;
         for (const layer of map.getStyle().layers ?? []) {
           if (layer.id.startsWith(prefix)) {
-            map.setLayoutProperty(layer.id, "visibility", "none");
+            map.setLayoutProperty(layer.id, "visibility", visible);
           }
         }
       }
@@ -1366,15 +1363,6 @@ export default function MapView({
           const id = `digitasi-${item.key}-${kind}`;
           if (map.getLayer(id)) map.moveLayer(id);
         }
-      }
-
-      // Label kontur harus berada di atas seluruh layer digitasi. Sebelumnya
-      // label dibuat tepat setelah garis kontur, sehingga layer yang ditambahkan
-      // kemudian (mis. poligon rawa/bangunan) dapat menutup teks elevasinya.
-      // Pindahkan label ke urutan paling atas setelah urutan render layer selesai.
-      for (const key of ["kontur-mayor", "kontur-minor"] as const) {
-        const labelId = `digitasi-${key}-line-elevation-label`;
-        if (map.getLayer(labelId)) map.moveLayer(labelId);
       }
 
       // Pastikan outline bangunan berada di atas fill bangunan dan layer tematik lain.
@@ -1427,7 +1415,7 @@ export default function MapView({
   useEffect(() => {
     const map = mapRef.current;
 
-    if (!map || !map.isStyleLoaded()) return;
+    if (!map) return;
 
     digitasiLayers.forEach((item) => {
       const visibility = digitasiVisibility[item.key] ? "visible" : "none";
