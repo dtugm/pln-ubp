@@ -640,7 +640,12 @@ export default function MapView({
 
         let sourceData: any = dataUrl;
 
-        if (["bangunan", "kontur-mayor", "kontur-minor"].includes(item.key)) {
+        // Opsi jalur pipa dibaca melalui API proxy, divalidasi, dan bila
+        // koordinatnya Web Mercator (EPSG:3857), dikonversi ke lon/lat.
+        // MapLibre GeoJSON source membutuhkan koordinat WGS84 (EPSG:4326).
+        if (
+          ["bangunan", "kontur-mayor", "kontur-minor", "opsi-jalur-pipa-1", "opsi-jalur-pipa-2"].includes(item.key)
+        ) {
           try {
             const response = await fetch(dataUrl);
 
@@ -651,36 +656,45 @@ export default function MapView({
 
             const geojson = await response.json();
 
-            const features = geojson.features ?? [];
+            const features = Array.isArray(geojson.features)
+              ? geojson.features
+              : geojson.type === "Feature"
+                ? [geojson]
+                : [];
 
+            if (!features.length) {
+              throw new Error(`${item.file} tidak berisi Feature GeoJSON yang dapat dibaca.`);
+            }
+
+            const hasProjectedCoordinates = features.some((feature: any) =>
+              feature.geometry && coordinatesLookProjected(feature.geometry.coordinates),
+            );
+            // Bangunan pada konfigurasi lama memang tersimpan dalam Web Mercator.
             const shouldConvert =
               item.key === "bangunan" ||
-              features.some(
-                (feature: any) =>
-                  feature.geometry &&
-                  coordinatesLookProjected(feature.geometry.coordinates),
-              );
+              (["kontur-mayor", "kontur-minor", "opsi-jalur-pipa-1", "opsi-jalur-pipa-2"].includes(item.key) && hasProjectedCoordinates);
 
-            if (shouldConvert) {
+            if (shouldConvert && hasProjectedCoordinates) {
               geojson.features = features.map((feature: any) => {
                 if (!feature.geometry) return feature;
-
                 return {
                   ...feature,
-
-                  geometry: {
-                    ...feature.geometry,
-
-                    coordinates: mercatorToLonLat(feature.geometry.coordinates),
-                  },
+                  geometry: feature.geometry.coordinates
+                    ? {
+                        ...feature.geometry,
+                        coordinates: mercatorToLonLat(feature.geometry.coordinates),
+                      }
+                    : feature.geometry,
                 };
               });
+            } else if (geojson.type === "Feature") {
+              geojson.features = features;
+              geojson.type = "FeatureCollection";
             }
 
             sourceData = geojson;
-
             console.info(
-              `[${item.label}] ${features.length} fitur dimuat${shouldConvert ? " dan koordinat dikonversi dari EPSG:3857" : ""}. URL: ${dataUrl}`,
+              `[${item.label}] ${features.length} fitur dimuat${shouldConvert && hasProjectedCoordinates ? " dan koordinat dikonversi dari asumsi EPSG:3857" : ""}. URL: ${dataUrl}`,
             );
           } catch (error) {
             console.error(
@@ -703,7 +717,11 @@ export default function MapView({
 
           // MapLibre menganggap MultiPolygon sebagai geometri Polygon untuk filter.
 
-          filter: ["==", ["geometry-type"], "Polygon"],
+          // Untuk opsi jalur pipa, jangan isi area Polygon; tampilkan batasnya
+          // sebagai garis pada layer line di bawah.
+          filter: item.key.startsWith("opsi-jalur-pipa-")
+            ? ["==", ["geometry-type"], "Point"]
+            : ["==", ["geometry-type"], "Polygon"],
 
           paint: {
             ...(item.key === "rel-ka"
@@ -768,13 +786,20 @@ export default function MapView({
 
           source: sourceId,
 
-          filter: ["==", ["geometry-type"], "LineString"],
+          filter: item.key.startsWith("opsi-jalur-pipa-")
+            ? [
+                "any",
+                ["==", ["geometry-type"], "LineString"],
+                ["==", ["geometry-type"], "Polygon"],
+              ]
+            : ["==", ["geometry-type"], "LineString"],
 
           paint: {
             "line-color": item.key === "rel-ka" ? "#242424" : item.color,
 
-            "line-width":
-              item.key === "kontur-mayor"
+            "line-width": item.key.startsWith("opsi-jalur-pipa-")
+              ? 4
+              : item.key === "kontur-mayor"
                 ? 1.8
                 : item.key === "kontur-minor"
                   ? 1.0
@@ -1314,6 +1339,10 @@ export default function MapView({
           ? [geojson]
           : [];
 
+      if (!features.length) {
+        throw new Error(`Respons ${item.file} berhasil diakses, tetapi tidak berisi fitur GeoJSON. Periksa struktur file.`);
+      }
+
       const positions: number[][] = [];
       const collectPositions = (value: any): void => {
         if (!Array.isArray(value)) return;
@@ -1344,9 +1373,15 @@ export default function MapView({
         ([x, y]) => Math.abs(x) > 180 || Math.abs(y) > 90,
       );
       const shouldConvert =
-        item.key === "bangunan" ||
-        ((item.key === "kontur-mayor" || item.key === "kontur-minor") &&
-          looksProjected);
+        looksProjected &&
+        (item.key === "bangunan" ||
+          item.key === "kontur-mayor" ||
+          item.key === "kontur-minor" ||
+          item.key === "opsi-jalur-pipa-1" ||
+          item.key === "opsi-jalur-pipa-2");
+
+      // Konversi ini hanya benar untuk Web Mercator EPSG:3857.
+      // Jika koordinat sumber berupa UTM/lokal, EPSG sumber harus diketahui.
 
       const lonLatPositions = positions.map(([x, y]) => {
         if (!shouldConvert || !looksProjected) return [x, y];
@@ -1359,6 +1394,14 @@ export default function MapView({
       const latitudes = lonLatPositions.map(([, lat]) => lat).filter(Number.isFinite);
       if (!longitudes.length || !latitudes.length) {
         throw new Error(`Koordinat ${item.label} tidak valid`);
+      }
+      if (
+        longitudes.some((lon) => Math.abs(lon) > 180) ||
+        latitudes.some((lat) => Math.abs(lat) > 90)
+      ) {
+        throw new Error(
+          `Koordinat ${item.file} masih berupa koordinat proyeksi, bukan longitude/latitude. EPSG sumber perlu dipastikan sebelum dikonversi.`,
+        );
       }
 
       const minLon = longitudes.reduce((min, value) => Math.min(min, value), Infinity);
@@ -1388,7 +1431,12 @@ export default function MapView({
       }
     } catch (error) {
       console.error(`Gagal zoom ke layer ${item.label}:`, error);
-      window.alert(`Belum bisa zoom ke ${item.label}. Periksa koneksi dan file GeoJSON layer tersebut.`);
+      const detail = error instanceof Error ? error.message : String(error);
+      window.alert(`Belum bisa zoom ke ${item.label}.
+
+Detail: ${detail}
+
+Buka DevTools Console (F12) untuk melihat log lengkap.`);
     } finally {
       setZoomingLayer(null);
     }
