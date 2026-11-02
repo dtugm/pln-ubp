@@ -2617,7 +2617,7 @@ export default function MapView({
                                     padding: 0,
                                   }}
                                 >
-                                  {item.key === "bangunan" || item.key === "tangki" ? "ABC" : "123"}
+                                  {item.key === "bangunan" || item.key === "tangki" ? "abc" : "123"}
                                 </button>
                               )}
                               <button
