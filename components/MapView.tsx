@@ -1038,13 +1038,26 @@ export default function MapView({
         "line",
         "point",
       ];
+
+      // Bangunan digambar paling atas agar tidak tertutup oleh poligon
+      // seperti Rawa. Layer lain tetap mengikuti urutan sebelumnya.
+      const orderedDigitasiLayers = [
+        ...digitasiLayers.filter((item) => item.key !== "bangunan"),
+        ...digitasiLayers.filter((item) => item.key === "bangunan"),
+      ];
+
       for (const kind of orderedKinds) {
-        for (const item of digitasiLayers) {
+        for (const item of orderedDigitasiLayers) {
           if (kind === "line-casing" && item.key !== "rel-ka") continue;
           const id = `digitasi-${item.key}-${kind}`;
           if (map.getLayer(id)) map.moveLayer(id);
         }
       }
+
+      // Pastikan outline bangunan berada di atas fill bangunan dan layer tematik lain.
+      const buildingOutlineId = "digitasi-bangunan-line-polygon-outline";
+      if (map.getLayer(buildingOutlineId)) map.moveLayer(buildingOutlineId);
+
       // Draw measurement graphics above all thematic layers.
       for (const id of ["measure-line-layer", "measure-line-label", "measure-points-layer"]) {
         if (map.getLayer(id)) map.moveLayer(id);
