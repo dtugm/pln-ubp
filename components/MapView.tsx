@@ -638,7 +638,15 @@ export default function MapView({
 
         let sourceData: any = dataUrl;
 
-        if (["bangunan", "kontur-mayor", "kontur-minor"].includes(item.key)) {
+        if (
+          [
+            "bangunan",
+            "kontur-mayor",
+            "kontur-minor",
+            "opsi-jalur-pipa-1",
+            "opsi-jalur-pipa-2",
+          ].includes(item.key)
+        ) {
           try {
             const response = await fetch(dataUrl);
 
@@ -1353,7 +1361,10 @@ export default function MapView({
       );
       const shouldConvert =
         item.key === "bangunan" ||
-        ((item.key === "kontur-mayor" || item.key === "kontur-minor") &&
+        ((item.key === "kontur-mayor" ||
+          item.key === "kontur-minor" ||
+          item.key === "opsi-jalur-pipa-1" ||
+          item.key === "opsi-jalur-pipa-2") &&
           looksProjected);
 
       const lonLatPositions = positions.map(([x, y]) => {
