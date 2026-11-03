@@ -493,20 +493,12 @@ export default function MapView({
           const validElevations = samples
             .map((sample) => sample.elevation)
             .filter((value): value is number => value !== null);
-          // Selalu buka jendela profil setelah pengguna menyelesaikan jalur.
-          // Bila terrain tidak mengembalikan nilai elevasi, komponen profil
-          // tetap tampil dan memberi pesan yang jelas, bukan hanya kartu kecil.
-          setProfileSamples(samples);
-          setShowProfileWindow(true);
-
           if (validElevations.length < 2) {
-            setMeasureResult(
-              "Jalur selesai, tetapi data elevasi belum tersedia. Jendela Profil Elevasi dibuka; pastikan sumber Terrain/DTM benar-benar menyediakan elevasi, lalu gambar ulang jalur."
-            );
+            setMeasureResult("Sampel elevasi tidak tersedia. Aktifkan Terrain 3D/DTM Lokal, tunggu terrain selesai dimuat, lalu gambar ulang jalur profil.");
           } else {
-            setMeasureResult(
-              `Profil elevasi · panjang ${formatDistance(totalMeters)} · ${validElevations.length} sampel elevasi.`
-            );
+            setProfileSamples(samples);
+            setShowProfileWindow(true);
+            setMeasureResult(`Profil elevasi · panjang ${formatDistance(totalMeters)} · ${validElevations.length} sampel elevasi.`);
           }
         }
       }
@@ -3127,6 +3119,34 @@ export default function MapView({
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div>{measureResult}</div>
+                    {profileSamples.length >= 2 && selectedMeasureTool === "profile" && (
+                      <div style={{ marginTop: 8 }}>
+                        <svg viewBox="0 0 320 94" role="img" aria-label="Grafik profil elevasi" style={{ display: "block", width: "100%", maxWidth: 360, height: 94 }}>
+                          {(() => {
+                            const values = profileSamples.map((p) => p.elevation).filter((v): v is number => v != null);
+                            if (values.length < 2) return null;
+                            const min = Math.min(...values);
+                            const max = Math.max(...values);
+                            const span = max - min || 1;
+                            const pts = profileSamples.filter((p) => p.elevation != null).map((p) => {
+                              const x = 8 + (p.distance / Math.max(profileSamples[profileSamples.length - 1].distance, 1)) * 304;
+                              const y = 76 - (((p.elevation as number) - min) / span) * 58;
+                              return `${x},${y}`;
+                            }).join(" ");
+                            return (
+                              <>
+                                <line x1="8" y1="76" x2="312" y2="76" stroke="#cbd5e1" strokeWidth="1" />
+                                <polyline points={pts} fill="none" stroke="#087f8c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                <text x="8" y="90" fontSize="9" fill="#64748b">0 m</text>
+                                <text x="312" y="90" textAnchor="end" fontSize="9" fill="#64748b">{profileSamples[profileSamples.length - 1].distance >= 1000 ? `${(profileSamples[profileSamples.length - 1].distance / 1000).toFixed(2)} km` : `${profileSamples[profileSamples.length - 1].distance.toFixed(0)} m`}</text>
+                                <text x="8" y="10" fontSize="9" fill="#64748b">{max.toFixed(2)} m</text>
+                                <text x="8" y="72" fontSize="9" fill="#64748b">{min.toFixed(2)} m</text>
+                              </>
+                            );
+                          })()}
+                        </svg>
+                      </div>
+                    )}
                   </div>
                   <button
                     type="button"
@@ -3157,7 +3177,7 @@ export default function MapView({
                 </div>
               </div>
             )}
-            {showProfileWindow && selectedMeasureTool === "profile" && profileSamples.length >= 2 && (
+            {showProfileWindow && (
               <ElevationProfileWindow
                 samples={profileSamples}
                 onClose={() => setShowProfileWindow(false)}
