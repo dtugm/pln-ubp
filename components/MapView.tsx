@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import ElevationProfileWindow from "./ElevationProfileWindow";
 
 import maplibregl, { Map as MapLibreMap, Marker } from "maplibre-gl";
 
@@ -3137,91 +3138,10 @@ export default function MapView({
               </div>
             )}
             {showProfileWindow && selectedMeasureTool === "profile" && profileSamples.length >= 2 && (
-              <div
-                role="dialog"
-                aria-label="Profil elevasi medan"
-                style={{
-                  position: "fixed",
-                  left: "50%",
-                  bottom: 18,
-                  transform: "translateX(-50%)",
-                  zIndex: 9999,
-                  width: "min(760px, calc(100vw - 32px))",
-                  boxSizing: "border-box",
-                  padding: "18px 20px 16px",
-                  borderRadius: 18,
-                  background: "rgba(255,255,255,0.98)",
-                  color: "#29485d",
-                  border: "1px solid #d8e5e8",
-                  boxShadow: "0 12px 36px rgba(22,55,68,0.25)",
-                  backdropFilter: "blur(12px)",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
-                  <div>
-                    <div style={{ fontSize: 17, fontWeight: 750, letterSpacing: "-0.02em" }}>Profil Elevasi</div>
-                    <div style={{ fontSize: 12, color: "#718096", marginTop: 3 }}>Penampang naik-turun permukaan sepanjang jalur pengukuran</div>
-                  </div>
-                  <button
-                    type="button"
-                    aria-label="Tutup jendela profil elevasi"
-                    onClick={() => setShowProfileWindow(false)}
-                    style={{ width: 32, height: 32, border: "1px solid #dbe6ea", borderRadius: 10, background: "#f2f8fa", color: "#29485d", cursor: "pointer", fontSize: 20, lineHeight: 1 }}
-                  >×</button>
-                </div>
-                {(() => {
-                  const valid = profileSamples.filter((p): p is { distance: number; elevation: number } => p.elevation != null);
-                  if (valid.length < 2) return <div style={{ fontSize: 13, color: "#718096" }}>Data elevasi belum cukup untuk membentuk grafik.</div>;
-                  const elevations = valid.map((p) => p.elevation);
-                  const minElevation = Math.min(...elevations);
-                  const maxElevation = Math.max(...elevations);
-                  const elevationRange = maxElevation - minElevation || 1;
-                  const totalDistance = Math.max(profileSamples[profileSamples.length - 1]?.distance ?? 0, 1);
-                  const chart = { left: 54, right: 724, top: 20, bottom: 222 };
-                  const x = (distance: number) => chart.left + (distance / totalDistance) * (chart.right - chart.left);
-                  const y = (elevation: number) => chart.bottom - ((elevation - minElevation) / elevationRange) * (chart.bottom - chart.top);
-                  const linePoints = valid.map((p) => `${x(p.distance)},${y(p.elevation)}`).join(" ");
-                  const areaPoints = `${chart.left},${chart.bottom} ${linePoints} ${x(valid[valid.length - 1].distance)},${chart.bottom}`;
-                  const formatProfileDistance = (distance: number) => distance >= 1000 ? `${(distance / 1000).toFixed(2)} km` : `${distance.toFixed(0)} m`;
-                  return (
-                    <>
-                      <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
-                        {[
-                          { label: "JARAK", value: formatDistance(totalDistance) },
-                          { label: "ELEVASI MIN.", value: `${minElevation.toFixed(2)} m` },
-                          { label: "ELEVASI MAKS.", value: `${maxElevation.toFixed(2)} m` },
-                          { label: "BEDA TINGGI", value: `${(maxElevation - minElevation).toFixed(2)} m` },
-                        ].map((item) => (
-                          <div key={item.label} style={{ flex: "1 1 120px", padding: "9px 11px", borderRadius: 10, background: "#f2f8fa", border: "1px solid #e2edf0" }}>
-                            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "#718096" }}>{item.label}</div>
-                            <div style={{ fontSize: 15, fontWeight: 750, color: "#24536a", marginTop: 4 }}>{item.value}</div>
-                          </div>
-                        ))}
-                      </div>
-                      <svg viewBox="0 0 760 260" role="img" aria-label="Grafik naik turun elevasi sepanjang jalur" style={{ display: "block", width: "100%", height: "auto", maxHeight: 290, overflow: "visible" }}>
-                        {[0, 1, 2, 3, 4].map((i) => {
-                          const gridY = chart.top + (i / 4) * (chart.bottom - chart.top);
-                          const value = maxElevation - (i / 4) * (maxElevation - minElevation);
-                          return (
-                            <g key={i}>
-                              <line x1={chart.left} y1={gridY} x2={chart.right} y2={gridY} stroke="#e4edf0" strokeWidth="1" strokeDasharray="4 5" />
-                              <text x={chart.left - 10} y={gridY + 4} textAnchor="end" fontSize="11" fill="#647b89">{value.toFixed(2)} m</text>
-                            </g>
-                          );
-                        })}
-                        <polygon points={areaPoints} fill="#19a6b5" opacity="0.16" />
-                        <polyline points={linePoints} fill="none" stroke="#078a9b" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-                        {valid.map((p, i) => <circle key={`${p.distance}-${i}`} cx={x(p.distance)} cy={y(p.elevation)} r="4" fill="#ffffff" stroke="#078a9b" strokeWidth="2" />)}
-                        <line x1={chart.left} y1={chart.bottom} x2={chart.right} y2={chart.bottom} stroke="#b8cbd2" strokeWidth="1.2" />
-                        <text x={chart.left} y="247" fontSize="11" fill="#647b89">0 m</text>
-                        <text x={chart.right} y="247" textAnchor="end" fontSize="11" fill="#647b89">{formatProfileDistance(totalDistance)}</text>
-                        <text x={(chart.left + chart.right) / 2} y="258" textAnchor="middle" fontSize="10" fill="#647b89">Jarak sepanjang jalur</text>
-                      </svg>
-                    </>
-                  );
-                })()}
-                <div style={{ fontSize: 11, color: "#718096", marginTop: 6 }}>Grafik berdasarkan sampel elevasi yang berhasil dibaca pada titik pengukuran.</div>
-              </div>
+              <ElevationProfileWindow
+                samples={profileSamples}
+                onClose={() => setShowProfileWindow(false)}
+              />
             )}
             {showMeasureMenu && (
               <div
