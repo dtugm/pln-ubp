@@ -445,21 +445,61 @@ export default function MapView({
         });
         setMeasureResult(`Luas area: ${areaText}`);
       } else {
+        // Buat sampel rapat di sepanjang setiap segmen. Jika hanya memakai
+        // titik klik pengguna, grafik hanya memiliki 2-3 nilai dan tampak lurus;
+        // penampang yang benar perlu mengambil elevasi di antara titik-titik itu.
         const totalMeters = points.slice(1).reduce((sum, point, i) => sum + distance(points[i], point), 0);
-        const validElevations = points.map((point) => point[2]).filter((value): value is number => value != null);
-        if (validElevations.length < 2) {
-          setMeasureResult("Profil elevasi belum tersedia. Aktifkan Terrain 3D dan gambar ulang jalurnya.");
+        if (points.length < 2 || totalMeters <= 0) {
+          setMeasureResult("Profil membutuhkan minimal dua titik yang terpisah.");
         } else {
-          const min = Math.min(...validElevations);
-          const max = Math.max(...validElevations);
-          const samples = points.map((point, i) => ({
-            distance: points.slice(1, i + 1).reduce((sum, p, j) => sum + distance(points[j], p), 0),
-            elevation: point[2],
+          const targetSpacing = 3; // kira-kira satu sampel setiap 3 meter
+          const maxSamples = 1200;
+          const intervalCount = Math.max(1, Math.min(maxSamples - 1, Math.ceil(totalMeters / targetSpacing)));
+          const samples: { distance: number; elevation: number | null }[] = [];
+          let cumulativeDistance = 0;
+          const segments = points.slice(1).map((point, i) => ({
+            start: points[i],
+            end: point,
+            length: distance(points[i], point),
           }));
-          setProfileSamples(samples);
-          setShowProfileWindow(true);
-          setMeasureResult(`Profil elevasi · panjang ${formatDistance(totalMeters)} · min ${min.toFixed(2)} m · maks ${max.toFixed(2)} m.`);
 
+          // Jarak kumulatif untuk setiap vertex asli.
+          const vertexDistances = [0];
+          for (const segment of segments) {
+            cumulativeDistance += segment.length;
+            vertexDistances.push(cumulativeDistance);
+          }
+
+          for (let sampleIndex = 0; sampleIndex <= intervalCount; sampleIndex++) {
+            const targetDistance = (totalMeters * sampleIndex) / intervalCount;
+            let segmentIndex = segments.findIndex((segment, i) =>
+              targetDistance <= vertexDistances[i + 1] || i === segments.length - 1,
+            );
+            if (segmentIndex < 0) segmentIndex = segments.length - 1;
+            const segment = segments[segmentIndex];
+            const segmentStartDistance = vertexDistances[segmentIndex];
+            const fraction = segment.length > 0
+              ? Math.max(0, Math.min(1, (targetDistance - segmentStartDistance) / segment.length))
+              : 0;
+            const lng = segment.start[0] + (segment.end[0] - segment.start[0]) * fraction;
+            const lat = segment.start[1] + (segment.end[1] - segment.start[1]) * fraction;
+            const terrainElevation = map.queryTerrainElevation([lng, lat]);
+            const elevation = typeof terrainElevation === "number" && Number.isFinite(terrainElevation)
+              ? terrainElevation
+              : null;
+            samples.push({ distance: targetDistance, elevation });
+          }
+
+          const validElevations = samples
+            .map((sample) => sample.elevation)
+            .filter((value): value is number => value !== null);
+          if (validElevations.length < 2) {
+            setMeasureResult("Sampel elevasi tidak tersedia. Aktifkan Terrain 3D/DTM Lokal, tunggu terrain selesai dimuat, lalu gambar ulang jalur profil.");
+          } else {
+            setProfileSamples(samples);
+            setShowProfileWindow(true);
+            setMeasureResult(`Profil elevasi · panjang ${formatDistance(totalMeters)} · ${validElevations.length} sampel elevasi.`);
+          }
         }
       }
       measureModeRef.current = null;
@@ -496,21 +536,6 @@ export default function MapView({
         };
         const formatDistance = (meters: number) =>
           meters >= 1000 ? `${(meters / 1000).toFixed(2)} km` : `${meters.toFixed(2)} m`;
-
-        // Keep the profile window live while the user adds points. This avoids
-        // depending on a double-click event to make the graph appear.
-        if (activeMeasure === "profile") {
-          let profileDistance = 0;
-          const draftSamples = next.map((point, index) => {
-            if (index > 0) profileDistance += segmentDistance(next[index - 1], point);
-            return { distance: profileDistance, elevation: point[2] };
-          });
-          if (draftSamples.filter((sample) => sample.elevation != null).length >= 2) {
-            setProfileSamples(draftSamples);
-            setShowProfileWindow(true);
-          }
-        }
-
         const first = next[0];
         const last = next[next.length - 1];
         const totalMeters = next.slice(1).reduce(
@@ -3076,12 +3101,11 @@ export default function MapView({
                 role="status"
                 aria-live="polite"
                 style={{
-                  position: "fixed",
+                  position: "absolute",
                   left: 16,
-                  bottom: 24,
-                  zIndex: 2147482000,
-                  width: "min(420px, calc(100vw - 32px))",
-                  boxSizing: "border-box",
+                  bottom: 70,
+                  zIndex: 20,
+                  maxWidth: "min(420px, calc(100% - 32px))",
                   padding: "10px 13px",
                   borderRadius: 12,
                   background: "rgba(255,255,255,0.97)",
@@ -3153,7 +3177,7 @@ export default function MapView({
                 </div>
               </div>
             )}
-            {showProfileWindow && profileSamples.length >= 2 && (
+            {showProfileWindow && selectedMeasureTool === "profile" && profileSamples.length >= 2 && (
               <ElevationProfileWindow
                 samples={profileSamples}
                 onClose={() => setShowProfileWindow(false)}
