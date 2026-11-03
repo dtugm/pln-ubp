@@ -492,13 +492,39 @@ export default function MapView({
 
           const validElevations = samples
             .map((sample) => sample.elevation)
-            .filter((value): value is number => value !== null);
-          if (validElevations.length < 2) {
-            setMeasureResult("Sampel elevasi tidak tersedia. Aktifkan Terrain 3D/DTM Lokal, tunggu terrain selesai dimuat, lalu gambar ulang jalur profil.");
+            .filter((value): value is number => value !== null && Number.isFinite(value));
+
+          // Selalu buka jendela profil setelah pengguna menyelesaikan jalur.
+          // Jika queryTerrainElevation gagal pada sampel rapat (misalnya tile DTM
+          // belum termuat/URL tile 404), gunakan elevasi yang sempat terbaca pada
+          // titik-titik klik sebagai fallback agar pengguna tetap mendapat grafik.
+          const clickedPointSamples: { distance: number; elevation: number | null }[] = [];
+          let clickedDistance = 0;
+          points.forEach((point, index) => {
+            if (index > 0) clickedDistance += distance(points[index - 1], point);
+            clickedPointSamples.push({
+              distance: clickedDistance,
+              elevation: typeof point[2] === "number" && Number.isFinite(point[2]) ? point[2] : null,
+            });
+          });
+          const validClickedElevations = clickedPointSamples.filter(
+            (sample) => sample.elevation !== null && Number.isFinite(sample.elevation),
+          );
+          const profileToShow = validElevations.length >= 2 ? samples : clickedPointSamples;
+          const validCount = validElevations.length >= 2 ? validElevations.length : validClickedElevations.length;
+
+          setProfileSamples(profileToShow);
+          setShowProfileWindow(true);
+          if (validCount < 2) {
+            setMeasureResult(
+              `Profil dibuka, tetapi data elevasi belum cukup (${validCount} titik valid). Periksa tile DTM: permintaan /api/dtm/... pada Console masih gagal 404.`,
+            );
+          } else if (validElevations.length < 2) {
+            setMeasureResult(
+              `Profil dibuka dengan ${validCount} titik elevasi hasil klik. Tile DTM untuk sampel rapat belum terbaca, jadi grafik sementara lebih jarang. Periksa error 404 /api/dtm/... di Console.`,
+            );
           } else {
-            setProfileSamples(samples);
-            setShowProfileWindow(true);
-            setMeasureResult(`Profil elevasi · panjang ${formatDistance(totalMeters)} · ${validElevations.length} sampel elevasi.`);
+            setMeasureResult(`Profil elevasi · panjang ${formatDistance(totalMeters)} · ${validCount} sampel elevasi.`);
           }
         }
       }
@@ -652,7 +678,7 @@ export default function MapView({
             activeMeasure === "height"
               ? "Klik titik kedua untuk menghitung beda tinggi."
               : activeMeasure === "profile"
-                ? "Tambahkan minimal dua titik, lalu tekan Selesai untuk melihat profil elevasi."
+                ? "Klik minimal dua titik, lalu klik dua kali pada titik terakhir untuk langsung membuka grafik profil elevasi."
                 : "Klik titik berikutnya untuk melanjutkan pengukuran panjang.",
           );
         } else if (activeMeasure === "height") {
@@ -663,7 +689,7 @@ export default function MapView({
           const elevations = next.map((point) => point[2]).filter((value): value is number => value != null);
           setMeasureResult(
             elevations.length
-              ? `Profil sementara · jarak ${formatDistance(totalMeters)} · elevasi ${Math.min(...elevations).toFixed(2)}–${Math.max(...elevations).toFixed(2)} m. Tekan Selesai untuk membuka grafik.`
+              ? `Profil sementara · jarak ${formatDistance(totalMeters)} · elevasi ${Math.min(...elevations).toFixed(2)}–${Math.max(...elevations).toFixed(2)} m. Klik dua kali pada titik terakhir untuk membuka grafik.`
               : "Elevasi profil belum tersedia. Aktifkan Terrain 3D, lalu gambar jalur profil lagi.",
           );
         } else {
