@@ -496,6 +496,21 @@ export default function MapView({
         };
         const formatDistance = (meters: number) =>
           meters >= 1000 ? `${(meters / 1000).toFixed(2)} km` : `${meters.toFixed(2)} m`;
+
+        // Keep the profile window live while the user adds points. This avoids
+        // depending on a double-click event to make the graph appear.
+        if (activeMeasure === "profile") {
+          let profileDistance = 0;
+          const draftSamples = next.map((point, index) => {
+            if (index > 0) profileDistance += segmentDistance(next[index - 1], point);
+            return { distance: profileDistance, elevation: point[2] };
+          });
+          if (draftSamples.filter((sample) => sample.elevation != null).length >= 2) {
+            setProfileSamples(draftSamples);
+            setShowProfileWindow(true);
+          }
+        }
+
         const first = next[0];
         const last = next[next.length - 1];
         const totalMeters = next.slice(1).reduce(
@@ -3061,11 +3076,12 @@ export default function MapView({
                 role="status"
                 aria-live="polite"
                 style={{
-                  position: "absolute",
+                  position: "fixed",
                   left: 16,
-                  bottom: 70,
-                  zIndex: 20,
-                  maxWidth: "min(420px, calc(100% - 32px))",
+                  bottom: 24,
+                  zIndex: 2147482000,
+                  width: "min(420px, calc(100vw - 32px))",
+                  boxSizing: "border-box",
                   padding: "10px 13px",
                   borderRadius: 12,
                   background: "rgba(255,255,255,0.97)",
@@ -3137,7 +3153,7 @@ export default function MapView({
                 </div>
               </div>
             )}
-            {showProfileWindow && selectedMeasureTool === "profile" && profileSamples.length >= 2 && (
+            {showProfileWindow && profileSamples.length >= 2 && (
               <ElevationProfileWindow
                 samples={profileSamples}
                 onClose={() => setShowProfileWindow(false)}
