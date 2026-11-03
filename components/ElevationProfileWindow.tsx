@@ -86,7 +86,7 @@ export default function ElevationProfileWindow({
       </div>
 
       {valid.length < 2 ? (
-        <div style={{ padding: "28px 12px", textAlign: "center", fontSize: 13, color: "#718096" }}>Sampel elevasi dari terrain belum tersedia. Aktifkan Terrain 3D / DTM Lokal, tunggu tile elevasi selesai dimuat, lalu gambar ulang jalurnya.</div>
+        <div style={{ padding: "28px 12px", textAlign: "center", fontSize: 13, color: "#718096" }}>Data elevasi belum cukup untuk membentuk grafik. Aktifkan Terrain 3D lalu gambar ulang jalurnya.</div>
       ) : (
         <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(135px, 1fr))", gap: 8, marginBottom: 12 }}>
