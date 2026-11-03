@@ -652,7 +652,7 @@ export default function MapView({
             activeMeasure === "height"
               ? "Klik titik kedua untuk menghitung beda tinggi."
               : activeMeasure === "profile"
-                ? "Tambahkan minimal dua titik, lalu tekan Selesai untuk melihat profil elevasi."
+                ? "Klik beberapa titik mengikuti jalur, lalu klik dua kali untuk langsung menampilkan profil melintang."
                 : "Klik titik berikutnya untuk melanjutkan pengukuran panjang.",
           );
         } else if (activeMeasure === "height") {
@@ -663,7 +663,7 @@ export default function MapView({
           const elevations = next.map((point) => point[2]).filter((value): value is number => value != null);
           setMeasureResult(
             elevations.length
-              ? `Profil sementara · jarak ${formatDistance(totalMeters)} · elevasi ${Math.min(...elevations).toFixed(2)}–${Math.max(...elevations).toFixed(2)} m. Tekan Selesai untuk membuka grafik.`
+              ? `Profil sementara · jarak ${formatDistance(totalMeters)} · elevasi ${Math.min(...elevations).toFixed(2)}–${Math.max(...elevations).toFixed(2)} m. Klik dua kali untuk langsung membuka grafik.`
               : "Elevasi profil belum tersedia. Aktifkan Terrain 3D, lalu gambar jalur profil lagi.",
           );
         } else {
@@ -3120,74 +3120,6 @@ export default function MapView({
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div>{measureResult}</div>
-                    {measureMode === "profile" && measurePointsRef.current.length >= 2 && (
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          const map = mapRef.current;
-                          const points = measurePointsRef.current;
-                          if (!map || points.length < 2) {
-                            setMeasureResult("Tambahkan minimal dua titik pada peta terlebih dahulu.");
-                            return;
-                          }
-                          const toRad = (value: number) => (value * Math.PI) / 180;
-                          const distance = (a: [number, number, number | null], b: [number, number, number | null]) => {
-                            const dLat = toRad(b[1] - a[1]);
-                            const dLng = toRad(b[0] - a[0]);
-                            const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a[1])) * Math.cos(toRad(b[1])) * Math.sin(dLng / 2) ** 2;
-                            return 2 * 6371008.8 * Math.asin(Math.min(1, Math.sqrt(h)));
-                          };
-                          const segments = points.slice(1).map((point, i) => ({ start: points[i], end: point, length: distance(points[i], point) }));
-                          const totalMeters = segments.reduce((sum, segment) => sum + segment.length, 0);
-                          if (totalMeters <= 0) {
-                            setMeasureResult("Jalur terlalu pendek. Tambahkan titik yang berbeda lokasinya.");
-                            return;
-                          }
-                          const targetSpacing = 3;
-                          const intervalCount = Math.max(1, Math.min(1199, Math.ceil(totalMeters / targetSpacing)));
-                          const vertexDistances = [0];
-                          for (const segment of segments) vertexDistances.push(vertexDistances[vertexDistances.length - 1] + segment.length);
-                          const samples: { distance: number; elevation: number | null }[] = [];
-                          for (let i = 0; i <= intervalCount; i++) {
-                            const target = totalMeters * i / intervalCount;
-                            let segmentIndex = segments.findIndex((segment, index) => target <= vertexDistances[index + 1] || index === segments.length - 1);
-                            if (segmentIndex < 0) segmentIndex = segments.length - 1;
-                            const segment = segments[segmentIndex];
-                            const segmentStart = vertexDistances[segmentIndex];
-                            const fraction = segment.length > 0 ? Math.max(0, Math.min(1, (target - segmentStart) / segment.length)) : 0;
-                            const lng = segment.start[0] + (segment.end[0] - segment.start[0]) * fraction;
-                            const lat = segment.start[1] + (segment.end[1] - segment.start[1]) * fraction;
-                            const terrainElevation = map.queryTerrainElevation([lng, lat]);
-                            samples.push({ distance: target, elevation: typeof terrainElevation === "number" && Number.isFinite(terrainElevation) ? terrainElevation : null });
-                          }
-                          const validCount = samples.filter((sample) => sample.elevation !== null).length;
-                          if (validCount < 2) {
-                            setMeasureResult("Data elevasi belum terbaca. Pastikan DTM/Terrain aktif dan tile selesai dimuat, lalu coba gambar ulang jalur.");
-                            return;
-                          }
-                          setProfileSamples(samples);
-                          setShowProfileWindow(true);
-                          setMeasureResult(`Profil elevasi berhasil dibuat · ${totalMeters >= 1000 ? `${(totalMeters / 1000).toFixed(2)} km` : `${totalMeters.toFixed(2)} m`} · ${validCount} sampel.`);
-                          measureModeRef.current = null;
-                          setMeasureMode(null);
-                          setSelectedMeasureTool("profile");
-                        }}
-                        style={{
-                          display: "block",
-                          width: "100%",
-                          marginTop: 10,
-                          padding: "9px 12px",
-                          border: "1px solid #078a9b",
-                          borderRadius: 9,
-                          background: "#078a9b",
-                          color: "#ffffff",
-                          fontSize: 13,
-                          fontWeight: 700,
-                          cursor: "pointer",
-                        }}
-                      >Selesai & Tampilkan Profil</button>
-                    )}
                     {profileSamples.length >= 2 && selectedMeasureTool === "profile" && (
                       <div style={{ marginTop: 8 }}>
                         <svg viewBox="0 0 320 94" role="img" aria-label="Grafik profil elevasi" style={{ display: "block", width: "100%", maxWidth: 360, height: 94 }}>
