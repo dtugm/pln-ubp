@@ -414,14 +414,18 @@ export default function MapView({
 
         const first = next[0];
         const last = next[next.length - 1];
-        const height =
+        const heightLabel =
           first[2] == null || last[2] == null
-            ? "Beda tinggi: Aktifkan Terrain 3D!"
+            ? "Elevasi tidak tersedia. Aktifkan Terrain 3D."
             : `Beda tinggi: ${Math.abs(last[2] - first[2]).toFixed(2)} m`;
         const lineLabel =
           next.length >= 2
-            ? `Panjang: ${formatDistance(totalMeters)}\n${height}`
-            : "Klik peta untuk menambahkan titik";
+            ? activeMeasure === "height"
+              ? heightLabel
+              : `Panjang: ${formatDistance(totalMeters)}`
+            : activeMeasure === "height"
+              ? "Klik titik pertama, lalu titik kedua"
+              : "Klik peta untuk menambahkan titik";
 
         (map.getSource("measure-line") as maplibregl.GeoJSONSource | undefined)?.setData({
           type: "Feature",
@@ -464,9 +468,18 @@ export default function MapView({
         });
 
         if (next.length < 2) {
-          setMeasureResult("Klik titik berikutnya untuk mulai mengukur.");
+          setMeasureResult(
+            activeMeasure === "height"
+              ? "Klik titik kedua untuk menghitung beda tinggi."
+              : "Klik titik berikutnya untuk melanjutkan pengukuran panjang.",
+          );
+        } else if (activeMeasure === "height") {
+          setMeasureResult(heightLabel);
+          // Pengukuran beda tinggi cukup menggunakan dua titik.
+          measureModeRef.current = null;
+          setMeasureMode(null);
         } else {
-          setMeasureResult(`Panjang: ${formatDistance(totalMeters)}\n${height}`);
+          setMeasureResult(`Panjang: ${formatDistance(totalMeters)}`);
         }
         return;
       }
@@ -2923,7 +2936,7 @@ export default function MapView({
                   { key: "profile", label: "Profil", icon: "profile" },
                 ] as const).map((tool) => {
                   const isSelected = selectedMeasureTool === tool.key;
-                  const isImplemented = tool.key === "length";
+                  const isImplemented = tool.key === "length" || tool.key === "height";
                   return (
                     <button
                       key={tool.key}
@@ -2931,10 +2944,11 @@ export default function MapView({
                       onClick={() => {
                         setSelectedMeasureTool(tool.key);
                         setShowMeasureMenu(false);
-                        if (tool.key === "length") {
-                          const shouldStop = selectedMeasureTool === "length" && measureModeRef.current === "length";
-                          measureModeRef.current = shouldStop ? null : "length";
-                          setMeasureMode(shouldStop ? null : "length");
+                        if (tool.key === "length" || tool.key === "height") {
+                          const mode = tool.key;
+                          const shouldStop = selectedMeasureTool === mode && measureModeRef.current === mode;
+                          measureModeRef.current = shouldStop ? null : mode;
+                          setMeasureMode(shouldStop ? null : mode);
                           measurePointsRef.current = [];
                           setMeasureResult("");
                           const lineSource = mapRef.current?.getSource("measure-line") as
@@ -2954,16 +2968,13 @@ export default function MapView({
                           streetViewPickRef.current = false;
                           setStreetViewPicking(false);
                         } else {
-                          // Pilihan Luas dan Profil disiapkan pada menu; logika pengukurannya
-                          // belum diaktifkan agar tidak keliru menjalankan pengukuran panjang.
+                          // Luas dan Profil masih berupa menu; fungsinya belum diaktifkan.
                           measureModeRef.current = null;
                           setMeasureMode(null);
                           setMeasureResult(
                             tool.key === "area"
                               ? "Mode Luas dipilih. Fungsi pengukuran luas belum diaktifkan."
-                              : tool.key === "height"
-                                ? "Mode Tinggi dipilih. Fungsi pengukuran tinggi belum diaktifkan."
-                                : "Mode Profil dipilih. Fungsi profil elevasi belum diaktifkan.",
+                              : "Mode Profil dipilih. Fungsi profil elevasi belum diaktifkan.",
                           );
                         }
                       }}
