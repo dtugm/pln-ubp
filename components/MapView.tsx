@@ -402,7 +402,7 @@ export default function MapView({
       }
     });
 
-    map.on("dblclick", async (event) => {
+    map.on("dblclick", (event) => {
       const activeMeasure = measureModeRef.current;
       if (activeMeasure !== "area" && activeMeasure !== "profile") return;
       event.preventDefault();
@@ -445,80 +445,67 @@ export default function MapView({
         });
         setMeasureResult(`Luas area: ${areaText}`);
       } else {
-        // Profil harus mengambil sampel di sepanjang garis, bukan hanya titik klik.
-        // queryTerrainElevation dapat mengembalikan null saat tile terrain belum siap,
-        // jadi sampel diulang beberapa kali sebelum menampilkan hasil.
-        const totalMeters = points.slice(1).reduce(
-          (sum, point, i) => sum + distance(points[i], point),
-          0,
-        );
-
+        // Buat sampel rapat di sepanjang setiap segmen. Jika hanya memakai
+        // titik klik pengguna, grafik hanya memiliki 2-3 nilai dan tampak lurus;
+        // penampang yang benar perlu mengambil elevasi di antara titik-titik itu.
+        const totalMeters = points.slice(1).reduce((sum, point, i) => sum + distance(points[i], point), 0);
         if (points.length < 2 || totalMeters <= 0) {
           setMeasureResult("Profil membutuhkan minimal dua titik yang terpisah.");
         } else {
-          const targetSpacing = 3;
+          const targetSpacing = 3; // kira-kira satu sampel setiap 3 meter
           const maxSamples = 1200;
-          const intervalCount = Math.max(
-            2,
-            Math.min(maxSamples - 1, Math.ceil(totalMeters / targetSpacing)),
-          );
+          const intervalCount = Math.max(1, Math.min(maxSamples - 1, Math.ceil(totalMeters / targetSpacing)));
+          const samples: { distance: number; elevation: number | null }[] = [];
+          let cumulativeDistance = 0;
           const segments = points.slice(1).map((point, i) => ({
             start: points[i],
             end: point,
             length: distance(points[i], point),
           }));
+
+          // Jarak kumulatif untuk setiap vertex asli.
           const vertexDistances = [0];
           for (const segment of segments) {
-            vertexDistances.push(vertexDistances[vertexDistances.length - 1] + segment.length);
+            cumulativeDistance += segment.length;
+            vertexDistances.push(cumulativeDistance);
           }
 
-          const sampleTerrain = () => {
-            const result: { distance: number; elevation: number | null }[] = [];
-            for (let sampleIndex = 0; sampleIndex <= intervalCount; sampleIndex++) {
-              const targetDistance = (totalMeters * sampleIndex) / intervalCount;
-              let segmentIndex = segments.findIndex((segment, i) =>
-                targetDistance <= vertexDistances[i + 1] || i === segments.length - 1,
-              );
-              if (segmentIndex < 0) segmentIndex = segments.length - 1;
-              const segment = segments[segmentIndex];
-              const segmentStartDistance = vertexDistances[segmentIndex];
-              const fraction = segment.length > 0
-                ? Math.max(0, Math.min(1, (targetDistance - segmentStartDistance) / segment.length))
-                : 0;
-              const lng = segment.start[0] + (segment.end[0] - segment.start[0]) * fraction;
-              const lat = segment.start[1] + (segment.end[1] - segment.start[1]) * fraction;
-              const value = map.queryTerrainElevation([lng, lat]);
-              result.push({
-                distance: targetDistance,
-                elevation: typeof value === "number" && Number.isFinite(value) ? value : null,
-              });
-            }
-            return result;
-          };
-
-          let samples = sampleTerrain();
-          // Beri waktu untuk terrain tiles selesai dimuat; coba ulang jika sampel kosong.
-          for (let attempt = 0; attempt < 8 && samples.filter((sample) => sample.elevation !== null).length < 2; attempt++) {
-            await new Promise<void>((resolve) => window.setTimeout(resolve, 250));
-            if (mapRef.current !== map) break;
-            samples = sampleTerrain();
+          for (let sampleIndex = 0; sampleIndex <= intervalCount; sampleIndex++) {
+            const targetDistance = (totalMeters * sampleIndex) / intervalCount;
+            let segmentIndex = segments.findIndex((segment, i) =>
+              targetDistance <= vertexDistances[i + 1] || i === segments.length - 1,
+            );
+            if (segmentIndex < 0) segmentIndex = segments.length - 1;
+            const segment = segments[segmentIndex];
+            const segmentStartDistance = vertexDistances[segmentIndex];
+            const fraction = segment.length > 0
+              ? Math.max(0, Math.min(1, (targetDistance - segmentStartDistance) / segment.length))
+              : 0;
+            const lng = segment.start[0] + (segment.end[0] - segment.start[0]) * fraction;
+            const lat = segment.start[1] + (segment.end[1] - segment.start[1]) * fraction;
+            const terrainElevation = map.queryTerrainElevation([lng, lat]);
+            const elevation = typeof terrainElevation === "number" && Number.isFinite(terrainElevation)
+              ? terrainElevation
+              : null;
+            samples.push({ distance: targetDistance, elevation });
           }
 
           const validElevations = samples
             .map((sample) => sample.elevation)
             .filter((value): value is number => value !== null);
-
-          // Selalu buka jendela agar status data terlihat; komponen akan memberi
-          // pesan yang jelas jika terrain memang belum menyediakan nilai elevasi.
+          // Selalu buka jendela profil setelah pengguna menyelesaikan jalur.
+          // Bila terrain tidak mengembalikan nilai elevasi, komponen profil
+          // tetap tampil dan memberi pesan yang jelas, bukan hanya kartu kecil.
           setProfileSamples(samples);
           setShowProfileWindow(true);
+
           if (validElevations.length < 2) {
             setMeasureResult(
-              "Grafik terbuka, tetapi data elevasi belum tersedia. Aktifkan Terrain 3D/DTM Lokal, tunggu tile selesai dimuat, lalu gambar ulang jalur.",
+              "Jalur selesai, tetapi data elevasi belum tersedia. Jendela Profil Elevasi dibuka; pastikan sumber Terrain/DTM benar-benar menyediakan elevasi, lalu gambar ulang jalur."
             );
           } else {
             setMeasureResult(
-              `Profil elevasi · panjang ${formatDistance(totalMeters)} · ${validElevations.length} sampel elevasi.`,
+              `Profil elevasi · panjang ${formatDistance(totalMeters)} · ${validElevations.length} sampel elevasi.`
             );
           }
         }
@@ -3140,34 +3127,6 @@ export default function MapView({
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div>{measureResult}</div>
-                    {profileSamples.length >= 2 && selectedMeasureTool === "profile" && (
-                      <div style={{ marginTop: 8 }}>
-                        <svg viewBox="0 0 320 94" role="img" aria-label="Grafik profil elevasi" style={{ display: "block", width: "100%", maxWidth: 360, height: 94 }}>
-                          {(() => {
-                            const values = profileSamples.map((p) => p.elevation).filter((v): v is number => v != null);
-                            if (values.length < 2) return null;
-                            const min = Math.min(...values);
-                            const max = Math.max(...values);
-                            const span = max - min || 1;
-                            const pts = profileSamples.filter((p) => p.elevation != null).map((p) => {
-                              const x = 8 + (p.distance / Math.max(profileSamples[profileSamples.length - 1].distance, 1)) * 304;
-                              const y = 76 - (((p.elevation as number) - min) / span) * 58;
-                              return `${x},${y}`;
-                            }).join(" ");
-                            return (
-                              <>
-                                <line x1="8" y1="76" x2="312" y2="76" stroke="#cbd5e1" strokeWidth="1" />
-                                <polyline points={pts} fill="none" stroke="#087f8c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                                <text x="8" y="90" fontSize="9" fill="#64748b">0 m</text>
-                                <text x="312" y="90" textAnchor="end" fontSize="9" fill="#64748b">{profileSamples[profileSamples.length - 1].distance >= 1000 ? `${(profileSamples[profileSamples.length - 1].distance / 1000).toFixed(2)} km` : `${profileSamples[profileSamples.length - 1].distance.toFixed(0)} m`}</text>
-                                <text x="8" y="10" fontSize="9" fill="#64748b">{max.toFixed(2)} m</text>
-                                <text x="8" y="72" fontSize="9" fill="#64748b">{min.toFixed(2)} m</text>
-                              </>
-                            );
-                          })()}
-                        </svg>
-                      </div>
-                    )}
                   </div>
                   <button
                     type="button"
@@ -3198,7 +3157,7 @@ export default function MapView({
                 </div>
               </div>
             )}
-            {showProfileWindow && (
+            {showProfileWindow && selectedMeasureTool === "profile" && profileSamples.length >= 2 && (
               <ElevationProfileWindow
                 samples={profileSamples}
                 onClose={() => setShowProfileWindow(false)}
@@ -3335,8 +3294,8 @@ export default function MapView({
               aria-expanded={showMeasureMenu}
               aria-pressed={!!measureMode}
               style={{
-                width: 42,
-                height: 42,
+                width: 52,
+                height: 52,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -3350,7 +3309,7 @@ export default function MapView({
                 touchAction: "manipulation",
               }}
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 17.5 17.5 3 21 6.5 6.5 21 3 17.5Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
                 <path d="m7 13 2 2m1-6 2 2m1-6 2 2m-6 10 2 2" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
