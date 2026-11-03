@@ -201,11 +201,12 @@ export default function MapView({
   const mapRef = useRef<MapLibreMap | null>(null);
   const streetViewPickRef = useRef(false);
   const [streetViewPicking, setStreetViewPicking] = useState(false);
-  const [measureMode, setMeasureMode] = useState<"length" | "width" | "height" | null>(null);
+  const [measureMode, setMeasureMode] = useState<"length" | "width" | "height" | "area" | "profile" | null>(null);
   const [measureResult, setMeasureResult] = useState("");
+  const [profileSamples, setProfileSamples] = useState<{ distance: number; elevation: number | null }[]>([]);
   const [showMeasureMenu, setShowMeasureMenu] = useState(false);
   const [selectedMeasureTool, setSelectedMeasureTool] = useState<"length" | "area" | "height" | "profile" | null>(null);
-  const measureModeRef = useRef<"length" | "width" | "height" | null>(null);
+  const measureModeRef = useRef<"length" | "width" | "height" | "area" | "profile" | null>(null);
   const measurePointsRef = useRef<[number, number, number | null][]>([]);
   const measureMarkersRef = useRef<Marker[]>([]);
   const featurePopupRef = useRef<maplibregl.Popup | null>(null);
@@ -339,6 +340,28 @@ export default function MapView({
           data: { type: "FeatureCollection", features: [] },
         });
       }
+      if (!map.getSource("measure-area")) {
+        map.addSource("measure-area", {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: [] },
+        });
+      }
+      if (!map.getLayer("measure-area-fill")) {
+        map.addLayer({
+          id: "measure-area-fill",
+          type: "fill",
+          source: "measure-area",
+          paint: { "fill-color": "#18a999", "fill-opacity":  0.22 },
+        });
+      }
+      if (!map.getLayer("measure-area-outline")) {
+        map.addLayer({
+          id: "measure-area-outline",
+          type: "line",
+          source: "measure-area",
+          paint: { "line-color": "#087f8c", "line-width": 3 },
+        });
+      }
       if (!map.getLayer("measure-line-layer")) {
         map.addLayer({
           id: "measure-line-layer",
@@ -377,6 +400,70 @@ export default function MapView({
       }
     });
 
+    map.on("dblclick", (event) => {
+      const activeMeasure = measureModeRef.current;
+      if (activeMeasure !== "area" && activeMeasure !== "profile") return;
+      event.preventDefault();
+      const map = mapRef.current;
+      if (!map) return;
+
+      const points = measurePointsRef.current;
+      const toRad = (value: number) => (value * Math.PI) / 180;
+      const distance = (a: [number, number, number | null], b: [number, number, number | null]) => {
+        const dLat = toRad(b[1] - a[1]);
+        const dLng = toRad(b[0] - a[0]);
+        const h = Math.sin(dLat / 2) ** 2 +
+          Math.cos(toRad(a[1])) * Math.cos(toRad(b[1])) * Math.sin(dLng / 2) ** 2;
+        return 2 * 6371008.8 * Math.asin(Math.min(1, Math.sqrt(h)));
+      };
+      const formatDistance = (meters: number) =>
+        meters >= 1000 ? `${(meters / 1000).toFixed(2)} km` : `${meters.toFixed(2)} m`;
+
+      if (activeMeasure === "area") {
+        if (points.length < 3) {
+          setMeasureResult("Luas membutuhkan minimal 3 titik. Tambahkan titik batas area.");
+          return;
+        }
+        const coords = points.map(([x, y]) => [toRad(x), toRad(y)] as [number, number]);
+        let sum = 0;
+        for (let i = 0; i < coords.length; i++) {
+          const j = (i + 1) % coords.length;
+          sum += (coords[j][0] - coords[i][0]) *
+            (2 + Math.sin(coords[i][1]) + Math.sin(coords[j][1]));
+        }
+        const areaM2 = Math.abs(sum * 6371008.8 * 6371008.8 / 2);
+        const areaText = areaM2 >= 10000
+          ? `${(areaM2 / 10000).toFixed(2)} ha`
+          : `${areaM2.toFixed(2)} m²`;
+        const ring = points.map(([x, y]) => [x, y]);
+        ring.push(ring[0]);
+        (map.getSource("measure-area") as maplibregl.GeoJSONSource | undefined)?.setData({
+          type: "FeatureCollection",
+          features: [{ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [ring] } }],
+        });
+        setMeasureResult(`Luas area: ${areaText}`);
+      } else {
+        const totalMeters = points.slice(1).reduce((sum, point, i) => sum + distance(points[i], point), 0);
+        const validElevations = points.map((point) => point[2]).filter((value): value is number => value != null);
+        if (validElevations.length < 2) {
+          setMeasureResult("Profil elevasi belum tersedia. Aktifkan Terrain 3D dan gambar ulang jalurnya.");
+        } else {
+          const min = Math.min(...validElevations);
+          const max = Math.max(...validElevations);
+          const samples = points.map((point, i) => ({
+            distance: points.slice(1, i + 1).reduce((sum, p, j) => sum + distance(points[j], p), 0),
+            elevation: point[2],
+          }));
+          setProfileSamples(samples);
+          setMeasureResult(`Profil elevasi · panjang ${formatDistance(totalMeters)} · min ${min.toFixed(2)} m · maks ${max.toFixed(2)} m.`);
+
+        }
+      }
+      measureModeRef.current = null;
+      setMeasureMode(null);
+      setSelectedMeasureTool(activeMeasure);
+    });
+
     map.on("click", (event) => {
       const activeMeasure = measureModeRef.current;
       if (activeMeasure) {
@@ -404,28 +491,83 @@ export default function MapView({
             Math.cos(toRad(a[1])) * Math.cos(toRad(b[1])) * Math.sin(dLng / 2) ** 2;
           return 2 * 6371008.8 * Math.asin(Math.min(1, Math.sqrt(h)));
         };
-
-        const totalMeters = next.slice(1).reduce(
-          (sum, point, index) => sum + segmentDistance(next[index], point),
-          0,
-        );
         const formatDistance = (meters: number) =>
           meters >= 1000 ? `${(meters / 1000).toFixed(2)} km` : `${meters.toFixed(2)} m`;
-
         const first = next[0];
         const last = next[next.length - 1];
+        const totalMeters = next.slice(1).reduce(
+          (sum, point, index) => sum + segmentDistance(next[index], point), 0,
+        );
         const heightLabel =
           first[2] == null || last[2] == null
             ? "Elevasi tidak tersedia. Aktifkan Terrain 3D."
             : `Beda tinggi: ${Math.abs(last[2] - first[2]).toFixed(2)} m`;
+
         const lineLabel =
           next.length >= 2
             ? activeMeasure === "height"
               ? heightLabel
-              : `Panjang: ${formatDistance(totalMeters)}`
+              : activeMeasure === "profile"
+                ? `Profil elevasi · ${formatDistance(totalMeters)}`
+                : activeMeasure === "area"
+                  ? `Titik area: ${next.length}`
+                  : `Panjang: ${formatDistance(totalMeters)}`
             : activeMeasure === "height"
               ? "Klik titik pertama, lalu titik kedua"
-              : "Klik peta untuk menambahkan titik";
+              : activeMeasure === "area"
+                ? "Klik titik-titik batas area, lalu klik dua kali untuk selesai"
+                : activeMeasure === "profile"
+                  ? "Klik titik-titik jalur profil, lalu klik dua kali untuk selesai"
+                  : "Klik peta untuk menambahkan titik";
+
+        // Area: gambar poligon sementara saat titik batas ditambahkan.
+        if (activeMeasure === "area") {
+          const ring = next.map(([x, y]) => [x, y]);
+          if (ring.length >= 3) ring.push(ring[0]);
+          (map.getSource("measure-area") as maplibregl.GeoJSONSource | undefined)?.setData({
+            type: "FeatureCollection",
+            features: ring.length >= 4 ? [{
+              type: "Feature",
+              properties: {},
+              geometry: { type: "Polygon", coordinates: [ring] },
+            }] : [],
+          });
+          (map.getSource("measure-line") as maplibregl.GeoJSONSource | undefined)?.setData({
+            type: "Feature",
+            properties: { label: lineLabel },
+            geometry: { type: "LineString", coordinates: next.map(([x, y]) => [x, y]) },
+          });
+          (map.getSource("measure-label-point") as maplibregl.GeoJSONSource | undefined)?.setData({
+            type: "FeatureCollection",
+            features: next.length >= 2 ? [{
+              type: "Feature",
+              properties: { label: lineLabel },
+              geometry: { type: "Point", coordinates: [lng, lat] },
+            }] : [],
+          });
+          setMeasureResult(next.length < 3
+            ? `Tambahkan minimal 3 titik untuk mengukur luas (${next.length} titik saat ini).`
+            : `Luas sementara: ${(() => {
+                const coords = next.map(([x, y]) => [toRad(x), toRad(y)] as [number, number]);
+                let area = 0;
+                for (let i = 0; i < coords.length; i++) {
+                  const j = (i + 1) % coords.length;
+                  area += coords[j][0] - coords[i][0];
+                  area *= 1;
+                }
+                let sum = 0;
+                for (let i = 0; i < coords.length; i++) {
+                  const j = (i + 1) % coords.length;
+                  sum += (coords[j][0] - coords[i][0]) *
+                    (2 + Math.sin(coords[i][1]) + Math.sin(coords[j][1]));
+                }
+                const squareMeters = Math.abs(sum * 6371008.8 * 6371008.8 / 2);
+                return squareMeters >= 10000
+                  ? `${(squareMeters / 10000).toFixed(2)} ha`
+                  : `${squareMeters.toFixed(2)} m²`;
+              })()}. Klik dua kali untuk menyelesaikan.`);
+          return;
+        }
 
         (map.getSource("measure-line") as maplibregl.GeoJSONSource | undefined)?.setData({
           type: "Feature",
@@ -436,7 +578,6 @@ export default function MapView({
           },
         });
 
-        // Keep the label on the path's midpoint, computed along its total length.
         let labelCoordinate: [number, number] = [first[0], first[1]];
         if (next.length >= 2 && totalMeters > 0) {
           const target = totalMeters / 2;
@@ -454,30 +595,34 @@ export default function MapView({
             accumulated += segment;
           }
         }
-
         (map.getSource("measure-label-point") as maplibregl.GeoJSONSource | undefined)?.setData({
           type: "FeatureCollection",
-          features:
-            next.length >= 2
-              ? [{
-                  type: "Feature",
-                  properties: { label: lineLabel },
-                  geometry: { type: "Point", coordinates: labelCoordinate },
-                }]
-              : [],
+          features: next.length >= 2 ? [{
+            type: "Feature",
+            properties: { label: lineLabel },
+            geometry: { type: "Point", coordinates: labelCoordinate },
+          }] : [],
         });
 
         if (next.length < 2) {
           setMeasureResult(
             activeMeasure === "height"
               ? "Klik titik kedua untuk menghitung beda tinggi."
-              : "Klik titik berikutnya untuk melanjutkan pengukuran panjang.",
+              : activeMeasure === "profile"
+                ? "Tambahkan titik-titik jalur profil. Klik dua kali untuk melihat profil elevasi."
+                : "Klik titik berikutnya untuk melanjutkan pengukuran panjang.",
           );
         } else if (activeMeasure === "height") {
           setMeasureResult(heightLabel);
-          // Pengukuran beda tinggi cukup menggunakan dua titik.
           measureModeRef.current = null;
           setMeasureMode(null);
+        } else if (activeMeasure === "profile") {
+          const elevations = next.map((point) => point[2]).filter((value): value is number => value != null);
+          setMeasureResult(
+            elevations.length
+              ? `Profil sementara · jarak ${formatDistance(totalMeters)} · elevasi ${Math.min(...elevations).toFixed(2)}–${Math.max(...elevations).toFixed(2)} m. Klik dua kali untuk menyelesaikan.`
+              : "Elevasi profil belum tersedia. Aktifkan Terrain 3D, lalu gambar jalur profil lagi.",
+          );
         } else {
           setMeasureResult(`Panjang: ${formatDistance(totalMeters)}`);
         }
@@ -2908,6 +3053,86 @@ export default function MapView({
               gap: 8,
             }}
           >
+            {measureResult && (
+              <div
+                role="status"
+                aria-live="polite"
+                style={{
+                  position: "absolute",
+                  left: 16,
+                  bottom: 70,
+                  zIndex: 20,
+                  maxWidth: "min(420px, calc(100% - 32px))",
+                  padding: "10px 13px",
+                  borderRadius: 12,
+                  background: "rgba(255,255,255,0.97)",
+                  color: "#29485d",
+                  border: "1px solid #d8e5e8",
+                  boxShadow: "0 4px 16px rgba(22,55,68,0.16)",
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div>{measureResult}</div>
+                    {profileSamples.length >= 2 && selectedMeasureTool === "profile" && (
+                      <div style={{ marginTop: 8 }}>
+                        <svg viewBox="0 0 320 94" role="img" aria-label="Grafik profil elevasi" style={{ display: "block", width: "100%", maxWidth: 360, height: 94 }}>
+                          {(() => {
+                            const values = profileSamples.map((p) => p.elevation).filter((v): v is number => v != null);
+                            if (values.length < 2) return null;
+                            const min = Math.min(...values);
+                            const max = Math.max(...values);
+                            const span = max - min || 1;
+                            const pts = profileSamples.filter((p) => p.elevation != null).map((p) => {
+                              const x = 8 + (p.distance / Math.max(profileSamples[profileSamples.length - 1].distance, 1)) * 304;
+                              const y = 76 - (((p.elevation as number) - min) / span) * 58;
+                              return `${x},${y}`;
+                            }).join(" ");
+                            return (
+                              <>
+                                <line x1="8" y1="76" x2="312" y2="76" stroke="#cbd5e1" strokeWidth="1" />
+                                <polyline points={pts} fill="none" stroke="#087f8c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                <text x="8" y="90" fontSize="9" fill="#64748b">0 m</text>
+                                <text x="312" y="90" textAnchor="end" fontSize="9" fill="#64748b">{profileSamples[profileSamples.length - 1].distance >= 1000 ? `${(profileSamples[profileSamples.length - 1].distance / 1000).toFixed(2)} km` : `${profileSamples[profileSamples.length - 1].distance.toFixed(0)} m`}</text>
+                                <text x="8" y="10" fontSize="9" fill="#64748b">{max.toFixed(2)} m</text>
+                                <text x="8" y="72" fontSize="9" fill="#64748b">{min.toFixed(2)} m</text>
+                              </>
+                            );
+                          })()}
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Hapus hasil pengukuran"
+                    onClick={() => {
+                      setMeasureResult("");
+                      setProfileSamples([]);
+                      measurePointsRef.current = [];
+                      measureModeRef.current = null;
+                      setMeasureMode(null);
+                      setSelectedMeasureTool(null);
+                      const map = mapRef.current;
+                      (map?.getSource("measure-line") as maplibregl.GeoJSONSource | undefined)?.setData({
+                        type: "Feature",
+                        properties: { label: "" },
+                        geometry: { type: "LineString", coordinates: [] },
+                      });
+                      (map?.getSource("measure-label-point") as maplibregl.GeoJSONSource | undefined)?.setData({
+                        type: "FeatureCollection", features: [],
+                      });
+                      (map?.getSource("measure-area") as maplibregl.GeoJSONSource | undefined)?.setData({
+                        type: "FeatureCollection", features: [],
+                      });
+                    }}
+                    style={{ border: 0, background: "transparent", color: "#718096", cursor: "pointer", fontSize: 16, lineHeight: 1 }}
+                  >×</button>
+                </div>
+              </div>
+            )}
             {showMeasureMenu && (
               <div
                 role="group"
@@ -2936,7 +3161,7 @@ export default function MapView({
                   { key: "profile", label: "Profil", icon: "profile" },
                 ] as const).map((tool) => {
                   const isSelected = selectedMeasureTool === tool.key;
-                  const isImplemented = tool.key === "length" || tool.key === "height";
+                  const isImplemented = true;
                   return (
                     <button
                       key={tool.key}
@@ -2944,39 +3169,33 @@ export default function MapView({
                       onClick={() => {
                         setSelectedMeasureTool(tool.key);
                         setShowMeasureMenu(false);
-                        if (tool.key === "length" || tool.key === "height") {
-                          const mode = tool.key;
-                          const shouldStop = selectedMeasureTool === mode && measureModeRef.current === mode;
-                          measureModeRef.current = shouldStop ? null : mode;
-                          setMeasureMode(shouldStop ? null : mode);
-                          measurePointsRef.current = [];
-                          setMeasureResult("");
-                          const lineSource = mapRef.current?.getSource("measure-line") as
-                            | maplibregl.GeoJSONSource
-                            | undefined;
-                          const pointsSource = mapRef.current?.getSource("measure-points") as
-                            | maplibregl.GeoJSONSource
-                            | undefined;
-                          lineSource?.setData({
-                            type: "Feature",
-                            properties: { label: "" },
-                            geometry: { type: "LineString", coordinates: [] },
-                          });
-                          pointsSource?.setData({ type: "FeatureCollection", features: [] });
-                          featurePopupRef.current?.remove();
-                          featurePopupRef.current = null;
-                          streetViewPickRef.current = false;
-                          setStreetViewPicking(false);
-                        } else {
-                          // Luas dan Profil masih berupa menu; fungsinya belum diaktifkan.
-                          measureModeRef.current = null;
-                          setMeasureMode(null);
-                          setMeasureResult(
-                            tool.key === "area"
-                              ? "Mode Luas dipilih. Fungsi pengukuran luas belum diaktifkan."
-                              : "Mode Profil dipilih. Fungsi profil elevasi belum diaktifkan.",
-                          );
-                        }
+                        const mode = tool.key;
+                        const shouldStop = selectedMeasureTool === mode && measureModeRef.current === mode;
+                        measureModeRef.current = shouldStop ? null : mode;
+                        setMeasureMode(shouldStop ? null : mode);
+                        measurePointsRef.current = [];
+                        setMeasureResult("");
+                        setProfileSamples([]);
+                        const lineSource = mapRef.current?.getSource("measure-line") as
+                          | maplibregl.GeoJSONSource
+                          | undefined;
+                        lineSource?.setData({
+                          type: "Feature",
+                          properties: { label: "" },
+                          geometry: { type: "LineString", coordinates: [] },
+                        });
+                        const labelSource = mapRef.current?.getSource("measure-label-point") as
+                          | maplibregl.GeoJSONSource
+                          | undefined;
+                        labelSource?.setData({ type: "FeatureCollection", features: [] });
+                        const areaSource = mapRef.current?.getSource("measure-area") as
+                          | maplibregl.GeoJSONSource
+                          | undefined;
+                        areaSource?.setData({ type: "FeatureCollection", features: [] });
+                        featurePopupRef.current?.remove();
+                        featurePopupRef.current = null;
+                        streetViewPickRef.current = false;
+                        setStreetViewPicking(false);
                       }}
                       title={
                         isImplemented
