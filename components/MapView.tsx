@@ -3122,16 +3122,16 @@ export default function MapView({
               gap: 8,
             }}
           >
-            {measureResult && (
+            {measureResult && !(showProfileWindow && selectedMeasureTool === "profile") && (
               <div
                 role="status"
                 aria-live="polite"
                 style={{
                   position: "fixed",
-                  left: 24,
-                  bottom: 24,
+                  left: 16,
+                  bottom: 88,
                   zIndex: 2147482000,
-                  width: "min(420px, calc(100vw - 48px))",
+                  width: "min(360px, calc(100vw - 32px))",
                   boxSizing: "border-box",
                   padding: "10px 13px",
                   borderRadius: 12,
@@ -3568,7 +3568,7 @@ export default function MapView({
             </div>
           </div>
 
-          <div className={`stats-dock ${showStatsPanel ? "is-open" : "is-collapsed"}`}>
+          <div className={`stats-dock ${showStatsPanel ? "is-open" : "is-collapsed"} ${showProfileWindow && selectedMeasureTool === "profile" ? "profile-open" : ""}`}>
             <button
               type="button"
               className="stats-toggle-handle"
