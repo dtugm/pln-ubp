@@ -402,7 +402,7 @@ export default function MapView({
       }
     });
 
-    map.on("dblclick", (event) => {
+    map.on("dblclick", async (event) => {
       const activeMeasure = measureModeRef.current;
       if (activeMeasure !== "area" && activeMeasure !== "profile") return;
       event.preventDefault();
@@ -445,60 +445,81 @@ export default function MapView({
         });
         setMeasureResult(`Luas area: ${areaText}`);
       } else {
-        // Buat sampel rapat di sepanjang setiap segmen. Jika hanya memakai
-        // titik klik pengguna, grafik hanya memiliki 2-3 nilai dan tampak lurus;
-        // penampang yang benar perlu mengambil elevasi di antara titik-titik itu.
-        const totalMeters = points.slice(1).reduce((sum, point, i) => sum + distance(points[i], point), 0);
+        // Profil harus mengambil sampel di sepanjang garis, bukan hanya titik klik.
+        // queryTerrainElevation dapat mengembalikan null saat tile terrain belum siap,
+        // jadi sampel diulang beberapa kali sebelum menampilkan hasil.
+        const totalMeters = points.slice(1).reduce(
+          (sum, point, i) => sum + distance(points[i], point),
+          0,
+        );
+
         if (points.length < 2 || totalMeters <= 0) {
           setMeasureResult("Profil membutuhkan minimal dua titik yang terpisah.");
         } else {
-          const targetSpacing = 3; // kira-kira satu sampel setiap 3 meter
+          const targetSpacing = 3;
           const maxSamples = 1200;
-          const intervalCount = Math.max(1, Math.min(maxSamples - 1, Math.ceil(totalMeters / targetSpacing)));
-          const samples: { distance: number; elevation: number | null }[] = [];
-          let cumulativeDistance = 0;
+          const intervalCount = Math.max(
+            2,
+            Math.min(maxSamples - 1, Math.ceil(totalMeters / targetSpacing)),
+          );
           const segments = points.slice(1).map((point, i) => ({
             start: points[i],
             end: point,
             length: distance(points[i], point),
           }));
-
-          // Jarak kumulatif untuk setiap vertex asli.
           const vertexDistances = [0];
           for (const segment of segments) {
-            cumulativeDistance += segment.length;
-            vertexDistances.push(cumulativeDistance);
+            vertexDistances.push(vertexDistances[vertexDistances.length - 1] + segment.length);
           }
 
-          for (let sampleIndex = 0; sampleIndex <= intervalCount; sampleIndex++) {
-            const targetDistance = (totalMeters * sampleIndex) / intervalCount;
-            let segmentIndex = segments.findIndex((segment, i) =>
-              targetDistance <= vertexDistances[i + 1] || i === segments.length - 1,
-            );
-            if (segmentIndex < 0) segmentIndex = segments.length - 1;
-            const segment = segments[segmentIndex];
-            const segmentStartDistance = vertexDistances[segmentIndex];
-            const fraction = segment.length > 0
-              ? Math.max(0, Math.min(1, (targetDistance - segmentStartDistance) / segment.length))
-              : 0;
-            const lng = segment.start[0] + (segment.end[0] - segment.start[0]) * fraction;
-            const lat = segment.start[1] + (segment.end[1] - segment.start[1]) * fraction;
-            const terrainElevation = map.queryTerrainElevation([lng, lat]);
-            const elevation = typeof terrainElevation === "number" && Number.isFinite(terrainElevation)
-              ? terrainElevation
-              : null;
-            samples.push({ distance: targetDistance, elevation });
+          const sampleTerrain = () => {
+            const result: { distance: number; elevation: number | null }[] = [];
+            for (let sampleIndex = 0; sampleIndex <= intervalCount; sampleIndex++) {
+              const targetDistance = (totalMeters * sampleIndex) / intervalCount;
+              let segmentIndex = segments.findIndex((segment, i) =>
+                targetDistance <= vertexDistances[i + 1] || i === segments.length - 1,
+              );
+              if (segmentIndex < 0) segmentIndex = segments.length - 1;
+              const segment = segments[segmentIndex];
+              const segmentStartDistance = vertexDistances[segmentIndex];
+              const fraction = segment.length > 0
+                ? Math.max(0, Math.min(1, (targetDistance - segmentStartDistance) / segment.length))
+                : 0;
+              const lng = segment.start[0] + (segment.end[0] - segment.start[0]) * fraction;
+              const lat = segment.start[1] + (segment.end[1] - segment.start[1]) * fraction;
+              const value = map.queryTerrainElevation([lng, lat]);
+              result.push({
+                distance: targetDistance,
+                elevation: typeof value === "number" && Number.isFinite(value) ? value : null,
+              });
+            }
+            return result;
+          };
+
+          let samples = sampleTerrain();
+          // Beri waktu untuk terrain tiles selesai dimuat; coba ulang jika sampel kosong.
+          for (let attempt = 0; attempt < 8 && samples.filter((sample) => sample.elevation !== null).length < 2; attempt++) {
+            await new Promise<void>((resolve) => window.setTimeout(resolve, 250));
+            if (mapRef.current !== map) break;
+            samples = sampleTerrain();
           }
 
           const validElevations = samples
             .map((sample) => sample.elevation)
             .filter((value): value is number => value !== null);
+
+          // Selalu buka jendela agar status data terlihat; komponen akan memberi
+          // pesan yang jelas jika terrain memang belum menyediakan nilai elevasi.
+          setProfileSamples(samples);
+          setShowProfileWindow(true);
           if (validElevations.length < 2) {
-            setMeasureResult("Sampel elevasi tidak tersedia. Aktifkan Terrain 3D/DTM Lokal, tunggu terrain selesai dimuat, lalu gambar ulang jalur profil.");
+            setMeasureResult(
+              "Grafik terbuka, tetapi data elevasi belum tersedia. Aktifkan Terrain 3D/DTM Lokal, tunggu tile selesai dimuat, lalu gambar ulang jalur.",
+            );
           } else {
-            setProfileSamples(samples);
-            setShowProfileWindow(true);
-            setMeasureResult(`Profil elevasi · panjang ${formatDistance(totalMeters)} · ${validElevations.length} sampel elevasi.`);
+            setMeasureResult(
+              `Profil elevasi · panjang ${formatDistance(totalMeters)} · ${validElevations.length} sampel elevasi.`,
+            );
           }
         }
       }
@@ -3177,7 +3198,7 @@ export default function MapView({
                 </div>
               </div>
             )}
-            {showProfileWindow && selectedMeasureTool === "profile" && profileSamples.length >= 2 && (
+            {showProfileWindow && (
               <ElevationProfileWindow
                 samples={profileSamples}
                 onClose={() => setShowProfileWindow(false)}
