@@ -833,11 +833,6 @@ export default function MapView({
     map.on("zoom", () => setZoomLevel(map.getZoom()));
 
     map.addControl(
-      new maplibregl.NavigationControl({ showCompass: false, showZoom: true }),
-      "bottom-right",
-    );
-
-    map.addControl(
       new maplibregl.ScaleControl({ unit: "metric" }),
       "bottom-left",
     );
@@ -3093,6 +3088,7 @@ export default function MapView({
               bottom: 112,
               zIndex: 40,
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
               gap: 8,
             }}
@@ -3308,6 +3304,65 @@ export default function MapView({
                 <path d="m7 13 2 2m1-6 2 2m1-6 2 2m-6 10 2 2" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </button>
+
+            <div
+              role="group"
+              aria-label="Kontrol zoom peta"
+              style={{
+                width: 44,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+                border: "1px solid #d7e0e5",
+                borderRadius: 10,
+                background: "#ffffff",
+                boxShadow: "0 2px 8px rgba(22,55,68,0.16)",
+              }}
+            >
+              <button
+                type="button"
+                aria-label="Perbesar peta"
+                title="Perbesar"
+                onClick={() => mapRef.current?.zoomIn({ duration: 250 })}
+                style={{
+                  width: 44,
+                  height: 44,
+                  display: "grid",
+                  placeItems: "center",
+                  padding: 0,
+                  border: 0,
+                  borderBottom: "1px solid #e7eef1",
+                  background: "#ffffff",
+                  color: "#334155",
+                  fontSize: 25,
+                  lineHeight: 1,
+                  cursor: "pointer",
+                }}
+              >
+                +
+              </button>
+              <button
+                type="button"
+                aria-label="Perkecil peta"
+                title="Perkecil"
+                onClick={() => mapRef.current?.zoomOut({ duration: 250 })}
+                style={{
+                  width: 44,
+                  height: 44,
+                  display: "grid",
+                  placeItems: "center",
+                  padding: 0,
+                  border: 0,
+                  background: "#ffffff",
+                  color: "#334155",
+                  fontSize: 25,
+                  lineHeight: 1,
+                  cursor: "pointer",
+                }}
+              >
+                −
+              </button>
+            </div>
           </div>
 
           <div className="map-tools-stack">
