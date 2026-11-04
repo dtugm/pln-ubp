@@ -131,7 +131,7 @@ export default function ElevationProfileWindow({ samples, onClose }: ElevationPr
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 8, fontSize: 10, color: "#718596" }}>
               <span style={{ width: 8, height: 8, borderRadius: 99, background: "#078a9b", display: "inline-block" }} />
-              Grafik berdasarkan sampel elevasi DTM pada jalur yang digambar.
+
             </div>
           </>
         )}
