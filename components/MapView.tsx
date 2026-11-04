@@ -2728,7 +2728,7 @@ export default function MapView({
                         >
                           <span
                             style={{
-                              fontSize: 15,
+                              fontSize: 14,
                               lineHeight: 1,
                               width: 14,
                               color: "#64748b",
@@ -3173,10 +3173,10 @@ export default function MapView({
                 aria-label="Pilihan alat ukur"
                 style={{
                   position: "absolute",
-                  // Menu muncul tepat di atas tombol pengukuran dan
-                  // dipusatkan terhadap tombol utama, bukan di sisi kirinya.
-                  right: -63,
-                  bottom: "calc(100% + 8px)",
+                  // Menu ringkas muncul di sisi kiri tombol pengukuran,
+                  // sejajar dengan bagian atas tombol utama.
+                  right: 54,
+                  top: 0,
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "stretch",
@@ -3238,17 +3238,17 @@ export default function MapView({
                       aria-label={tool.label}
                       aria-pressed={isSelected}
                       style={{
-                        width: 174,
-                        minWidth: 174,
-                        height: 58,
+                        width: 132,
+                        minWidth: 132,
+                        height: 44,
                         display: "flex",
                         flexDirection: "row",
                         alignItems: "center",
                         justifyContent: "flex-start",
-                        gap: 12,
-                        padding: "0 16px",
+                        gap: 9,
+                        padding: "0 11px",
                         border: isSelected ? "1px solid #78c9bd" : "1px solid rgba(215,224,229,0.55)",
-                        borderRadius: 11,
+                        borderRadius: 10,
                         background: isSelected ? "#e8f6f4" : "#ffffff",
                         color: "#29485d",
                         fontSize: 15,
@@ -3260,22 +3260,22 @@ export default function MapView({
                       }}
                     >
                       {tool.icon === "length" ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="M3 17.5 17.5 3 21 6.5 6.5 21 3 17.5Z" />
                           <path d="m7 13 2 2m1-6 2 2m1-6 2 2m-6 10 2 2" />
                         </svg>
                       ) : tool.icon === "area" ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="m5 4 14 2 2 12-13 2-4-9Z" />
                           <path d="M5 4 8 20" strokeDasharray="2 2" />
                         </svg>
                       ) : tool.icon === "height" ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4" />
                           <path d="M5 7h3M5 12h3M5 17h3M16 7h3M16 12h3M16 17h3" />
                         </svg>
                       ) : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="M3 19h18M4 16l4-5 4 2 5-8 3 3" />
                           <circle cx="8" cy="11" r="1" />
                           <circle cx="12" cy="13" r="1" />
