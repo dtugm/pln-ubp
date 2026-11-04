@@ -904,6 +904,13 @@ export default function MapView({
         },
       });
 
+      // Cache GeoJSON yang sudah diunduh agar klik berikutnya tidak
+      // mengunduh dan mem-parse file yang sama berulang kali.
+      const digitasiGeoJSONCache = new Map<string, any>();
+      // Satu klik dapat mengenai beberapa layer yang saling bertumpuk.
+      // Proses popup cukup dijalankan sekali untuk event klik yang sama.
+      const handledDigitasiClickEvents = new WeakSet<object>();
+
       for (const item of digitasiLayers) {
         const sourceId = `digitasi-${item.key}-source`;
 
@@ -963,6 +970,7 @@ export default function MapView({
             }
 
             sourceData = geojson;
+            digitasiGeoJSONCache.set(item.key, geojson);
 
             console.info(
               `[${item.label}] ${features.length} fitur dimuat${shouldConvert ? " dan koordinat dikonversi dari EPSG:3857" : ""}. URL: ${dataUrl}`,
@@ -1205,6 +1213,11 @@ export default function MapView({
         const popupLayerIds = [fillId, lineId, pointId];
 
         map.on("click", popupLayerIds, async (event) => {
+          // Handler dipasang pada tiap layer, tetapi klik pada fitur bertumpuk
+          // dapat memicu lebih dari satu handler. Abaikan pemanggilan duplikat.
+          if (handledDigitasiClickEvents.has(event as object)) return;
+          handledDigitasiClickEvents.add(event as object);
+
           // Saat Measure aktif, klik layer hanya menjadi input titik ukur.
           // Jangan munculkan popup atribut yang menutupi peta.
           if (measureModeRef.current !== null) {
@@ -1265,11 +1278,20 @@ export default function MapView({
 
           if (selectedLayerItem) {
             try {
-              const fullResponse = await fetch(
-                `${R2_DATA_BASE}/${encodeURIComponent(selectedLayerItem.file)}`,
-              );
-              if (fullResponse.ok) {
-                const originalGeoJSON = await fullResponse.json();
+              // Gunakan data yang sudah dimuat saat inisialisasi. Untuk layer
+              // yang sumbernya masih berupa URL, unduh sekali lalu simpan cache.
+              let originalGeoJSON = digitasiGeoJSONCache.get(selectedLayerItem.key);
+              if (!originalGeoJSON) {
+                const fullResponse = await fetch(
+                  `${R2_DATA_BASE}/${encodeURIComponent(selectedLayerItem.file)}`,
+                );
+                if (fullResponse.ok) {
+                  originalGeoJSON = await fullResponse.json();
+                  digitasiGeoJSONCache.set(selectedLayerItem.key, originalGeoJSON);
+                }
+              }
+
+              if (originalGeoJSON) {
                 const originalFeatures: any[] = Array.isArray(originalGeoJSON.features)
                   ? originalGeoJSON.features
                   : [];
@@ -1277,63 +1299,11 @@ export default function MapView({
                 let matched: any;
 
                 if (isContourLayer) {
-                  // Kontur dapat memiliki atribut berulang dan MapLibre memotong
-                  // geometri saat render. Cari fitur sumber yang atributnya cocok
-                  // lalu pilih geometri yang paling dekat dengan titik klik layar.
-                  const relevantKeys = ["NAME", "LAYER", "MAP_NAME", "ELEVATION", "CLOSED_CON"];
-                  const candidates = originalFeatures.filter((candidate) => {
-                    if (!candidate.geometry) return false;
-                    const props = candidate.properties ?? {};
-                    return relevantKeys.every((key) =>
-                      clickedProperties[key] == null || props[key] == null ||
-                      String(props[key]) === String(clickedProperties[key]),
-                    );
-                  });
-
-                  const clickPoint = event.point;
-                  const geometryDistance = (geometry: any): number => {
-                    const projected: [number, number][] = [];
-                    const walk = (value: any) => {
-                      if (!Array.isArray(value)) return;
-                      if (value.length >= 2 && typeof value[0] === "number" && typeof value[1] === "number") {
-                        const needsConversion = Math.abs(value[0]) > 180 || Math.abs(value[1]) > 90;
-                        const coord = needsConversion ? mercatorToLonLat(value) : value;
-                        const point = map.project([coord[0], coord[1]]);
-                        projected.push([point.x, point.y]);
-                      } else {
-                        value.forEach(walk);
-                      }
-                    };
-                    walk(geometry.coordinates);
-                    if (!projected.length) return Number.POSITIVE_INFINITY;
-                    if (projected.length === 1) {
-                      return Math.hypot(projected[0][0] - clickPoint.x, projected[0][1] - clickPoint.y);
-                    }
-                    let min = Number.POSITIVE_INFINITY;
-                    for (let i = 1; i < projected.length; i++) {
-                      const [x1, y1] = projected[i - 1];
-                      const [x2, y2] = projected[i];
-                      const dx = x2 - x1;
-                      const dy = y2 - y1;
-                      const length2 = dx * dx + dy * dy;
-                      const t = length2 === 0 ? 0 : Math.max(0, Math.min(1,
-                        ((clickPoint.x - x1) * dx + (clickPoint.y - y1) * dy) / length2,
-                      ));
-                      min = Math.min(min, Math.hypot(clickPoint.x - (x1 + t * dx), clickPoint.y - (y1 + t * dy)));
-                    }
-                    return min;
-                  };
-
-                  let bestDistance = Number.POSITIVE_INFINITY;
-                  for (const candidate of candidates) {
-                    const distance = geometryDistance(candidate.geometry);
-                    if (distance < bestDistance) {
-                      bestDistance = distance;
-                      matched = candidate;
-                    }
-                  }
-                  // Batasi jarak agar tidak mengambil garis kontur lain yang jauh.
-                  if (bestDistance > 18) matched = undefined;
+                  // Kontur dapat berisi ribuan garis dengan atribut berulang.
+                  // Memindai dan memproyeksikan seluruh geometri setiap klik sangat
+                  // mahal. Gunakan geometri hasil render untuk kontur; atribut popup
+                  // tetap berasal dari fitur yang benar-benar diklik.
+                  matched = undefined;
                 } else {
                   matched = feature.id != null
                     ? originalFeatures.find((candidate: any) => candidate.id === feature.id)
@@ -2493,7 +2463,7 @@ export default function MapView({
       </header>
 
       <div className="main-layout main-layout-simple">
-        <section className="map-area map-area-full">
+        <section className={`map-area map-area-full ${showProfileWindow && selectedMeasureTool === "profile" ? "profile-open" : ""}`}>
           {!showLayerPanel && (
             <button
               type="button"
