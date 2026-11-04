@@ -3234,3 +3234,17 @@ button {
     min-height: 44px !important;
   }
 }
+
+/* Atribusi peta tanpa kotak latar */
+.map-area-full .maplibregl-ctrl-attrib,
+.map-area-full .maplibregl-ctrl-attrib.maplibregl-compact {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Pertahankan keterbacaan teks atribusi */
+.map-area-full .maplibregl-ctrl-attrib a {
+  color: #183746 !important;
+}
