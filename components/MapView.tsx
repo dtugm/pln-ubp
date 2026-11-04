@@ -899,40 +899,49 @@ export default function MapView({
           .maplibregl-popup.soft-attribute-popup .maplibregl-popup-tip { border-top-color: #fff; }
 
           /* Seluruh kontrol kanan memakai ukuran dan jarak yang konsisten. */
-          .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
-            transform: none;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            margin: 0 10px 10px 0;
-            border: 1px solid #d7e0e5;
-            border-radius: 10px;
-            background: #fff;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.16);
+          /* MapLibre tidak selalu berada di dalam .map-area-full.
+             Gunakan selector global agar tombol navigasi ikut aturan ukuran. */
+          .maplibregl-ctrl-bottom-right {
+            right: 0 !important;
+            bottom: 0 !important;
           }
-          .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button {
+          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+            transform: none !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            width: 44px !important;
+            margin: 0 10px 10px 0 !important;
+            padding: 0 !important;
+            border: 1px solid #d7e0e5 !important;
+            border-radius: 10px !important;
+            background: #fff !important;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.16) !important;
+          }
+          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button {
             box-sizing: border-box;
-            width: 44px;
-            height: 44px;
-            min-width: 44px;
-            min-height: 44px;
-            max-width: 44px;
-            max-height: 44px;
-            padding: 0;
-            border: 0;
-            border-radius: 0;
-            background-color: #fff;
+            width: 44px !important;
+            height: 44px !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+            max-width: 44px !important;
+            max-height: 44px !important;
+            box-sizing: border-box !important;
+            padding: 0 !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            background-color: #fff !important;
           }
-          .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button + button {
-            border-top: 1px solid #e7eef1;
+          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button + button {
+            border-top: 1px solid #e7eef1 !important;
           }
-          .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button:hover {
-            background-color: #f2f8fa;
+          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button:hover {
+            background-color: #f2f8fa !important;
           }
-          .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
-            width: 20px;
-            height: 20px;
-            background-size: 20px 20px;
+          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+            width: 20px !important;
+            height: 20px !important;
+            background-size: 20px 20px !important;
           }
 
         `;
