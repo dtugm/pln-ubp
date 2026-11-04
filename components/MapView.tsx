@@ -492,6 +492,7 @@ export default function MapView({
             "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
             "text-anchor": "center",
             "text-justify": "center",
+            "text-offset": ["get", "offset"],
             "text-line-height": 1.2,
             "text-max-width": 24,
             "text-allow-overlap": true,
@@ -747,13 +748,48 @@ export default function MapView({
             accumulated += segment;
           }
         }
+        const measurementLabelFeatures =
+          activeMeasure === "height" && next.length >= 2
+            ? [
+                {
+                  type: "Feature" as const,
+                  properties: {
+                    label: `Awal: ${first[2] == null ? "N/A" : `${first[2].toFixed(2)} m`}`,
+                    offset: [0, -1.5],
+                  },
+                  geometry: {
+                    type: "Point" as const,
+                    coordinates: [first[0], first[1]],
+                  },
+                },
+                {
+                  type: "Feature" as const,
+                  properties: {
+                    label: `Akhir: ${last[2] == null ? "N/A" : `${last[2].toFixed(2)} m`}`,
+                    offset: [0, 1.5],
+                  },
+                  geometry: {
+                    type: "Point" as const,
+                    coordinates: [last[0], last[1]],
+                  },
+                },
+                {
+                  type: "Feature" as const,
+                  properties: { label: lineLabel, offset: [0, 0] },
+                  geometry: { type: "Point" as const, coordinates: labelCoordinate },
+                },
+              ]
+            : next.length >= 2
+              ? [{
+                  type: "Feature" as const,
+                  properties: { label: lineLabel, offset: [0, 0] },
+                  geometry: { type: "Point" as const, coordinates: labelCoordinate },
+                }]
+              : [];
+
         (map.getSource("measure-label-point") as maplibregl.GeoJSONSource | undefined)?.setData({
           type: "FeatureCollection",
-          features: next.length >= 2 ? [{
-            type: "Feature",
-            properties: { label: lineLabel },
-            geometry: { type: "Point", coordinates: labelCoordinate },
-          }] : [],
+          features: measurementLabelFeatures,
         });
 
         if (next.length < 2) {
