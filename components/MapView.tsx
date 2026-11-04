@@ -772,6 +772,7 @@ export default function MapView({
             });
 
             setProfileSamples(validLiveSamples.length >= 2 ? liveSamples : clickedSamples);
+            setShowLayerPanel(false);
             setShowProfileWindow(true);
           }
 
