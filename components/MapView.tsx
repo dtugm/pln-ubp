@@ -358,6 +358,7 @@ export default function MapView({
   const [terrainOn, setTerrainOn] = useState(false);
   const [activeLayerTab, setActiveLayerTab] = useState<"data" | "terrain">("data");
   const [activeTerrain, setActiveTerrain] = useState<"aws" | "dtm" | null>(null);
+  const [showDtmRequiredNotice, setShowDtmRequiredNotice] = useState(false);
 
   const [zoomLevel, setZoomLevel] = useState(14.2);
 
@@ -2572,6 +2573,102 @@ export default function MapView({
 
       <div className="main-layout main-layout-simple">
         <section className={`map-area map-area-full ${showProfileWindow && selectedMeasureTool === "profile" ? "profile-open" : ""}`}>
+          {showDtmRequiredNotice && (
+            <div
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="dtm-required-title"
+              aria-describedby="dtm-required-description"
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 2147483000,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 20,
+                background: "rgba(20, 38, 48, 0.24)",
+                boxSizing: "border-box",
+              }}
+            >
+              <div
+                style={{
+                  width: "min(360px, calc(100vw - 40px))",
+                  padding: "22px 22px 18px",
+                  borderRadius: 18,
+                  background: "#fff7f7",
+                  border: "1px solid #f1c8ca",
+                  boxShadow: "0 16px 48px rgba(25, 48, 60, 0.24)",
+                  textAlign: "center",
+                  boxSizing: "border-box",
+                }}
+              >
+                <div
+                  style={{
+                    width: 46,
+                    height: 46,
+                    margin: "0 auto 12px",
+                    borderRadius: 14,
+                    display: "grid",
+                    placeItems: "center",
+                    background: "#fde5e6",
+                    color: "#bd454c",
+                  }}
+                >
+                  <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 3 2.8 19a1.4 1.4 0 0 0 1.2 2h16a1.4 1.4 0 0 0 1.2-2L12 3Z" />
+                    <path d="M12 9v4M12 17h.01" />
+                  </svg>
+                </div>
+                <div id="dtm-required-title" style={{ color: "#8f343b", fontSize: 16, fontWeight: 750 }}>
+                  DTM belum diaktifkan
+                </div>
+                <div id="dtm-required-description" style={{ marginTop: 8, color: "#754b4e", fontSize: 13, lineHeight: 1.55 }}>
+                  Aktifkan DTM Lokal terlebih dahulu untuk menggunakan Profil Elevasi.
+                </div>
+                <div style={{ display: "flex", justifyContent: "center", gap: 9, marginTop: 18, flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowDtmRequiredNotice(false)}
+                    style={{
+                      minHeight: 38,
+                      padding: "8px 14px",
+                      border: "1px solid #e5c6c8",
+                      borderRadius: 9,
+                      background: "#ffffff",
+                      color: "#754b4e",
+                      fontSize: 12,
+                      fontWeight: 650,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Nanti
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDtmRequiredNotice(false);
+                      setShowLayerPanel(true);
+                      setActiveLayerTab("terrain");
+                    }}
+                    style={{
+                      minHeight: 38,
+                      padding: "8px 14px",
+                      border: "1px solid #bd454c",
+                      borderRadius: 9,
+                      background: "#bd454c",
+                      color: "#ffffff",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Aktifkan DTM
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           {!showLayerPanel && (
             <button
               type="button"
@@ -3499,7 +3596,16 @@ export default function MapView({
               title="Profil elevasi"
               aria-pressed={measureMode === "profile"}
               onClick={() => {
+                // Profil elevasi hanya tersedia jika DTM Lokal sedang aktif.
+                // Jangan mulai menggambar jalur atau menampilkan pesan error
+                // di pojok peta ketika sumber DTM belum diaktifkan.
+                if (activeTerrain !== "dtm") {
+                  setShowDtmRequiredNotice(true);
+                  return;
+                }
+
                 const shouldStop = measureModeRef.current === "profile";
+                setShowDtmRequiredNotice(false);
                 setShowMeasureMenu(false);
                 setSelectedMeasureTool("profile");
                 measureModeRef.current = shouldStop ? null : "profile";
