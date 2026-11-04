@@ -3191,7 +3191,6 @@ export default function MapView({
                   { key: "length", label: "Panjang", icon: "length" },
                   { key: "area", label: "Luas", icon: "area" },
                   { key: "height", label: "Tinggi", icon: "height" },
-                  { key: "profile", label: "Profil", icon: "profile" },
                 ] as const).map((tool) => {
                   const isSelected = selectedMeasureTool === tool.key;
                   const isImplemented = true;
@@ -3412,6 +3411,67 @@ export default function MapView({
                 −
               </button>
             </div>
+
+            {/* Profil elevasi sebagai tombol mandiri, bukan item menu pengukuran. */}
+            <button
+              type="button"
+              aria-label={measureModeRef.current === "profile" ? "Hentikan Profil Elevasi" : "Profil Elevasi"}
+              title="Profil elevasi"
+              aria-pressed={measureMode === "profile"}
+              onClick={() => {
+                const shouldStop = measureModeRef.current === "profile";
+                setShowMeasureMenu(false);
+                setSelectedMeasureTool("profile");
+                measureModeRef.current = shouldStop ? null : "profile";
+                setMeasureMode(shouldStop ? null : "profile");
+                measurePointsRef.current = [];
+                setMeasureResult(
+                  shouldStop
+                    ? ""
+                    : "Profil elevasi: klik minimal dua titik pada peta, lalu klik dua kali untuk menyelesaikan dan melihat grafik.",
+                );
+                setProfileSamples([]);
+                setShowProfileWindow(false);
+
+                const map = mapRef.current;
+                (map?.getSource("measure-line") as maplibregl.GeoJSONSource | undefined)?.setData({
+                  type: "Feature",
+                  properties: { label: "" },
+                  geometry: { type: "LineString", coordinates: [] },
+                });
+                (map?.getSource("measure-label-point") as maplibregl.GeoJSONSource | undefined)?.setData({
+                  type: "FeatureCollection",
+                  features: [],
+                });
+                (map?.getSource("measure-area") as maplibregl.GeoJSONSource | undefined)?.setData({
+                  type: "FeatureCollection",
+                  features: [],
+                });
+                featurePopupRef.current?.remove();
+                featurePopupRef.current = null;
+              }}
+              style={{
+                width: 44,
+                height: 44,
+                display: "grid",
+                placeItems: "center",
+                padding: 0,
+                border: measureMode === "profile" ? "1px solid #78c9bd" : "1px solid #d7e0e5",
+                borderRadius: 10,
+                background: measureMode === "profile" ? "#29485d" : "#ffffff",
+                color: measureMode === "profile" ? "#ffffff" : "#29485d",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.22)",
+                cursor: "pointer",
+                touchAction: "manipulation",
+              }}
+            >
+              <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M3 19h18M4 16l4-5 4 2 5-8 3 3" />
+                <circle cx="8" cy="11" r="1" />
+                <circle cx="12" cy="13" r="1" />
+                <circle cx="17" cy="5" r="1" />
+              </svg>
+            </button>
           </div>
 
           <div className="map-tools-stack">
