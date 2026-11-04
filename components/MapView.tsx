@@ -898,38 +898,38 @@ export default function MapView({
 
           .maplibregl-popup.soft-attribute-popup .maplibregl-popup-tip { border-top-color: #fff; }
 
-          /* Kontrol navigasi MapLibre diseragamkan dengan tombol custom 44 x 44 px. */
-          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+          /* Seluruh kontrol kanan memakai ukuran dan jarak yang konsisten. */
+          .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+            transform: none;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            margin: 0 10px 10px 0;
             border: 1px solid #d7e0e5;
             border-radius: 10px;
             background: #fff;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.16);
           }
-
-          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button {
+          .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button {
             box-sizing: border-box;
             width: 44px;
             height: 44px;
             min-width: 44px;
             min-height: 44px;
+            max-width: 44px;
+            max-height: 44px;
             padding: 0;
             border: 0;
             border-radius: 0;
             background-color: #fff;
           }
-
-          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button + button {
+          .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button + button {
             border-top: 1px solid #e7eef1;
           }
-
-          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button:hover {
+          .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button:hover {
             background-color: #f2f8fa;
           }
-
-          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+          .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
             width: 20px;
             height: 20px;
             background-size: 20px 20px;
@@ -3099,8 +3099,8 @@ export default function MapView({
           <div
             style={{
               position: "absolute",
-              right: 16,
-              bottom: 158,
+              right: 10,
+              bottom: 152,
               zIndex: 30,
             }}
           >
@@ -3174,8 +3174,8 @@ export default function MapView({
           <div
             style={{
               position: "absolute",
-              right: 16,
-              bottom: 208,
+              right: 10,
+              bottom: 206,
               zIndex: 40,
               display: "flex",
               alignItems: "center",
