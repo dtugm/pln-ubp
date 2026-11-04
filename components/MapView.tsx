@@ -3104,6 +3104,7 @@ export default function MapView({
               flexDirection: "column",
               alignItems: "center",
               gap: 8,
+              width: 48,
             }}
           >
             {measureResult && !(showProfileWindow && selectedMeasureTool === "profile") && (
@@ -3172,13 +3173,13 @@ export default function MapView({
                 aria-label="Pilihan alat ukur"
                 style={{
                   position: "absolute",
-                  right: 50,
+                  right: 64,
                   top: "50%",
                   transform: "translateY(-50%)",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "stretch",
-                  gap: 5,
+                  gap: 7,
                   padding: 0,
                   border: "none",
                   borderRadius: 0,
@@ -3236,21 +3237,21 @@ export default function MapView({
                       aria-label={tool.label}
                       aria-pressed={isSelected}
                       style={{
-                        width: 140,
-                        minWidth: 140,
-                        height: 48,
+                        width: 174,
+                        minWidth: 174,
+                        height: 58,
                         display: "flex",
                         flexDirection: "row",
                         alignItems: "center",
                         justifyContent: "flex-start",
-                        gap: 10,
-                        padding: "0 12px",
+                        gap: 12,
+                        padding: "0 16px",
                         border: isSelected ? "1px solid #78c9bd" : "1px solid rgba(215,224,229,0.55)",
                         borderRadius: 11,
                         background: isSelected ? "#e8f6f4" : "#ffffff",
                         color: "#29485d",
-                        fontSize: 14,
-                        fontWeight: 500,
+                        fontSize: 15,
+                        fontWeight: 600,
                         boxShadow: "0 1px 4px rgba(0,0,0,0.14)",
                         whiteSpace: "nowrap",
                         cursor: "pointer",
@@ -3409,6 +3410,34 @@ export default function MapView({
                 −
               </button>
             </div>
+
+            {/* Reset arah utara: mengembalikan bearing dan pitch ke posisi awal. */}
+            <button
+              type="button"
+              aria-label="Reset arah utara"
+              title="Reset arah utara"
+              onClick={() => mapRef.current?.easeTo({ bearing: 0, pitch: 0, duration: 300 })}
+              style={{
+                width: 44,
+                height: 44,
+                display: "grid",
+                placeItems: "center",
+                padding: 0,
+                border: "1px solid #d7e0e5",
+                borderRadius: 10,
+                background: "#ffffff",
+                color: "#29485d",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
+                cursor: "pointer",
+                touchAction: "manipulation",
+              }}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="m14.8 8.2-2 5-5 2 2-5 5-2Z" fill="currentColor" stroke="none" />
+                <path d="M12 3v2M21 12h-2" />
+              </svg>
+            </button>
 
             {/* Profil elevasi sebagai tombol mandiri, bukan item menu pengukuran. */}
             <button
