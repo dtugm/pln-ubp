@@ -64,39 +64,107 @@ type PhotonFeature = {
 const R2_DATA_BASE = "/api/data";
 
 
-// Cache geometri GeoJSON utuh per file. File hanya diunduh dan diindeks sekali,
-// bukan setiap kali pengguna mengeklik fitur.
-const fullGeoJSONIndexCache = new Map<string, Promise<Map<string, any>>>();
+// Cache GeoJSON utuh per file. Data yang sudah dimuat untuk layer utama
+// akan dipakai kembali; layer lain baru diambil sekali saat pertama diklik.
+const fullGeoJSONCache = new Map<string, Promise<any>>();
 
-function getFullFeatureIndex(file: string): Promise<Map<string, any>> {
-  const cached = fullGeoJSONIndexCache.get(file);
+function getFullGeoJSON(file: string): Promise<any> {
+  const cached = fullGeoJSONCache.get(file);
   if (cached) return cached;
 
   const request = (async () => {
     const response = await fetch(`${R2_DATA_BASE}/${encodeURIComponent(file)}`);
     if (!response.ok) throw new Error(`Gagal mengambil ${file}: HTTP ${response.status}`);
-
-    const geojson = await response.json();
-    const index = new Map<string, any>();
-
-    for (const candidate of geojson.features ?? []) {
-      const key = JSON.stringify(candidate.properties ?? {});
-      // Simpan kandidat pertama untuk atribut yang sama.
-      if (!index.has(key)) index.set(key, candidate);
-    }
-
-    return index;
+    return response.json();
   })();
 
-  fullGeoJSONIndexCache.set(file, request);
+  fullGeoJSONCache.set(file, request);
   request.catch(() => {
-    // Izinkan percobaan ulang jika jaringan gagal.
-    if (fullGeoJSONIndexCache.get(file) === request) {
-      fullGeoJSONIndexCache.delete(file);
-    }
+    if (fullGeoJSONCache.get(file) === request) fullGeoJSONCache.delete(file);
   });
-
   return request;
+}
+
+// Mengukur kedekatan titik klik terhadap geometri. Polygon yang memuat titik
+// klik mendapat skor terbaik; untuk garis/titik dipilih geometri terdekat.
+function getGeometryClickScore(geometry: any, lng: number, lat: number): number {
+  if (!geometry) return Number.POSITIVE_INFINITY;
+
+  const pointInRing = (ring: any[]): boolean => {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const xi = ring[i]?.[0], yi = ring[i]?.[1];
+      const xj = ring[j]?.[0], yj = ring[j]?.[1];
+      if (![xi, yi, xj, yj].every(Number.isFinite)) continue;
+      const intersects = ((yi > lat) !== (yj > lat)) &&
+        (lng < ((xj - xi) * (lat - yi)) / ((yj - yi) || 1e-15) + xi);
+      if (intersects) inside = !inside;
+    }
+    return inside;
+  };
+
+  const pointSegmentDistance = (a: any[], b: any[]): number => {
+    const dx = b[0] - a[0], dy = b[1] - a[1];
+    const length2 = dx * dx + dy * dy;
+    const t = length2 ? Math.max(0, Math.min(1, ((lng - a[0]) * dx + (lat - a[1]) * dy) / length2)) : 0;
+    return Math.hypot(lng - (a[0] + t * dx), lat - (a[1] + t * dy));
+  };
+
+  let minDistance = Number.POSITIVE_INFINITY;
+  const visitLine = (line: any[]) => {
+    if (!Array.isArray(line)) return;
+    if (line.length === 1 && Array.isArray(line[0])) {
+      minDistance = Math.min(minDistance, Math.hypot(lng - line[0][0], lat - line[0][1]));
+      return;
+    }
+    for (let i = 1; i < line.length; i++) {
+      if (Array.isArray(line[i - 1]) && Array.isArray(line[i])) {
+        minDistance = Math.min(minDistance, pointSegmentDistance(line[i - 1], line[i]));
+      }
+    }
+  };
+
+  const visitPolygon = (rings: any[]) => {
+    if (!Array.isArray(rings) || !rings.length) return;
+    const inOuter = pointInRing(rings[0] ?? []);
+    const inHole = rings.slice(1).some((ring) => pointInRing(ring));
+    if (inOuter && !inHole) {
+      // Nilai negatif memilih poligon yang paling dalam memuat titik klik.
+      let boundaryDistance = Number.POSITIVE_INFINITY;
+      for (const ring of rings) {
+        for (let i = 1; i < ring.length; i++) {
+          boundaryDistance = Math.min(boundaryDistance, pointSegmentDistance(ring[i - 1], ring[i]));
+        }
+      }
+      minDistance = Math.min(minDistance, -boundaryDistance);
+    } else {
+      for (const ring of rings) visitLine(ring);
+    }
+  };
+
+  switch (geometry.type) {
+    case "Point":
+      minDistance = Math.hypot(lng - geometry.coordinates[0], lat - geometry.coordinates[1]);
+      break;
+    case "MultiPoint":
+      for (const point of geometry.coordinates) minDistance = Math.min(minDistance, Math.hypot(lng - point[0], lat - point[1]));
+      break;
+    case "LineString":
+      visitLine(geometry.coordinates);
+      break;
+    case "MultiLineString":
+      for (const line of geometry.coordinates) visitLine(line);
+      break;
+    case "Polygon":
+      visitPolygon(geometry.coordinates);
+      break;
+    case "MultiPolygon":
+      for (const polygon of geometry.coordinates) visitPolygon(polygon);
+      break;
+    default:
+      break;
+  }
+  return minDistance;
 }
 
 const digitasiLayers: DigitasiLayer[] = [
@@ -1299,15 +1367,43 @@ export default function MapView({
           );
           const selectedLayerLabel = selectedLayerItem?.label ?? item.label;
 
-          // Ambil geometri utuh dari GeoJSON asli melalui cache terindeks.
-          // Unduhan dan pembuatan indeks hanya dilakukan sekali per file.
-          // Klik berikutnya cukup lookup atribut (O(1)), bukan scan 31 ribu fitur.
+          // Ambil kandidat dari GeoJSON utuh. Jangan memilih kandidat pertama
+          // hanya karena atributnya sama: banyak fitur memiliki atribut/id serupa.
+          // Cocokkan juga posisi geometri dengan koordinat klik agar fitur yang
+          // benar dipilih dan highlight mengikuti geometri lengkapnya.
           let fullFeature: any = feature;
           if (selectedLayerItem?.file) {
             try {
-              const featureIndex = await getFullFeatureIndex(selectedLayerItem.file);
-              const featureKey = JSON.stringify(feature.properties ?? {});
-              fullFeature = featureIndex.get(featureKey) ?? feature;
+              const geojson =
+                digitasiGeoJSONCache.get(selectedLayerItem.key) ??
+                await getFullGeoJSON(selectedLayerItem.file);
+
+              const clickedProperties = feature.properties ?? {};
+              const clickedKey = JSON.stringify(clickedProperties);
+              let candidates = (geojson.features ?? []).filter(
+                (candidate: any) =>
+                  JSON.stringify(candidate.properties ?? {}) === clickedKey,
+              );
+
+              // Jika data memiliki ID fitur yang stabil, gunakan sebagai prioritas.
+              if (feature.id !== undefined && feature.id !== null) {
+                const byId = candidates.find(
+                  (candidate: any) => String(candidate.id) === String(feature.id),
+                );
+                if (byId) candidates = [byId];
+              }
+
+              if (candidates.length === 1) {
+                fullFeature = candidates[0];
+              } else if (candidates.length > 1) {
+                const { lng, lat } = event.lngLat;
+                candidates.sort(
+                  (a: any, b: any) =>
+                    getGeometryClickScore(a.geometry, lng, lat) -
+                    getGeometryClickScore(b.geometry, lng, lat),
+                );
+                fullFeature = candidates[0] ?? feature;
+              }
             } catch (error) {
               console.warn(
                 `Geometri utuh ${selectedLayerItem.file} tidak tersedia; memakai geometri hasil render.`,
