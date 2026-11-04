@@ -683,7 +683,7 @@ export default function MapView({
             : activeMeasure === "height"
               ? "Klik titik pertama, lalu titik kedua"
               : activeMeasure === "area"
-                ? "Klik titik-titik batas area, lalu klik dua kali untuk selesai"
+                ? "Tambahkan titik batas area, lalu tekan Selesai"
                 : activeMeasure === "profile"
                   ? "Klik titik-titik jalur profil, lalu tekan Selesai untuk melihat grafik"
                   : "Klik peta untuk menambahkan titik";
@@ -733,7 +733,7 @@ export default function MapView({
                 return squareMeters >= 10000
                   ? `${(squareMeters / 10000).toFixed(2)} ha`
                   : `${squareMeters.toFixed(2)} m²`;
-              })()}. Klik dua kali untuk menyelesaikan.`);
+              })()}. Tekan Selesai jika batas area sudah lengkap.`);
           return;
         }
 
@@ -777,7 +777,7 @@ export default function MapView({
             activeMeasure === "height"
               ? "Klik titik kedua untuk menghitung beda tinggi."
               : activeMeasure === "profile"
-                ? "Klik minimal dua titik, lalu klik dua kali pada titik terakhir untuk langsung membuka grafik profil elevasi."
+                ? "Klik minimal dua titik, lalu tekan Selesai untuk membuka grafik profil elevasi."
                 : "Klik titik berikutnya untuk melanjutkan pengukuran panjang.",
           );
         } else if (activeMeasure === "height") {
@@ -788,7 +788,7 @@ export default function MapView({
           const elevations = next.map((point) => point[2]).filter((value): value is number => value != null);
           setMeasureResult(
             elevations.length
-              ? `Profil sementara · jarak ${formatDistance(totalMeters)} · elevasi ${Math.min(...elevations).toFixed(2)}–${Math.max(...elevations).toFixed(2)} m. Klik dua kali pada titik terakhir untuk membuka grafik.`
+              ? `Profil sementara · jarak ${formatDistance(totalMeters)} · elevasi ${Math.min(...elevations).toFixed(2)}–${Math.max(...elevations).toFixed(2)} m. Tekan Selesai untuk membuka grafik.`
               : "Elevasi profil belum tersedia. Aktifkan Terrain 3D, lalu gambar jalur profil lagi.",
           );
         } else {
@@ -3131,6 +3131,64 @@ export default function MapView({
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div>{measureResult}</div>
+                    {(["length", "area", "profile"] as const).includes(
+                      measureModeRef.current as "length" | "area" | "profile",
+                    ) && measurePointsRef.current.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const map = mapRef.current;
+                          const active = measureModeRef.current;
+                          if (!map || !active) return;
+
+                          if (active === "area" || active === "profile") {
+                            // Gunakan handler penyelesaian yang sama dengan klik ganda,
+                            // tetapi dipicu eksplisit dari tombol Selesai.
+                            const center = map.getCenter();
+                            map.fire("dblclick", {
+                              point: map.project(center),
+                              lngLat: center,
+                            });
+                          } else if (active === "length") {
+                            const points = measurePointsRef.current;
+                            if (points.length < 2) {
+                              setMeasureResult("Panjang membutuhkan minimal dua titik.");
+                              return;
+                            }
+                            const toRad = (value: number) => (value * Math.PI) / 180;
+                            const distance = (a: [number, number, number | null], b: [number, number, number | null]) => {
+                              const dLat = toRad(b[1] - a[1]);
+                              const dLng = toRad(b[0] - a[0]);
+                              const h = Math.sin(dLat / 2) ** 2 +
+                                Math.cos(toRad(a[1])) * Math.cos(toRad(b[1])) * Math.sin(dLng / 2) ** 2;
+                              return 2 * 6371008.8 * Math.asin(Math.min(1, Math.sqrt(h)));
+                            };
+                            const total = points.slice(1).reduce(
+                              (sum, point, index) => sum + distance(points[index], point), 0,
+                            );
+                            const formatted = total >= 1000
+                              ? `${(total / 1000).toFixed(2)} km`
+                              : `${total.toFixed(2)} m`;
+                            setMeasureResult(`Panjang: ${formatted}`);
+                            measureModeRef.current = null;
+                            setMeasureMode(null);
+                          }
+                        }}
+                        style={{
+                          marginTop: 9,
+                          padding: "6px 13px",
+                          border: 0,
+                          borderRadius: 7,
+                          background: "#29485d",
+                          color: "#ffffff",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Selesai
+                      </button>
+                    )}
                   </div>
                   <button
                     type="button"
