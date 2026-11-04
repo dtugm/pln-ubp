@@ -3098,7 +3098,7 @@ export default function MapView({
             style={{
               position: "absolute",
               right: 10,
-              bottom: 112,
+              bottom: 48,
               zIndex: 40,
               display: "flex",
               flexDirection: "column",
@@ -3191,6 +3191,7 @@ export default function MapView({
                   { key: "length", label: "Panjang", icon: "length" },
                   { key: "area", label: "Luas", icon: "area" },
                   { key: "height", label: "Tinggi", icon: "height" },
+                  { key: "profile", label: "Profil", icon: "profile" },
                 ] as const).map((tool) => {
                   const isSelected = selectedMeasureTool === tool.key;
                   const isImplemented = true;
@@ -3206,7 +3207,9 @@ export default function MapView({
                         measureModeRef.current = shouldStop ? null : mode;
                         setMeasureMode(shouldStop ? null : mode);
                         measurePointsRef.current = [];
-                        setMeasureResult("");
+                        setMeasureResult(mode === "profile"
+                          ? "Profil elevasi: klik minimal dua titik pada peta, lalu klik dua kali untuk menyelesaikan dan melihat grafik."
+                          : "");
                         setProfileSamples([]);
                         setShowProfileWindow(false);
                         const lineSource = mapRef.current?.getSource("measure-line") as
