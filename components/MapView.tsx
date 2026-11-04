@@ -319,6 +319,51 @@ export default function MapView({
   const accountRef = useRef<HTMLDivElement>(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
+  // Saat panel Profil Elevasi terbuka, sembunyikan popup/label peta yang
+  // dapat meninggalkan kotak kosong besar di atas panel. Jalur pengukuran
+  // dan titik-titiknya tetap tampil.
+  useEffect(() => {
+    const map = mapRef.current;
+    const profileIsOpen = showProfileWindow && selectedMeasureTool === "profile";
+
+    if (!map) return;
+
+    const syncProfileOverlay = () => {
+      // Label teks jalur pengukuran tidak diperlukan ketika grafik profil tampil.
+      if (map.getLayer("measure-line-label")) {
+        map.setLayoutProperty(
+          "measure-line-label",
+          "visibility",
+          profileIsOpen ? "none" : "visible",
+        );
+      }
+
+      // Popup MapLibre (termasuk popup fitur yang mungkin masih terbuka)
+      // disembunyikan sementara agar tidak menutupi peta.
+      const mapElement = map.getContainer();
+      mapElement.querySelectorAll<HTMLElement>(".maplibregl-popup").forEach((popup) => {
+        popup.style.display = profileIsOpen ? "none" : "";
+      });
+    };
+
+    if (map.isStyleLoaded()) {
+      syncProfileOverlay();
+    } else {
+      map.once("load", syncProfileOverlay);
+    }
+
+    return () => {
+      map.off("load", syncProfileOverlay);
+      const mapElement = map.getContainer();
+      mapElement.querySelectorAll<HTMLElement>(".maplibregl-popup").forEach((popup) => {
+        popup.style.display = "";
+      });
+      if (map.getLayer("measure-line-label")) {
+        map.setLayoutProperty("measure-line-label", "visibility", "visible");
+      }
+    };
+  }, [showProfileWindow, selectedMeasureTool]);
+
   const [digitasiVisibility, setDigitasiVisibility] = useState<
     Record<DigitasiKey, boolean>
   >(initialDigitasiLayers);
