@@ -63,6 +63,42 @@ type PhotonFeature = {
 
 const R2_DATA_BASE = "/api/data";
 
+
+// Cache geometri GeoJSON utuh per file. File hanya diunduh dan diindeks sekali,
+// bukan setiap kali pengguna mengeklik fitur.
+const fullGeoJSONIndexCache = new Map<string, Promise<Map<string, any>>>();
+
+function getFullFeatureIndex(file: string): Promise<Map<string, any>> {
+  const cached = fullGeoJSONIndexCache.get(file);
+  if (cached) return cached;
+
+  const request = (async () => {
+    const response = await fetch(`${R2_DATA_BASE}/${encodeURIComponent(file)}`);
+    if (!response.ok) throw new Error(`Gagal mengambil ${file}: HTTP ${response.status}`);
+
+    const geojson = await response.json();
+    const index = new Map<string, any>();
+
+    for (const candidate of geojson.features ?? []) {
+      const key = JSON.stringify(candidate.properties ?? {});
+      // Simpan kandidat pertama untuk atribut yang sama.
+      if (!index.has(key)) index.set(key, candidate);
+    }
+
+    return index;
+  })();
+
+  fullGeoJSONIndexCache.set(file, request);
+  request.catch(() => {
+    // Izinkan percobaan ulang jika jaringan gagal.
+    if (fullGeoJSONIndexCache.get(file) === request) {
+      fullGeoJSONIndexCache.delete(file);
+    }
+  });
+
+  return request;
+}
+
 const digitasiLayers: DigitasiLayer[] = [
   {
     key: "bangunan",
@@ -1212,7 +1248,7 @@ export default function MapView({
 
         const popupLayerIds = [fillId, lineId, pointId];
 
-        map.on("click", popupLayerIds, (event) => {
+        map.on("click", popupLayerIds, async (event) => {
           // Handler dipasang pada tiap layer, tetapi klik pada fitur bertumpuk
           // dapat memicu lebih dari satu handler. Abaikan pemanggilan duplikat.
           if (handledDigitasiClickEvents.has(event as object)) return;
@@ -1263,12 +1299,22 @@ export default function MapView({
           );
           const selectedLayerLabel = selectedLayerItem?.label ?? item.label;
 
-          // Gunakan fitur hasil render MapLibre secara langsung.
-          // Jangan fetch dan mencari ulang seluruh GeoJSON saat setiap klik:
-          // proses tersebut membuat popup lambat pada layer besar.
-          // Geometri hasil render bisa terpotong pada batas tile, tetapi popup
-          // dan highlight tampil tanpa menunggu unduhan/pemindaian GeoJSON.
-          const fullFeature: any = feature;
+          // Ambil geometri utuh dari GeoJSON asli melalui cache terindeks.
+          // Unduhan dan pembuatan indeks hanya dilakukan sekali per file.
+          // Klik berikutnya cukup lookup atribut (O(1)), bukan scan 31 ribu fitur.
+          let fullFeature: any = feature;
+          if (selectedLayerItem?.file) {
+            try {
+              const featureIndex = await getFullFeatureIndex(selectedLayerItem.file);
+              const featureKey = JSON.stringify(feature.properties ?? {});
+              fullFeature = featureIndex.get(featureKey) ?? feature;
+            } catch (error) {
+              console.warn(
+                `Geometri utuh ${selectedLayerItem.file} tidak tersedia; memakai geometri hasil render.`,
+                error,
+              );
+            }
+          }
 
           // Sorot geometri fitur yang dipilih. Untuk layer biasa, gunakan geometri
           // lengkap dari GeoJSON asli, termasuk kontur yang dipilih berdasarkan jarak
