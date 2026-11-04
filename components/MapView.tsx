@@ -3173,9 +3173,10 @@ export default function MapView({
                 aria-label="Pilihan alat ukur"
                 style={{
                   position: "absolute",
-                  right: 64,
-                  top: "50%",
-                  transform: "translateY(-50%)",
+                  // Menu muncul tepat di atas tombol pengukuran dan
+                  // dipusatkan terhadap tombol utama, bukan di sisi kirinya.
+                  right: -63,
+                  bottom: "calc(100% + 8px)",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "stretch",
