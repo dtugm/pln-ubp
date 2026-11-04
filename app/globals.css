@@ -3068,3 +3068,169 @@ button {
     transform: translateX(-50%) !important;
   }
 }
+
+
+/* =========================================================
+   WEBGIS MAP LAYOUT — final tidy-up for elevation profile
+   Keep the map controls in predictable corners and avoid
+   overlapping the map information dock while the profile is open.
+   ========================================================= */
+
+.map-area-full {
+  isolation: isolate;
+}
+
+/* Layer button stays at the upper-left; basemap chooser at upper-right. */
+.map-area-full .floating-layer-button {
+  z-index: 30 !important;
+}
+
+.map-area-full .floating-layer-panel {
+  z-index: 50 !important;
+}
+
+.map-area-full .basemap-control {
+  z-index: 35 !important;
+}
+
+/* Keep scale at bottom-left and attribution at bottom-right, clear of edges. */
+.map-area-full .maplibregl-ctrl-bottom-left {
+  left: 0 !important;
+  bottom: 0 !important;
+  margin: 0 0 12px 12px !important;
+  z-index: 20 !important;
+}
+
+.map-area-full .maplibregl-ctrl-bottom-right {
+  right: 0 !important;
+  bottom: 0 !important;
+  margin: 0 10px 10px 0 !important;
+  z-index: 20 !important;
+}
+
+.map-area-full .maplibregl-ctrl-attrib {
+  max-width: min(68vw, 460px);
+  border-radius: 9px 0 0 0;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.map-area-full .maplibregl-ctrl-scale {
+  border: 1px solid #29485d;
+  border-top: 0;
+  border-radius: 0 0 4px 4px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #29485d;
+  font-size: 10px;
+  padding: 1px 4px 2px;
+}
+
+/* Hide the data summary while the profile graph occupies the foreground. */
+.map-area-full .stats-dock.profile-open {
+  display: none !important;
+}
+
+/* Keep the drawing tools as a single vertical group on the right. */
+.map-area-full .maplibregl-ctrl-group {
+  overflow: hidden;
+  border: 1px solid rgba(214, 228, 233, 0.95);
+  border-radius: 11px;
+  box-shadow: 0 3px 12px rgba(22, 55, 68, 0.16);
+}
+
+.map-area-full .maplibregl-ctrl-group button {
+  width: 34px;
+  height: 34px;
+}
+
+/* When a profile is open, keep secondary floating UI from competing visually. */
+.map-area-full.profile-open .floating-layer-button,
+.map-area-full.profile-open .basemap-control {
+  z-index: 30 !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .maplibregl-ctrl-bottom-left {
+    margin: 0 0 8px 8px !important;
+  }
+
+  .map-area-full .maplibregl-ctrl-bottom-right {
+    margin: 0 6px 8px 0 !important;
+  }
+
+  .map-area-full .maplibregl-ctrl-attrib {
+    max-width: 76vw;
+    font-size: 9px;
+  }
+
+  .map-area-full .maplibregl-ctrl-group button {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+
+/* =========================================================
+   Kontrol peta: ukuran kotak seragam dan simetris
+   Berlaku untuk tombol ukur, Street View, zoom, dan kompas.
+   ========================================================= */
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(214, 228, 233, 0.98) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 0 2px 8px rgba(22, 55, 68, 0.16) !important;
+}
+
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button {
+  box-sizing: border-box !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background-color: #fff !important;
+}
+
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button + button {
+  border-top: 1px solid #e7eef1 !important;
+}
+
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button:hover {
+  background-color: #f2f8fa !important;
+}
+
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  width: 20px !important;
+  height: 20px !important;
+  background-size: 20px 20px !important;
+}
+
+/* Tombol custom di sisi kanan memakai ukuran kotak yang sama. */
+.map-area-full button[aria-label="Google Street View"],
+.map-area-full button[aria-label="Alat pengukuran"],
+.map-area-full button[aria-label="Buka menu pengukuran"],
+.map-area-full button[aria-label="Tutup menu pengukuran"] {
+  box-sizing: border-box !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  border-radius: 10px !important;
+}
+
+/* Pada layar kecil, ukuran tetap konsisten; hanya jarak tepi yang menyesuaikan. */
+@media (max-width: 760px) {
+  .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+}
