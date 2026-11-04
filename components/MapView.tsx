@@ -1212,7 +1212,7 @@ export default function MapView({
 
         const popupLayerIds = [fillId, lineId, pointId];
 
-        map.on("click", popupLayerIds, async (event) => {
+        map.on("click", popupLayerIds, (event) => {
           // Handler dipasang pada tiap layer, tetapi klik pada fitur bertumpuk
           // dapat memicu lebih dari satu handler. Abaikan pemanggilan duplikat.
           if (handledDigitasiClickEvents.has(event as object)) return;
@@ -1263,96 +1263,12 @@ export default function MapView({
           );
           const selectedLayerLabel = selectedLayerItem?.label ?? item.label;
 
-          // queryRenderedFeatures puede devolver geometrías recortadas por los
-          // tiles/viewport. Recupera la geometría completa desde el GeoJSON original.
-          // Así el highlight conserva la forma entera al hacer zoom o mover el mapa.
-          let fullFeature: any = feature;
-
-          // Kontur sering memiliki banyak fitur dengan properti identik
-          // (mis. LAYER dan ELEVATION). Pencocokan berdasarkan properti saja
-          // dapat mengambil garis kontur lain yang lokasinya jauh dari klik.
-          // Untuk kontur, pertahankan geometri fitur yang benar-benar diklik.
-          const isContourLayer =
-            selectedLayerItem?.key === "kontur-mayor" ||
-            selectedLayerItem?.key === "kontur-minor";
-
-          if (selectedLayerItem) {
-            try {
-              // Gunakan data yang sudah dimuat saat inisialisasi. Untuk layer
-              // yang sumbernya masih berupa URL, unduh sekali lalu simpan cache.
-              let originalGeoJSON = digitasiGeoJSONCache.get(selectedLayerItem.key);
-              if (!originalGeoJSON) {
-                const fullResponse = await fetch(
-                  `${R2_DATA_BASE}/${encodeURIComponent(selectedLayerItem.file)}`,
-                );
-                if (fullResponse.ok) {
-                  originalGeoJSON = await fullResponse.json();
-                  digitasiGeoJSONCache.set(selectedLayerItem.key, originalGeoJSON);
-                }
-              }
-
-              if (originalGeoJSON) {
-                const originalFeatures: any[] = Array.isArray(originalGeoJSON.features)
-                  ? originalGeoJSON.features
-                  : [];
-                const clickedProperties = feature.properties ?? {};
-                let matched: any;
-
-                if (isContourLayer) {
-                  // Kontur dapat berisi ribuan garis dengan atribut berulang.
-                  // Memindai dan memproyeksikan seluruh geometri setiap klik sangat
-                  // mahal. Gunakan geometri hasil render untuk kontur; atribut popup
-                  // tetap berasal dari fitur yang benar-benar diklik.
-                  matched = undefined;
-                } else {
-                  matched = feature.id != null
-                    ? originalFeatures.find((candidate: any) => candidate.id === feature.id)
-                    : undefined;
-
-                  if (!matched) {
-                    const identifierKeys = ["id", "fid", "ID", "FID", "objectid", "OBJECTID"];
-                    const identifierKey = identifierKeys.find(
-                      (key) => clickedProperties[key] !== undefined && clickedProperties[key] !== null,
-                    );
-                    if (identifierKey) {
-                      matched = originalFeatures.find(
-                        (candidate: any) => candidate.properties?.[identifierKey] === clickedProperties[identifierKey],
-                      );
-                    }
-                  }
-
-                  if (!matched) {
-                    const stableStringify = (value: any): string => {
-                      if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
-                      if (value && typeof value === "object") {
-                        return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
-                      }
-                      return JSON.stringify(value);
-                    };
-                    const clickedSignature = stableStringify(clickedProperties);
-                    matched = originalFeatures.find(
-                      (candidate: any) => stableStringify(candidate.properties ?? {}) === clickedSignature,
-                    );
-                  }
-                }
-
-                if (matched?.geometry) {
-                  const originalGeometry = matched.geometry;
-                  const needsConversion =
-                    selectedLayerItem.key === "bangunan" ||
-                    coordinatesLookProjected(originalGeometry.coordinates);
-                  fullFeature = {
-                    ...matched,
-                    geometry: needsConversion
-                      ? { ...originalGeometry, coordinates: mercatorToLonLat(originalGeometry.coordinates) }
-                      : originalGeometry,
-                  };
-                }
-              }
-            } catch (error) {
-              console.warn("Tidak bisa mengambil geometri GeoJSON asli untuk highlight; memakai geometri hasil render.", error);
-            }
-          }
+          // Gunakan fitur hasil render MapLibre secara langsung.
+          // Jangan fetch dan mencari ulang seluruh GeoJSON saat setiap klik:
+          // proses tersebut membuat popup lambat pada layer besar.
+          // Geometri hasil render bisa terpotong pada batas tile, tetapi popup
+          // dan highlight tampil tanpa menunggu unduhan/pemindaian GeoJSON.
+          const fullFeature: any = feature;
 
           // Sorot geometri fitur yang dipilih. Untuk layer biasa, gunakan geometri
           // lengkap dari GeoJSON asli, termasuk kontur yang dipilih berdasarkan jarak
