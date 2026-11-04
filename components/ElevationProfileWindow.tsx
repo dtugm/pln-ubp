@@ -55,11 +55,11 @@ export default function ElevationProfileWindow({ samples, onClose }: ElevationPr
         inset: 0,
         zIndex: 2147483000,
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-end",
         justifyContent: "center",
-        padding: 16,
+        padding: "16px 16px 24px",
         boxSizing: "border-box",
-        background: "rgba(20, 39, 49, 0.16)",
+        background: "transparent",
         fontFamily: "inherit",
       }}
     >
@@ -140,3 +140,4 @@ export default function ElevationProfileWindow({ samples, onClose }: ElevationPr
     document.body,
   );
 }
+
