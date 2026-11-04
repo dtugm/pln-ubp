@@ -3905,7 +3905,12 @@ export default function MapView({
             </div>
           </div>
 
-          <div className={`stats-dock ${showStatsPanel ? "is-open" : "is-collapsed"} ${showProfileWindow && selectedMeasureTool === "profile" ? "profile-open" : ""}`}>
+          <div
+            className={`stats-dock ${showStatsPanel ? "is-open" : "is-collapsed"} ${showProfileWindow && selectedMeasureTool === "profile" ? "profile-open" : ""}`}
+            style={{
+              display: showProfileWindow && selectedMeasureTool === "profile" ? "none" : undefined,
+            }}
+          >
             <button
               type="button"
               className="stats-toggle-handle"
