@@ -898,9 +898,41 @@ export default function MapView({
 
           .maplibregl-popup.soft-attribute-popup .maplibregl-popup-tip { border-top-color: #fff; }
 
-          /* Kontrol zoom diposisikan oleh global.css agar tidak bertabrakan dengan skala. */
-          .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
-            transform: none;
+          /* Kontrol navigasi MapLibre diseragamkan dengan tombol custom 44 x 44 px. */
+          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #d7e0e5;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+          }
+
+          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button {
+            box-sizing: border-box;
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            background-color: #fff;
+          }
+
+          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button + button {
+            border-top: 1px solid #e7eef1;
+          }
+
+          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button:hover {
+            background-color: #f2f8fa;
+          }
+
+          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+            width: 20px;
+            height: 20px;
+            background-size: 20px 20px;
           }
 
         `;
@@ -3087,14 +3119,14 @@ export default function MapView({
               aria-label="Google Street View"
               aria-pressed={streetViewPicking}
               style={{
-                width: 42,
-                height: 42,
+                width: 44,
+                height: 44,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 padding: 0,
                 border: streetViewPicking ? "1px solid #087f8c" : "1px solid #d7e0e5",
-                borderRadius: 7,
+                borderRadius: 10,
                 background: "#ffffff",
                 color: "#29485d",
                 boxShadow: "0 1px 4px rgba(0,0,0,0.22)",
@@ -3343,14 +3375,14 @@ export default function MapView({
               aria-expanded={showMeasureMenu}
               aria-pressed={!!measureMode}
               style={{
-                width: 52,
-                height: 52,
+                width: 44,
+                height: 44,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 padding: 0,
                 border: showMeasureMenu || measureMode || selectedMeasureTool !== null ? "1px solid #78c9bd" : "1px solid #d7e0e5",
-                borderRadius: 7,
+                borderRadius: 10,
                 background: showMeasureMenu || measureMode || selectedMeasureTool !== null ? "#29485d" : "#ffffff",
                 color: showMeasureMenu || measureMode || selectedMeasureTool !== null ? "#ffffff" : "#29485d",
                 boxShadow: "0 1px 4px rgba(0,0,0,0.22)",
