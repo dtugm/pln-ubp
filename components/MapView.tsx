@@ -304,8 +304,6 @@ export default function MapView({
   const mapContainer = useRef<HTMLDivElement>(null);
 
   const mapRef = useRef<MapLibreMap | null>(null);
-  const streetViewPickRef = useRef(false);
-  const [streetViewPicking, setStreetViewPicking] = useState(false);
   const [measureMode, setMeasureMode] = useState<"length" | "width" | "height" | "area" | "profile" | null>(null);
   const [measureResult, setMeasureResult] = useState("");
   const [profileSamples, setProfileSamples] = useState<{ distance: number; elevation: number | null }[]>([]);
@@ -640,11 +638,6 @@ export default function MapView({
     map.on("click", (event) => {
       const activeMeasure = measureModeRef.current;
       if (activeMeasure) {
-        if (streetViewPickRef.current) {
-          streetViewPickRef.current = false;
-          setStreetViewPicking(false);
-        }
-
         const { lng, lat } = event.lngLat;
         const sampled = map.queryTerrainElevation([lng, lat]);
         const elevation =
@@ -833,13 +826,6 @@ export default function MapView({
         } as GeoJSON.FeatureCollection);
       }
 
-      if (!streetViewPickRef.current) return;
-      streetViewPickRef.current = false;
-      setStreetViewPicking(false);
-
-      const { lat, lng } = event.lngLat;
-      const url = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
-      window.open(url, "_blank", "noopener,noreferrer");
     });
 
     setZoomLevel(map.getZoom());
@@ -847,7 +833,7 @@ export default function MapView({
     map.on("zoom", () => setZoomLevel(map.getZoom()));
 
     map.addControl(
-      new maplibregl.NavigationControl({ visualizePitch: true }),
+      new maplibregl.NavigationControl({ showCompass: false, showZoom: true }),
       "bottom-right",
     );
 
@@ -898,15 +884,12 @@ export default function MapView({
 
           .maplibregl-popup.soft-attribute-popup .maplibregl-popup-tip { border-top-color: #fff; }
 
-          /* Seluruh kontrol kanan memakai ukuran dan jarak yang konsisten. */
-          /* MapLibre tidak selalu berada di dalam .map-area-full.
-             Gunakan selector global agar tombol navigasi ikut aturan ukuran. */
+          /* Kontrol kanan hanya berisi tombol zoom + dan −. */
           .maplibregl-ctrl-bottom-right {
             right: 0 !important;
             bottom: 0 !important;
           }
           .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
-            transform: none !important;
             display: flex !important;
             flex-direction: column !important;
             overflow: hidden !important;
@@ -916,17 +899,18 @@ export default function MapView({
             border: 1px solid #d7e0e5 !important;
             border-radius: 10px !important;
             background: #fff !important;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.16) !important;
+            box-shadow: 0 2px 8px rgba(22,55,68,.16) !important;
           }
           .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button {
-            box-sizing: border-box;
+            box-sizing: border-box !important;
+            display: block !important;
             width: 44px !important;
             height: 44px !important;
             min-width: 44px !important;
             min-height: 44px !important;
             max-width: 44px !important;
             max-height: 44px !important;
-            box-sizing: border-box !important;
+            margin: 0 !important;
             padding: 0 !important;
             border: 0 !important;
             border-radius: 0 !important;
@@ -934,9 +918,6 @@ export default function MapView({
           }
           .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button + button {
             border-top: 1px solid #e7eef1 !important;
-          }
-          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button:hover {
-            background-color: #f2f8fa !important;
           }
           .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
             width: 20px !important;
@@ -3109,82 +3090,7 @@ export default function MapView({
             style={{
               position: "absolute",
               right: 10,
-              bottom: 152,
-              zIndex: 30,
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                const next = !streetViewPicking;
-                streetViewPickRef.current = next;
-                setStreetViewPicking(next);
-              }}
-              title={
-                streetViewPicking
-                  ? "Klik lokasi pada peta untuk membuka Google Street View"
-                  : "Google Street View"
-              }
-              aria-label="Google Street View"
-              aria-pressed={streetViewPicking}
-              style={{
-                width: 44,
-                height: 44,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 0,
-                border: streetViewPicking ? "1px solid #087f8c" : "1px solid #d7e0e5",
-                borderRadius: 10,
-                background: "#ffffff",
-                color: "#29485d",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.22)",
-                cursor: "pointer",
-              }}
-            >
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                {/* Ikon orang berjalan */}
-                <circle cx="13.2" cy="4.2" r="2.5" fill="currentColor" />
-                <path
-                  d="M10.5 7.2c.8-.8 2.1-1.1 3.2-.6l2.1 1.1 1.6 3.3-2.1 1-1.2-2.3-1.4-.7-.6 4.2 3.1 2.5 2.5 5.1-2.2 1-2.7-4.4-3.4-2.2-1.6 3.5-2.1-.9 2.2-5.1.8-4.3-2.1 2.5-2.2-1.3 3.1-4.2c.3-.4.6-.6 1-.7Z"
-                  fill="currentColor"
-                  stroke="currentColor"
-                  strokeWidth="0.55"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            {streetViewPicking && (
-              <div
-                style={{
-                  position: "absolute",
-                  right: 44,
-                  top: 0,
-                  width: 220,
-                  padding: "9px 11px",
-                  borderRadius: 8,
-                  background: "rgba(255,255,255,0.97)",
-                  color: "#29485d",
-                  fontSize: 12,
-                  lineHeight: 1.4,
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.16)",
-                }}
-              >
-                Klik lokasi pada peta untuk membuka Google Street View.
-              </div>
-            )}
-          </div>
-
-          <div
-            style={{
-              position: "absolute",
-              right: 10,
-              bottom: 206,
+              bottom: 112,
               zIndex: 40,
               display: "flex",
               alignItems: "center",
@@ -3315,8 +3221,6 @@ export default function MapView({
                         areaSource?.setData({ type: "FeatureCollection", features: [] });
                         featurePopupRef.current?.remove();
                         featurePopupRef.current = null;
-                        streetViewPickRef.current = false;
-                        setStreetViewPicking(false);
                       }}
                       title={
                         isImplemented
