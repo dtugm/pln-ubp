@@ -508,7 +508,14 @@ export default function MapView({
 
     map.on("dblclick", (event) => {
       const activeMeasure = measureModeRef.current;
-      if (activeMeasure !== "area" && activeMeasure !== "profile") return;
+      // Pengukuran luas dihitung langsung setiap titik ditambahkan.
+      // Double-click tidak dipakai untuk menyelesaikan luas, dan juga
+      // dicegah agar tidak memicu zoom peta saat mode luas aktif.
+      if (activeMeasure === "area") {
+        event.preventDefault();
+        return;
+      }
+      if (activeMeasure !== "profile") return;
       event.preventDefault();
       const map = mapRef.current;
       if (!map) return;
@@ -671,6 +678,24 @@ export default function MapView({
             ? "Elevasi tidak tersedia. Aktifkan Terrain 3D."
             : `Beda tinggi: ${Math.abs(last[2] - first[2]).toFixed(2)} m`;
 
+        // Hitung luas setiap kali titik batas baru ditambahkan agar label
+        // di peta langsung menampilkan nilai luas, bukan jumlah titik.
+        const areaSquareMeters = next.length >= 3
+          ? (() => {
+              const coords = next.map(([x, y]) => [toRad(x), toRad(y)] as [number, number]);
+              let sum = 0;
+              for (let i = 0; i < coords.length; i++) {
+                const j = (i + 1) % coords.length;
+                sum += (coords[j][0] - coords[i][0]) *
+                  (2 + Math.sin(coords[i][1]) + Math.sin(coords[j][1]));
+              }
+              return Math.abs(sum * 6371008.8 * 6371008.8 / 2);
+            })()
+          : 0;
+        const areaValueText = areaSquareMeters >= 10000
+          ? `${(areaSquareMeters / 10000).toFixed(2)} ha`
+          : `${areaSquareMeters.toFixed(2)} m²`;
+
         const lineLabel =
           next.length >= 2
             ? activeMeasure === "height"
@@ -678,14 +703,14 @@ export default function MapView({
               : activeMeasure === "profile"
                 ? `Profil elevasi · ${formatDistance(totalMeters)}`
                 : activeMeasure === "area"
-                  ? `Titik area: ${next.length}`
+                  ? next.length >= 3 ? areaValueText : `Titik ${next.length}/3`
                   : `Panjang: ${formatDistance(totalMeters)}`
             : activeMeasure === "height"
               ? "Klik titik pertama, lalu titik kedua"
               : activeMeasure === "area"
-                ? "Tambahkan titik batas area, lalu tekan Selesai"
+                ? "Tambahkan titik batas area"
                 : activeMeasure === "profile"
-                  ? "Klik titik-titik jalur profil, lalu tekan Selesai untuk melihat grafik"
+                  ? "Klik titik-titik jalur profil, lalu klik dua kali untuk melihat grafik"
                   : "Klik peta untuk menambahkan titik";
 
         // Area: gambar poligon sementara saat titik batas ditambahkan.
@@ -714,26 +739,8 @@ export default function MapView({
             }] : [],
           });
           setMeasureResult(next.length < 3
-            ? `Tambahkan minimal 3 titik untuk mengukur luas (${next.length} titik saat ini).`
-            : `Luas sementara: ${(() => {
-                const coords = next.map(([x, y]) => [toRad(x), toRad(y)] as [number, number]);
-                let area = 0;
-                for (let i = 0; i < coords.length; i++) {
-                  const j = (i + 1) % coords.length;
-                  area += coords[j][0] - coords[i][0];
-                  area *= 1;
-                }
-                let sum = 0;
-                for (let i = 0; i < coords.length; i++) {
-                  const j = (i + 1) % coords.length;
-                  sum += (coords[j][0] - coords[i][0]) *
-                    (2 + Math.sin(coords[i][1]) + Math.sin(coords[j][1]));
-                }
-                const squareMeters = Math.abs(sum * 6371008.8 * 6371008.8 / 2);
-                return squareMeters >= 10000
-                  ? `${(squareMeters / 10000).toFixed(2)} ha`
-                  : `${squareMeters.toFixed(2)} m²`;
-              })()}. Tekan Selesai jika batas area sudah lengkap.`);
+            ? `Tambahkan minimal 3 titik batas area (${next.length}/3).`
+            : `Luas: ${areaValueText}`);
           return;
         }
 
@@ -777,7 +784,7 @@ export default function MapView({
             activeMeasure === "height"
               ? "Klik titik kedua untuk menghitung beda tinggi."
               : activeMeasure === "profile"
-                ? "Klik minimal dua titik, lalu tekan Selesai untuk membuka grafik profil elevasi."
+                ? "Klik minimal dua titik, lalu klik dua kali pada titik terakhir untuk langsung membuka grafik profil elevasi."
                 : "Klik titik berikutnya untuk melanjutkan pengukuran panjang.",
           );
         } else if (activeMeasure === "height") {
@@ -788,7 +795,7 @@ export default function MapView({
           const elevations = next.map((point) => point[2]).filter((value): value is number => value != null);
           setMeasureResult(
             elevations.length
-              ? `Profil sementara · jarak ${formatDistance(totalMeters)} · elevasi ${Math.min(...elevations).toFixed(2)}–${Math.max(...elevations).toFixed(2)} m. Tekan Selesai untuk membuka grafik.`
+              ? `Profil sementara · jarak ${formatDistance(totalMeters)} · elevasi ${Math.min(...elevations).toFixed(2)}–${Math.max(...elevations).toFixed(2)} m. Klik dua kali pada titik terakhir untuk membuka grafik.`
               : "Elevasi profil belum tersedia. Aktifkan Terrain 3D, lalu gambar jalur profil lagi.",
           );
         } else {
@@ -3131,64 +3138,6 @@ export default function MapView({
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div>{measureResult}</div>
-                    {(["length", "area", "profile"] as const).includes(
-                      measureModeRef.current as "length" | "area" | "profile",
-                    ) && measurePointsRef.current.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const map = mapRef.current;
-                          const active = measureModeRef.current;
-                          if (!map || !active) return;
-
-                          if (active === "area" || active === "profile") {
-                            // Gunakan handler penyelesaian yang sama dengan klik ganda,
-                            // tetapi dipicu eksplisit dari tombol Selesai.
-                            const center = map.getCenter();
-                            map.fire("dblclick", {
-                              point: map.project(center),
-                              lngLat: center,
-                            });
-                          } else if (active === "length") {
-                            const points = measurePointsRef.current;
-                            if (points.length < 2) {
-                              setMeasureResult("Panjang membutuhkan minimal dua titik.");
-                              return;
-                            }
-                            const toRad = (value: number) => (value * Math.PI) / 180;
-                            const distance = (a: [number, number, number | null], b: [number, number, number | null]) => {
-                              const dLat = toRad(b[1] - a[1]);
-                              const dLng = toRad(b[0] - a[0]);
-                              const h = Math.sin(dLat / 2) ** 2 +
-                                Math.cos(toRad(a[1])) * Math.cos(toRad(b[1])) * Math.sin(dLng / 2) ** 2;
-                              return 2 * 6371008.8 * Math.asin(Math.min(1, Math.sqrt(h)));
-                            };
-                            const total = points.slice(1).reduce(
-                              (sum, point, index) => sum + distance(points[index], point), 0,
-                            );
-                            const formatted = total >= 1000
-                              ? `${(total / 1000).toFixed(2)} km`
-                              : `${total.toFixed(2)} m`;
-                            setMeasureResult(`Panjang: ${formatted}`);
-                            measureModeRef.current = null;
-                            setMeasureMode(null);
-                          }
-                        }}
-                        style={{
-                          marginTop: 9,
-                          padding: "6px 13px",
-                          border: 0,
-                          borderRadius: 7,
-                          background: "#29485d",
-                          color: "#ffffff",
-                          fontSize: 12,
-                          fontWeight: 600,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Selesai
-                      </button>
-                    )}
                   </div>
                   <button
                     type="button"
