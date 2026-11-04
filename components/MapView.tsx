@@ -606,7 +606,7 @@ export default function MapView({
           setShowProfileWindow(true);
           if (validCount < 2) {
             setMeasureResult(
-              `Profil dibuka, tetapi data elevasi belum cukup (${validCount} titik valid). Periksa tile DTM: permintaan /api/dtm/... pada Console masih gagal 404.`,
+              "Aktifkan DTM Lokal: data elevasi belum tersedia untuk membuat profil ketinggian.",
             );
           } else if (validElevations.length < 2) {
             setMeasureResult(
@@ -3140,9 +3140,13 @@ export default function MapView({
                   boxSizing: "border-box",
                   padding: "10px 13px",
                   borderRadius: 12,
-                  background: "rgba(255,255,255,0.97)",
-                  color: "#29485d",
-                  border: "1px solid #d8e5e8",
+                  background: measureResult.startsWith("Aktifkan DTM Lokal:")
+                    ? "rgba(255, 242, 242, 0.98)"
+                    : "rgba(255,255,255,0.97)",
+                  color: measureResult.startsWith("Aktifkan DTM Lokal:") ? "#8f3d43" : "#29485d",
+                  border: measureResult.startsWith("Aktifkan DTM Lokal:")
+                    ? "1px solid #f0c3c5"
+                    : "1px solid #d8e5e8",
                   boxShadow: "0 4px 16px rgba(22,55,68,0.16)",
                   fontSize: 12,
                   lineHeight: 1.5,
@@ -3150,7 +3154,35 @@ export default function MapView({
               >
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div>{measureResult}</div>
+                    <div>{measureResult.replace("Aktifkan DTM Lokal: ", "")}</div>
+                    {measureResult.startsWith("Aktifkan DTM Lokal:") && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          activateTerrain("dtm");
+                          setMeasureResult("");
+                        }}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 7,
+                          marginTop: 9,
+                          padding: "7px 12px",
+                          border: "1px solid #c94b50",
+                          borderRadius: 8,
+                          background: "#c94b50",
+                          color: "#ffffff",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="m3 20 7-14 4 8 2-3 5 9H3Z" />
+                        </svg>
+                        Aktifkan DTM
+                      </button>
+                    )}
                   </div>
                   <button
                     type="button"
