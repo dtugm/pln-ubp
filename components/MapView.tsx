@@ -532,30 +532,7 @@ export default function MapView({
       const formatDistance = (meters: number) =>
         meters >= 1000 ? `${(meters / 1000).toFixed(2)} km` : `${meters.toFixed(2)} m`;
 
-      if (activeMeasure === "area") {
-        if (points.length < 3) {
-          setMeasureResult("Luas membutuhkan minimal 3 titik. Tambahkan titik batas area.");
-          return;
-        }
-        const coords = points.map(([x, y]) => [toRad(x), toRad(y)] as [number, number]);
-        let sum = 0;
-        for (let i = 0; i < coords.length; i++) {
-          const j = (i + 1) % coords.length;
-          sum += (coords[j][0] - coords[i][0]) *
-            (2 + Math.sin(coords[i][1]) + Math.sin(coords[j][1]));
-        }
-        const areaM2 = Math.abs(sum * 6371008.8 * 6371008.8 / 2);
-        const areaText = areaM2 >= 10000
-          ? `${(areaM2 / 10000).toFixed(2)} ha`
-          : `${areaM2.toFixed(2)} m²`;
-        const ring = points.map(([x, y]) => [x, y]);
-        ring.push(ring[0]);
-        (map.getSource("measure-area") as maplibregl.GeoJSONSource | undefined)?.setData({
-          type: "FeatureCollection",
-          features: [{ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [ring] } }],
-        });
-        setMeasureResult(`Luas area: ${areaText}`);
-      } else {
+      {
         // Buat sampel rapat di sepanjang setiap segmen. Jika hanya memakai
         // titik klik pengguna, grafik hanya memiliki 2-3 nilai dan tampak lurus;
         // penampang yang benar perlu mengambil elevasi di antara titik-titik itu.
