@@ -304,6 +304,8 @@ export default function MapView({
   const mapContainer = useRef<HTMLDivElement>(null);
 
   const mapRef = useRef<MapLibreMap | null>(null);
+  const streetViewPickRef = useRef(false);
+  const [streetViewPicking, setStreetViewPicking] = useState(false);
   const [measureMode, setMeasureMode] = useState<"length" | "width" | "height" | "area" | "profile" | null>(null);
   const [measureResult, setMeasureResult] = useState("");
   const [profileSamples, setProfileSamples] = useState<{ distance: number; elevation: number | null }[]>([]);
@@ -794,6 +796,17 @@ export default function MapView({
         }
         return;
       }
+
+      // Mode Street View: klik lokasi pada peta untuk membuka panorama Google.
+      if (streetViewPickRef.current) {
+        streetViewPickRef.current = false;
+        setStreetViewPicking(false);
+        const { lat, lng } = event.lngLat;
+        const streetViewUrl = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
+        window.open(streetViewUrl, "_blank", "noopener,noreferrer");
+        return;
+      }
+
       // Jika highlight berasal dari tombol Zoom To, hapus saat pengguna
       // mengeklik area peta yang tidak memiliki fitur digitasi.
       // Klik pada fitur digitasi tidak menghapusnya di sini; handler fitur
@@ -3178,7 +3191,6 @@ export default function MapView({
                   { key: "length", label: "Panjang", icon: "length" },
                   { key: "area", label: "Luas", icon: "area" },
                   { key: "height", label: "Tinggi", icon: "height" },
-                  { key: "profile", label: "Profil", icon: "profile" },
                 ] as const).map((tool) => {
                   const isSelected = selectedMeasureTool === tool.key;
                   const isImplemented = true;
@@ -3302,6 +3314,42 @@ export default function MapView({
               <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 17.5 17.5 3 21 6.5 6.5 21 3 17.5Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
                 <path d="m7 13 2 2m1-6 2 2m1-6 2 2m-6 10 2 2" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              aria-label={streetViewPicking ? "Batalkan Street View" : "Pilih lokasi Street View"}
+              title={streetViewPicking ? "Klik peta untuk memilih lokasi · klik lagi untuk batal" : "Street View"}
+              aria-pressed={streetViewPicking}
+              onClick={() => {
+                const next = !streetViewPicking;
+                streetViewPickRef.current = next;
+                setStreetViewPicking(next);
+                setShowMeasureMenu(false);
+                if (next) {
+                  measureModeRef.current = null;
+                  setMeasureMode(null);
+                }
+              }}
+              style={{
+                width: 44,
+                height: 44,
+                display: "grid",
+                placeItems: "center",
+                padding: 0,
+                border: streetViewPicking ? "1px solid #78c9bd" : "1px solid #d7e0e5",
+                borderRadius: 10,
+                background: streetViewPicking ? "#29485d" : "#ffffff",
+                color: streetViewPicking ? "#ffffff" : "#29485d",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.22)",
+                cursor: "pointer",
+                touchAction: "manipulation",
+              }}
+            >
+              <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="4.5" r="2" fill="currentColor" stroke="none" />
+                <path d="M10 8.5 7.8 12l2.5 2 1.1-2 1.3 3.5-2.8 5M14 9l2.4 3.2 2.1.8M12 8l2.2 1.2 1.3 3.1M9.7 14l-2.5 5.5" />
               </svg>
             </button>
 
