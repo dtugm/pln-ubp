@@ -3206,9 +3206,7 @@ export default function MapView({
                         measureModeRef.current = shouldStop ? null : mode;
                         setMeasureMode(shouldStop ? null : mode);
                         measurePointsRef.current = [];
-                        setMeasureResult(mode === "profile"
-                          ? "Profil elevasi: klik minimal dua titik pada peta untuk membentuk jalur. Setelah selesai, tekan tombol di bawah untuk melihat grafik."
-                          : "");
+                        setMeasureResult("");
                         setProfileSamples([]);
                         setShowProfileWindow(false);
                         const lineSource = mapRef.current?.getSource("measure-line") as
