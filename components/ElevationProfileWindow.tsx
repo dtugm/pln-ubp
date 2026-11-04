@@ -55,39 +55,39 @@ export default function ElevationProfileWindow({ samples, onClose }: ElevationPr
         inset: 0,
         zIndex: 2147483000,
         display: "flex",
-        alignItems: "flex-end",
+        alignItems: "center",
         justifyContent: "center",
-        padding: "12px 16px 16px",
+        padding: 20,
         boxSizing: "border-box",
-        background: "rgba(20, 39, 49, 0.06)",
+        background: "rgba(20, 39, 49, 0.16)",
         fontFamily: "inherit",
       }}
     >
       <section
         style={{
           position: "relative",
-          width: "min(640px, calc(100vw - 32px))",
-          maxHeight: "min(42vh, 360px)",
+          width: "min(760px, calc(100vw - 48px))",
+          maxHeight: "min(70vh, 580px)",
           overflowY: "auto",
           boxSizing: "border-box",
-          padding: "13px 16px 10px",
-          borderRadius: 16,
+          padding: "18px 20px 14px",
+          borderRadius: 18,
           background: "#ffffff",
           color: "#29485d",
           border: "1px solid #dce8ec",
           boxShadow: "0 18px 54px rgba(22,55,68,0.24)",
         }}
       >
-        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
+        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 14 }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 750, letterSpacing: "-0.025em", color: "#24495e" }}>Profil Elevasi</div>
-            <div style={{ fontSize: 11, color: "#718596", marginTop: 3 }}>Penampang ketinggian sepanjang jalur pengukuran</div>
+            <div style={{ fontSize: 16, fontWeight: 750, letterSpacing: "-0.025em", color: "#24495e" }}>Profil Elevasi</div>
+            <div style={{ fontSize: 13, color: "#718596", marginTop: 5 }}>Penampang ketinggian sepanjang jalur pengukuran</div>
           </div>
           <button
             type="button"
             aria-label="Tutup jendela profil elevasi"
             onClick={onClose}
-            style={{ flex: "0 0 auto", width: 30, height: 30, border: "1px solid #dbe6ea", borderRadius: 11, background: "#f3f8fa", color: "#29485d", cursor: "pointer", fontSize: 22, lineHeight: 1 }}
+            style={{ flex: "0 0 auto", width: 34, height: 34, border: "1px solid #dbe6ea", borderRadius: 11, background: "#f3f8fa", color: "#29485d", cursor: "pointer", fontSize: 22, lineHeight: 1 }}
           >×</button>
         </header>
 
@@ -97,16 +97,16 @@ export default function ElevationProfileWindow({ samples, onClose }: ElevationPr
           </div>
         ) : (
           <>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 7, marginBottom: 9 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10, marginBottom: 14 }}>
               {stats.map((item) => (
-                <div key={item.label} style={{ minWidth: 0, padding: "7px 8px", borderRadius: 9, background: "#f3f8fa", border: "1px solid #e2edf0" }}>
-                  <div style={{ fontSize: 9, fontWeight: 750, letterSpacing: "0.055em", color: "#718596", lineHeight: 1.35 }}>{item.label}</div>
-                  <div style={{ fontSize: 14, fontWeight: 750, color: "#24536a", marginTop: 4, whiteSpace: "nowrap" }}>{item.value}</div>
+                <div key={item.label} style={{ minWidth: 0, padding: "10px 11px", borderRadius: 11, background: "#f3f8fa", border: "1px solid #e2edf0" }}>
+                  <div style={{ fontSize: 10, fontWeight: 750, letterSpacing: "0.055em", color: "#718596", lineHeight: 1.35 }}>{item.label}</div>
+                  <div style={{ fontSize: 16, fontWeight: 750, color: "#24536a", marginTop: 7, whiteSpace: "nowrap" }}>{item.value}</div>
                 </div>
               ))}
             </div>
 
-            <div style={{ width: "100%", overflow: "hidden", borderRadius: 12, background: "#fcfefe", border: "1px solid #edf3f5", padding: "4px 5px 1px", boxSizing: "border-box" }}>
+            <div style={{ width: "100%", overflow: "hidden", borderRadius: 12, background: "#fcfefe", border: "1px solid #edf3f5", padding: "8px 8px 2px", boxSizing: "border-box" }}>
               <svg viewBox="0 0 900 250" role="img" aria-label="Grafik naik turun elevasi sepanjang jalur" style={{ display: "block", width: "100%", height: "auto" }}>
                 {[0, 1, 2, 3, 4].map((i) => {
                   const gridY = chart.top + (i / 4) * (chart.bottom - chart.top);
@@ -129,7 +129,7 @@ export default function ElevationProfileWindow({ samples, onClose }: ElevationPr
                 <text x={(chart.left + chart.right) / 2} y="246" textAnchor="middle" fontSize="10" fill="#647b89">Jarak sepanjang jalur</text>
               </svg>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 4, fontSize: 9, color: "#718596" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 8, fontSize: 10, color: "#718596" }}>
               <span style={{ width: 8, height: 8, borderRadius: 99, background: "#078a9b", display: "inline-block" }} />
 
             </div>
