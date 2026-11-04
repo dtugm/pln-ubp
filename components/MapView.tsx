@@ -358,9 +358,35 @@ export default function MapView({
   const [terrainOn, setTerrainOn] = useState(false);
   const [activeLayerTab, setActiveLayerTab] = useState<"data" | "terrain">("data");
   const [activeTerrain, setActiveTerrain] = useState<"aws" | "dtm" | null>(null);
-  const [showDtmRequiredNotice, setShowDtmRequiredNotice] = useState(false);
 
   const [zoomLevel, setZoomLevel] = useState(14.2);
+
+  // Sembunyikan label pengukuran pada peta saat grafik Profil Elevasi terbuka.
+  // Garis dan titik jalur tetap dipertahankan; hanya label yang menimbulkan
+  // kotak besar di atas peta yang disembunyikan.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const syncMeasureLabel = () => {
+      if (!map.getLayer("measure-line-label")) return;
+      map.setLayoutProperty(
+        "measure-line-label",
+        "visibility",
+        showProfileWindow && selectedMeasureTool === "profile" ? "none" : "visible",
+      );
+    };
+
+    if (map.isStyleLoaded()) {
+      syncMeasureLabel();
+    } else {
+      map.once("load", syncMeasureLabel);
+    }
+
+    return () => {
+      map.off("load", syncMeasureLabel);
+    };
+  }, [showProfileWindow, selectedMeasureTool]);
 
   // Tutup menu profil ketika pengguna mengetuk area di luar menu.
   useEffect(() => {
@@ -493,7 +519,6 @@ export default function MapView({
             "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
             "text-anchor": "center",
             "text-justify": "center",
-            "text-offset": ["get", "offset"],
             "text-line-height": 1.2,
             "text-max-width": 24,
             "text-allow-overlap": true,
@@ -510,11 +535,133 @@ export default function MapView({
 
     map.on("dblclick", (event) => {
       const activeMeasure = measureModeRef.current;
-      if (activeMeasure === "area" || activeMeasure === "profile") {
-        // Pengukuran luas dan profil tidak membutuhkan double-click.
-        // Cegah double-click agar tidak memicu zoom bawaan peta.
-        event.preventDefault();
+      if (activeMeasure !== "area" && activeMeasure !== "profile") return;
+      event.preventDefault();
+      const map = mapRef.current;
+      if (!map) return;
+
+      const points = measurePointsRef.current;
+      const toRad = (value: number) => (value * Math.PI) / 180;
+      const distance = (a: [number, number, number | null], b: [number, number, number | null]) => {
+        const dLat = toRad(b[1] - a[1]);
+        const dLng = toRad(b[0] - a[0]);
+        const h = Math.sin(dLat / 2) ** 2 +
+          Math.cos(toRad(a[1])) * Math.cos(toRad(b[1])) * Math.sin(dLng / 2) ** 2;
+        return 2 * 6371008.8 * Math.asin(Math.min(1, Math.sqrt(h)));
+      };
+      const formatDistance = (meters: number) =>
+        meters >= 1000 ? `${(meters / 1000).toFixed(2)} km` : `${meters.toFixed(2)} m`;
+
+      if (activeMeasure === "area") {
+        if (points.length < 3) {
+          setMeasureResult("Luas membutuhkan minimal 3 titik. Tambahkan titik batas area.");
+          return;
+        }
+        const coords = points.map(([x, y]) => [toRad(x), toRad(y)] as [number, number]);
+        let sum = 0;
+        for (let i = 0; i < coords.length; i++) {
+          const j = (i + 1) % coords.length;
+          sum += (coords[j][0] - coords[i][0]) *
+            (2 + Math.sin(coords[i][1]) + Math.sin(coords[j][1]));
+        }
+        const areaM2 = Math.abs(sum * 6371008.8 * 6371008.8 / 2);
+        const areaText = areaM2 >= 10000
+          ? `${(areaM2 / 10000).toFixed(2)} ha`
+          : `${areaM2.toFixed(2)} m²`;
+        const ring = points.map(([x, y]) => [x, y]);
+        ring.push(ring[0]);
+        (map.getSource("measure-area") as maplibregl.GeoJSONSource | undefined)?.setData({
+          type: "FeatureCollection",
+          features: [{ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [ring] } }],
+        });
+        setMeasureResult(`Luas area: ${areaText}`);
+      } else {
+        // Buat sampel rapat di sepanjang setiap segmen. Jika hanya memakai
+        // titik klik pengguna, grafik hanya memiliki 2-3 nilai dan tampak lurus;
+        // penampang yang benar perlu mengambil elevasi di antara titik-titik itu.
+        const totalMeters = points.slice(1).reduce((sum, point, i) => sum + distance(points[i], point), 0);
+        if (points.length < 2 || totalMeters <= 0) {
+          setMeasureResult("Profil membutuhkan minimal dua titik yang terpisah.");
+        } else {
+          const targetSpacing = 3; // kira-kira satu sampel setiap 3 meter
+          const maxSamples = 1200;
+          const intervalCount = Math.max(1, Math.min(maxSamples - 1, Math.ceil(totalMeters / targetSpacing)));
+          const samples: { distance: number; elevation: number | null }[] = [];
+          let cumulativeDistance = 0;
+          const segments = points.slice(1).map((point, i) => ({
+            start: points[i],
+            end: point,
+            length: distance(points[i], point),
+          }));
+
+          // Jarak kumulatif untuk setiap vertex asli.
+          const vertexDistances = [0];
+          for (const segment of segments) {
+            cumulativeDistance += segment.length;
+            vertexDistances.push(cumulativeDistance);
+          }
+
+          for (let sampleIndex = 0; sampleIndex <= intervalCount; sampleIndex++) {
+            const targetDistance = (totalMeters * sampleIndex) / intervalCount;
+            let segmentIndex = segments.findIndex((segment, i) =>
+              targetDistance <= vertexDistances[i + 1] || i === segments.length - 1,
+            );
+            if (segmentIndex < 0) segmentIndex = segments.length - 1;
+            const segment = segments[segmentIndex];
+            const segmentStartDistance = vertexDistances[segmentIndex];
+            const fraction = segment.length > 0
+              ? Math.max(0, Math.min(1, (targetDistance - segmentStartDistance) / segment.length))
+              : 0;
+            const lng = segment.start[0] + (segment.end[0] - segment.start[0]) * fraction;
+            const lat = segment.start[1] + (segment.end[1] - segment.start[1]) * fraction;
+            const terrainElevation = map.queryTerrainElevation([lng, lat]);
+            const elevation = typeof terrainElevation === "number" && Number.isFinite(terrainElevation)
+              ? terrainElevation
+              : null;
+            samples.push({ distance: targetDistance, elevation });
+          }
+
+          const validElevations = samples
+            .map((sample) => sample.elevation)
+            .filter((value): value is number => value !== null && Number.isFinite(value));
+
+          // Selalu buka jendela profil setelah pengguna menyelesaikan jalur.
+          // Jika queryTerrainElevation gagal pada sampel rapat (misalnya tile DTM
+          // belum termuat/URL tile 404), gunakan elevasi yang sempat terbaca pada
+          // titik-titik klik sebagai fallback agar pengguna tetap mendapat grafik.
+          const clickedPointSamples: { distance: number; elevation: number | null }[] = [];
+          let clickedDistance = 0;
+          points.forEach((point, index) => {
+            if (index > 0) clickedDistance += distance(points[index - 1], point);
+            clickedPointSamples.push({
+              distance: clickedDistance,
+              elevation: typeof point[2] === "number" && Number.isFinite(point[2]) ? point[2] : null,
+            });
+          });
+          const validClickedElevations = clickedPointSamples.filter(
+            (sample) => sample.elevation !== null && Number.isFinite(sample.elevation),
+          );
+          const profileToShow = validElevations.length >= 2 ? samples : clickedPointSamples;
+          const validCount = validElevations.length >= 2 ? validElevations.length : validClickedElevations.length;
+
+          setProfileSamples(profileToShow);
+          setShowProfileWindow(true);
+          if (validCount < 2) {
+            setMeasureResult(
+              `Profil dibuka, tetapi data elevasi belum cukup (${validCount} titik valid). Periksa tile DTM: permintaan /api/dtm/... pada Console masih gagal 404.`,
+            );
+          } else if (validElevations.length < 2) {
+            setMeasureResult(
+              `Profil dibuka dengan ${validCount} titik elevasi hasil klik. Tile DTM untuk sampel rapat belum terbaca, jadi grafik sementara lebih jarang. Periksa error 404 /api/dtm/... di Console.`,
+            );
+          } else {
+            setMeasureResult(`Profil elevasi · panjang ${formatDistance(totalMeters)} · ${validCount} sampel elevasi.`);
+          }
+        }
       }
+      measureModeRef.current = null;
+      setMeasureMode(null);
+      setSelectedMeasureTool(activeMeasure);
     });
 
     map.on("click", (event) => {
@@ -551,24 +698,6 @@ export default function MapView({
             ? "Elevasi tidak tersedia. Aktifkan Terrain 3D."
             : `Beda tinggi: ${Math.abs(last[2] - first[2]).toFixed(2)} m`;
 
-        // Hitung luas setiap kali titik batas baru ditambahkan agar label
-        // di peta langsung menampilkan nilai luas, bukan jumlah titik.
-        const areaSquareMeters = next.length >= 3
-          ? (() => {
-              const coords = next.map(([x, y]) => [toRad(x), toRad(y)] as [number, number]);
-              let sum = 0;
-              for (let i = 0; i < coords.length; i++) {
-                const j = (i + 1) % coords.length;
-                sum += (coords[j][0] - coords[i][0]) *
-                  (2 + Math.sin(coords[i][1]) + Math.sin(coords[j][1]));
-              }
-              return Math.abs(sum * 6371008.8 * 6371008.8 / 2);
-            })()
-          : 0;
-        const areaValueText = areaSquareMeters >= 10000
-          ? `${(areaSquareMeters / 10000).toFixed(2)} ha`
-          : `${areaSquareMeters.toFixed(2)} m²`;
-
         const lineLabel =
           next.length >= 2
             ? activeMeasure === "height"
@@ -576,14 +705,14 @@ export default function MapView({
               : activeMeasure === "profile"
                 ? `Profil elevasi · ${formatDistance(totalMeters)}`
                 : activeMeasure === "area"
-                  ? next.length >= 3 ? areaValueText : `Titik ${next.length}/3`
+                  ? `Titik area: ${next.length}`
                   : `Panjang: ${formatDistance(totalMeters)}`
             : activeMeasure === "height"
               ? "Klik titik pertama, lalu titik kedua"
               : activeMeasure === "area"
-                ? "Tambahkan titik batas area"
+                ? "Klik titik-titik batas area, lalu klik dua kali untuk selesai"
                 : activeMeasure === "profile"
-                  ? "Klik titik kedua untuk membuka grafik profil secara otomatis"
+                  ? "Klik titik-titik jalur profil, lalu tekan Selesai untuk melihat grafik"
                   : "Klik peta untuk menambahkan titik";
 
         // Area: gambar poligon sementara saat titik batas ditambahkan.
@@ -612,8 +741,26 @@ export default function MapView({
             }] : [],
           });
           setMeasureResult(next.length < 3
-            ? `Tambahkan minimal 3 titik batas area (${next.length}/3).`
-            : `Luas: ${areaValueText}`);
+            ? `Tambahkan minimal 3 titik untuk mengukur luas (${next.length} titik saat ini).`
+            : `Luas sementara: ${(() => {
+                const coords = next.map(([x, y]) => [toRad(x), toRad(y)] as [number, number]);
+                let area = 0;
+                for (let i = 0; i < coords.length; i++) {
+                  const j = (i + 1) % coords.length;
+                  area += coords[j][0] - coords[i][0];
+                  area *= 1;
+                }
+                let sum = 0;
+                for (let i = 0; i < coords.length; i++) {
+                  const j = (i + 1) % coords.length;
+                  sum += (coords[j][0] - coords[i][0]) *
+                    (2 + Math.sin(coords[i][1]) + Math.sin(coords[j][1]));
+                }
+                const squareMeters = Math.abs(sum * 6371008.8 * 6371008.8 / 2);
+                return squareMeters >= 10000
+                  ? `${(squareMeters / 10000).toFixed(2)} ha`
+                  : `${squareMeters.toFixed(2)} m²`;
+              })()}. Klik dua kali untuk menyelesaikan.`);
           return;
         }
 
@@ -643,48 +790,13 @@ export default function MapView({
             accumulated += segment;
           }
         }
-        const measurementLabelFeatures =
-          activeMeasure === "height" && next.length >= 2
-            ? [
-                {
-                  type: "Feature" as const,
-                  properties: {
-                    label: `Awal: ${first[2] == null ? "N/A" : `${first[2].toFixed(2)} m`}`,
-                    offset: [0, -1.5],
-                  },
-                  geometry: {
-                    type: "Point" as const,
-                    coordinates: [first[0], first[1]],
-                  },
-                },
-                {
-                  type: "Feature" as const,
-                  properties: {
-                    label: `Akhir: ${last[2] == null ? "N/A" : `${last[2].toFixed(2)} m`}`,
-                    offset: [0, 1.5],
-                  },
-                  geometry: {
-                    type: "Point" as const,
-                    coordinates: [last[0], last[1]],
-                  },
-                },
-                {
-                  type: "Feature" as const,
-                  properties: { label: lineLabel, offset: [0, 0] },
-                  geometry: { type: "Point" as const, coordinates: labelCoordinate },
-                },
-              ]
-            : next.length >= 2
-              ? [{
-                  type: "Feature" as const,
-                  properties: { label: lineLabel, offset: [0, 0] },
-                  geometry: { type: "Point" as const, coordinates: labelCoordinate },
-                }]
-              : [];
-
         (map.getSource("measure-label-point") as maplibregl.GeoJSONSource | undefined)?.setData({
           type: "FeatureCollection",
-          features: measurementLabelFeatures,
+          features: next.length >= 2 ? [{
+            type: "Feature",
+            properties: { label: lineLabel },
+            geometry: { type: "Point", coordinates: labelCoordinate },
+          }] : [],
         });
 
         if (next.length < 2) {
@@ -692,7 +804,7 @@ export default function MapView({
             activeMeasure === "height"
               ? "Klik titik kedua untuk menghitung beda tinggi."
               : activeMeasure === "profile"
-                ? "Klik titik kedua untuk membuka grafik profil elevasi secara otomatis. Tambahkan titik lain untuk memperbarui jalur."
+                ? "Klik minimal dua titik, lalu klik dua kali pada titik terakhir untuk langsung membuka grafik profil elevasi."
                 : "Klik titik berikutnya untuk melanjutkan pengukuran panjang.",
           );
         } else if (activeMeasure === "height") {
@@ -700,86 +812,11 @@ export default function MapView({
           measureModeRef.current = null;
           setMeasureMode(null);
         } else if (activeMeasure === "profile") {
-          const elevations = next
-            .map((point) => point[2])
-            .filter((value): value is number => value != null && Number.isFinite(value));
-
-          // Profil diperbarui dan dibuka otomatis setelah titik kedua.
-          // Pengguna dapat terus menambahkan titik; grafik akan ikut diperbarui.
-          if (next.length >= 2 && totalMeters > 0) {
-            const targetSpacing = 3;
-            const maxSamples = 1200;
-            const intervalCount = Math.max(
-              1,
-              Math.min(maxSamples - 1, Math.ceil(totalMeters / targetSpacing)),
-            );
-            const segments = next.slice(1).map((point, index) => ({
-              start: next[index],
-              end: point,
-              length: segmentDistance(next[index], point),
-            }));
-            const vertexDistances = [0];
-            for (const segment of segments) {
-              vertexDistances.push(vertexDistances[vertexDistances.length - 1] + segment.length);
-            }
-
-            const liveSamples: { distance: number; elevation: number | null }[] = [];
-            for (let sampleIndex = 0; sampleIndex <= intervalCount; sampleIndex++) {
-              const targetDistance = (totalMeters * sampleIndex) / intervalCount;
-              let segmentIndex = segments.findIndex(
-                (segment, index) =>
-                  targetDistance <= vertexDistances[index + 1] ||
-                  index === segments.length - 1,
-              );
-              if (segmentIndex < 0) segmentIndex = segments.length - 1;
-              const segment = segments[segmentIndex];
-              const segmentLength = segment.length;
-              const fraction = segmentLength > 0
-                ? Math.max(
-                    0,
-                    Math.min(
-                      1,
-                      (targetDistance - vertexDistances[segmentIndex]) / segmentLength,
-                    ),
-                  )
-                : 0;
-              const lng = segment.start[0] + (segment.end[0] - segment.start[0]) * fraction;
-              const lat = segment.start[1] + (segment.end[1] - segment.start[1]) * fraction;
-              const terrainElevation = map.queryTerrainElevation([lng, lat]);
-              liveSamples.push({
-                distance: targetDistance,
-                elevation:
-                  typeof terrainElevation === "number" && Number.isFinite(terrainElevation)
-                    ? terrainElevation
-                    : null,
-              });
-            }
-
-            const validLiveSamples = liveSamples.filter(
-              (sample) => sample.elevation !== null && Number.isFinite(sample.elevation),
-            );
-            const clickedSamples: { distance: number; elevation: number | null }[] = [];
-            let clickedDistance = 0;
-            next.forEach((point, index) => {
-              if (index > 0) clickedDistance += segmentDistance(next[index - 1], point);
-              clickedSamples.push({
-                distance: clickedDistance,
-                elevation:
-                  typeof point[2] === "number" && Number.isFinite(point[2])
-                    ? point[2]
-                    : null,
-              });
-            });
-
-            setProfileSamples(validLiveSamples.length >= 2 ? liveSamples : clickedSamples);
-            setShowLayerPanel(false);
-            setShowProfileWindow(true);
-          }
-
+          const elevations = next.map((point) => point[2]).filter((value): value is number => value != null);
           setMeasureResult(
             elevations.length
-              ? `Profil elevasi · jarak ${formatDistance(totalMeters)} · ${elevations.length} titik jalur. Grafik diperbarui otomatis.`
-              : "Elevasi profil belum terbaca. Pastikan DTM aktif dan tile elevasi tersedia.",
+              ? `Profil sementara · jarak ${formatDistance(totalMeters)} · elevasi ${Math.min(...elevations).toFixed(2)}–${Math.max(...elevations).toFixed(2)} m. Klik dua kali pada titik terakhir untuk membuka grafik.`
+              : "Elevasi profil belum tersedia. Aktifkan Terrain 3D, lalu gambar jalur profil lagi.",
           );
         } else {
           setMeasureResult(`Panjang: ${formatDistance(totalMeters)}`);
@@ -2542,102 +2579,6 @@ export default function MapView({
 
       <div className="main-layout main-layout-simple">
         <section className={`map-area map-area-full ${showProfileWindow && selectedMeasureTool === "profile" ? "profile-open" : ""}`}>
-          {showDtmRequiredNotice && (
-            <div
-              role="alertdialog"
-              aria-modal="true"
-              aria-labelledby="dtm-required-title"
-              aria-describedby="dtm-required-description"
-              style={{
-                position: "absolute",
-                inset: 0,
-                zIndex: 2147483000,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 20,
-                background: "rgba(20, 38, 48, 0.24)",
-                boxSizing: "border-box",
-              }}
-            >
-              <div
-                style={{
-                  width: "min(360px, calc(100vw - 40px))",
-                  padding: "22px 22px 18px",
-                  borderRadius: 18,
-                  background: "#fff7f7",
-                  border: "1px solid #f1c8ca",
-                  boxShadow: "0 16px 48px rgba(25, 48, 60, 0.24)",
-                  textAlign: "center",
-                  boxSizing: "border-box",
-                }}
-              >
-                <div
-                  style={{
-                    width: 46,
-                    height: 46,
-                    margin: "0 auto 12px",
-                    borderRadius: 14,
-                    display: "grid",
-                    placeItems: "center",
-                    background: "#fde5e6",
-                    color: "#bd454c",
-                  }}
-                >
-                  <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M12 3 2.8 19a1.4 1.4 0 0 0 1.2 2h16a1.4 1.4 0 0 0 1.2-2L12 3Z" />
-                    <path d="M12 9v4M12 17h.01" />
-                  </svg>
-                </div>
-                <div id="dtm-required-title" style={{ color: "#8f343b", fontSize: 16, fontWeight: 750 }}>
-                  DTM belum diaktifkan
-                </div>
-                <div id="dtm-required-description" style={{ marginTop: 8, color: "#754b4e", fontSize: 13, lineHeight: 1.55 }}>
-                  Aktifkan DTM Lokal terlebih dahulu untuk menggunakan Profil Elevasi.
-                </div>
-                <div style={{ display: "flex", justifyContent: "center", gap: 9, marginTop: 18, flexWrap: "wrap" }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowDtmRequiredNotice(false)}
-                    style={{
-                      minHeight: 38,
-                      padding: "8px 14px",
-                      border: "1px solid #e5c6c8",
-                      borderRadius: 9,
-                      background: "#ffffff",
-                      color: "#754b4e",
-                      fontSize: 12,
-                      fontWeight: 650,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Nanti
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowDtmRequiredNotice(false);
-                      setShowLayerPanel(true);
-                      setActiveLayerTab("terrain");
-                    }}
-                    style={{
-                      minHeight: 38,
-                      padding: "8px 14px",
-                      border: "1px solid #bd454c",
-                      borderRadius: 9,
-                      background: "#bd454c",
-                      color: "#ffffff",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Aktifkan DTM
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
           {!showLayerPanel && (
             <button
               type="button"
@@ -2814,7 +2755,7 @@ export default function MapView({
                         >
                           <span
                             style={{
-                              fontSize: 14,
+                              fontSize: 15,
                               lineHeight: 1,
                               width: 14,
                               color: "#64748b",
@@ -3206,13 +3147,9 @@ export default function MapView({
                   boxSizing: "border-box",
                   padding: "10px 13px",
                   borderRadius: 12,
-                  background: measureResult.startsWith("Aktifkan DTM Lokal:")
-                    ? "rgba(255, 242, 242, 0.98)"
-                    : "rgba(255,255,255,0.97)",
-                  color: measureResult.startsWith("Aktifkan DTM Lokal:") ? "#8f3d43" : "#29485d",
-                  border: measureResult.startsWith("Aktifkan DTM Lokal:")
-                    ? "1px solid #f0c3c5"
-                    : "1px solid #d8e5e8",
+                  background: "rgba(255,255,255,0.97)",
+                  color: "#29485d",
+                  border: "1px solid #d8e5e8",
                   boxShadow: "0 4px 16px rgba(22,55,68,0.16)",
                   fontSize: 12,
                   lineHeight: 1.5,
@@ -3220,35 +3157,7 @@ export default function MapView({
               >
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div>{measureResult.replace("Aktifkan DTM Lokal: ", "")}</div>
-                    {measureResult.startsWith("Aktifkan DTM Lokal:") && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          activateTerrain("dtm");
-                          setMeasureResult("");
-                        }}
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 7,
-                          marginTop: 9,
-                          padding: "7px 12px",
-                          border: "1px solid #c94b50",
-                          borderRadius: 8,
-                          background: "#c94b50",
-                          color: "#ffffff",
-                          fontSize: 12,
-                          fontWeight: 700,
-                          cursor: "pointer",
-                        }}
-                      >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="m3 20 7-14 4 8 2-3 5 9H3Z" />
-                        </svg>
-                        Aktifkan DTM
-                      </button>
-                    )}
+                    <div>{measureResult}</div>
                   </div>
                   <button
                     type="button"
@@ -3291,10 +3200,10 @@ export default function MapView({
                 aria-label="Pilihan alat ukur"
                 style={{
                   position: "absolute",
-                  // Menu ringkas muncul di sisi kiri tombol pengukuran,
-                  // sejajar dengan bagian atas tombol utama.
-                  right: 54,
-                  top: 0,
+                  // Menu muncul tepat di atas tombol pengukuran dan
+                  // dipusatkan terhadap tombol utama, bukan di sisi kirinya.
+                  right: -63,
+                  bottom: "calc(100% + 8px)",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "stretch",
@@ -3356,17 +3265,17 @@ export default function MapView({
                       aria-label={tool.label}
                       aria-pressed={isSelected}
                       style={{
-                        width: 132,
-                        minWidth: 132,
-                        height: 44,
+                        width: 174,
+                        minWidth: 174,
+                        height: 58,
                         display: "flex",
                         flexDirection: "row",
                         alignItems: "center",
                         justifyContent: "flex-start",
-                        gap: 9,
-                        padding: "0 11px",
+                        gap: 12,
+                        padding: "0 16px",
                         border: isSelected ? "1px solid #78c9bd" : "1px solid rgba(215,224,229,0.55)",
-                        borderRadius: 10,
+                        borderRadius: 11,
                         background: isSelected ? "#e8f6f4" : "#ffffff",
                         color: "#29485d",
                         fontSize: 15,
@@ -3378,22 +3287,22 @@ export default function MapView({
                       }}
                     >
                       {tool.icon === "length" ? (
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="M3 17.5 17.5 3 21 6.5 6.5 21 3 17.5Z" />
                           <path d="m7 13 2 2m1-6 2 2m1-6 2 2m-6 10 2 2" />
                         </svg>
                       ) : tool.icon === "area" ? (
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="m5 4 14 2 2 12-13 2-4-9Z" />
                           <path d="M5 4 8 20" strokeDasharray="2 2" />
                         </svg>
                       ) : tool.icon === "height" ? (
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4" />
                           <path d="M5 7h3M5 12h3M5 17h3M16 7h3M16 12h3M16 17h3" />
                         </svg>
                       ) : (
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="M3 19h18M4 16l4-5 4 2 5-8 3 3" />
                           <circle cx="8" cy="11" r="1" />
                           <circle cx="12" cy="13" r="1" />
@@ -3565,16 +3474,7 @@ export default function MapView({
               title="Profil elevasi"
               aria-pressed={measureMode === "profile"}
               onClick={() => {
-                // Profil elevasi hanya tersedia jika DTM Lokal sedang aktif.
-                // Jangan mulai menggambar jalur atau menampilkan pesan error
-                // di pojok peta ketika sumber DTM belum diaktifkan.
-                if (activeTerrain !== "dtm") {
-                  setShowDtmRequiredNotice(true);
-                  return;
-                }
-
                 const shouldStop = measureModeRef.current === "profile";
-                setShowDtmRequiredNotice(false);
                 setShowMeasureMenu(false);
                 setSelectedMeasureTool("profile");
                 measureModeRef.current = shouldStop ? null : "profile";
