@@ -3338,59 +3338,158 @@ button {
 
 
 /* =========================================================
-   PENYESUAIAN KONTROL PETA
-   - Skala di kiri bawah sedikit dinaikkan.
-   - Statistik tetap aktif seperti semula.
-   - Attribution OSM berbentuk bulat saat tertutup.
+   FINAL OVERRIDE — SKALA DAN ATTRIBUTION OSM
+   Statistik peta tetap aktif; hanya merapikan kontrol bawah.
    ========================================================= */
 
-/* Naikkan kontrol skala kiri bawah sedikit. */
+/* Skala + indikator zoom: susun vertikal dengan jarak yang jelas. */
 .map-area-full .maplibregl-ctrl-bottom-left {
-  margin-bottom: 22px !important;
-}
-
-@media (max-width: 760px) {
-  .map-area-full .maplibregl-ctrl-bottom-left {
-    margin-bottom: 16px !important;
-  }
-}
-
-/* Saat attribution tertutup, tampilkan tombol info dalam lingkaran. */
-.map-area-full
-  .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) {
+  position: absolute !important;
+  left: 0 !important;
+  bottom: 0 !important;
   display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  box-sizing: border-box !important;
-  width: 36px !important;
-  min-width: 36px !important;
-  max-width: 36px !important;
-  height: 36px !important;
-  min-height: 36px !important;
-  padding: 0 !important;
-  margin: 0 4px 4px 0 !important;
-  border-radius: 50% !important;
-  background: rgba(255, 255, 255, 0.98) !important;
-  border: 1px solid rgba(220, 232, 236, 0.9) !important;
-  box-shadow: 0 2px 8px rgba(22, 55, 68, 0.12) !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-end !important;
+  gap: 7px !important;
+  margin: 0 0 18px 12px !important;
+  z-index: 25 !important;
 }
 
-.map-area-full
-  .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show)
-  .maplibregl-ctrl-attrib-button {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  position: static !important;
+.map-area-full .maplibregl-ctrl-bottom-left > .maplibregl-ctrl {
   float: none !important;
+  clear: both !important;
+  margin: 0 !important;
+}
+
+.map-area-full .maplibregl-ctrl-bottom-left .maplibregl-ctrl-scale {
+  display: block !important;
+  position: relative !important;
+  margin: 0 !important;
+  padding: 2px 6px 3px !important;
+  border: 1px solid #29485d !important;
+  border-top: 0 !important;
+  border-radius: 0 0 5px 5px !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #29485d !important;
+  font-size: 10px !important;
+  line-height: 1.3 !important;
+  box-shadow: 0 1px 4px rgba(22, 55, 68, 0.10) !important;
+}
+
+/* Attribution terbuka: teks dan ikon menjadi satu kelompok yang rapi. */
+.map-area-full .maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
   box-sizing: border-box !important;
-  width: 24px !important;
-  height: 24px !important;
-  min-width: 24px !important;
-  min-height: 24px !important;
+  width: max-content !important;
+  min-width: 0 !important;
+  max-width: min(90vw, 460px) !important;
+  min-height: 32px !important;
+  margin: 0 4px 4px 0 !important;
+  padding: 5px 8px !important;
+  border: 1px solid #dce8ec !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 2px 8px rgba(22, 55, 68, 0.12) !important;
+  white-space: nowrap !important;
+}
+
+.map-area-full .maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show
+.maplibregl-ctrl-attrib-inner {
+  display: block !important;
+  flex: 0 1 auto !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: center !important;
+  line-height: 1.35 !important;
+}
+
+.map-area-full .maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show
+.maplibregl-ctrl-attrib-button {
+  position: static !important;
+  display: block !important;
+  flex: 0 0 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
   margin: 0 !important;
   padding: 0 !important;
   border: 0 !important;
   border-radius: 50% !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Attribution tertutup: tombol info bulat kecil, ikon tepat di tengah. */
+.map-area-full .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  float: none !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  max-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  margin: 0 4px 4px 0 !important;
+  padding: 0 !important;
+  border: 1px solid #dce8ec !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  box-shadow: 0 2px 8px rgba(22, 55, 68, 0.14) !important;
+}
+
+.map-area-full .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show)
+.maplibregl-ctrl-attrib-button {
+  display: block !important;
+  position: relative !important;
+  flex: 0 0 22px !important;
+  float: none !important;
+  box-sizing: border-box !important;
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px !important;
+  min-height: 22px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background-color: transparent !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 18px 18px !important;
+  box-shadow: none !important;
   transform: none !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .maplibregl-ctrl-bottom-left {
+    gap: 6px !important;
+    margin: 0 0 14px 8px !important;
+  }
+
+  .map-area-full .maplibregl-ctrl-bottom-left .maplibregl-ctrl-scale {
+    font-size: 9px !important;
+  }
+
+  .map-area-full .maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show {
+    min-height: 30px !important;
+    gap: 5px !important;
+    padding: 4px 7px !important;
+    font-size: 9px !important;
+  }
+
+  .map-area-full .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) {
+    width: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+  }
 }
