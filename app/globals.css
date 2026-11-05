@@ -3235,16 +3235,47 @@ button {
   }
 }
 
-/* Atribusi peta tanpa kotak latar */
-.map-area-full .maplibregl-ctrl-attrib,
-.map-area-full .maplibregl-ctrl-attrib.maplibregl-compact {
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+/* =========================================================
+   MAPLIBRE ATTRIBUTION — tampilan putih, bersih, membulat
+   ========================================================= */
+
+.map-area-full .maplibregl-ctrl-bottom-right {
+  right: 0 !important;
+  bottom: 0 !important;
+  margin: 0 10px 10px 0 !important;
 }
 
-/* Pertahankan keterbacaan teks atribusi */
-.map-area-full .maplibregl-ctrl-attrib a {
+.map-area-full .maplibregl-ctrl-attrib,
+.map-area-full .maplibregl-ctrl-attrib.maplibregl-compact {
+  background: rgba(255, 255, 255, 0.97) !important;
+  border: none !important;
+  border-radius: 9px !important;
+  box-shadow: 0 2px 8px rgba(22, 55, 68, 0.12) !important;
+  padding: 4px 7px !important;
   color: #183746 !important;
+  font-size: 10px !important;
+  line-height: 1.4 !important;
+  max-width: min(68vw, 460px);
+}
+
+.map-area-full .maplibregl-ctrl-attrib a {
+  color: #385968 !important;
+  text-decoration: none !important;
+}
+
+.map-area-full .maplibregl-ctrl-attrib-button {
+  border: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .maplibregl-ctrl-bottom-right {
+    margin: 0 8px 8px 0 !important;
+  }
+
+  .map-area-full .maplibregl-ctrl-attrib {
+    max-width: 76vw;
+    font-size: 9px !important;
+  }
 }
