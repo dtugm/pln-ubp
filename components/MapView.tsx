@@ -418,6 +418,7 @@ export default function MapView({
   const [activeLayerTab, setActiveLayerTab] = useState<"data" | "terrain">("data");
   const [activeTerrain, setActiveTerrain] = useState<"aws" | "dtm" | null>(null);
   const [showDtmRequiredNotice, setShowDtmRequiredNotice] = useState(false);
+  const [dtmRequiredFeature, setDtmRequiredFeature] = useState<"profile" | "height">("profile");
 
   const [zoomLevel, setZoomLevel] = useState(14.2);
 
@@ -2675,10 +2676,12 @@ export default function MapView({
                   </svg>
                 </div>
                 <div id="dtm-required-title" style={{ color: "#8f343b", fontSize: 16, fontWeight: 750 }}>
-                  DTM belum diaktifkan
+                  {dtmRequiredFeature === "height" ? "Terrain 3D belum diaktifkan" : "DTM belum diaktifkan"}
                 </div>
                 <div id="dtm-required-description" style={{ marginTop: 8, color: "#754b4e", fontSize: 13, lineHeight: 1.55 }}>
-                  Aktifkan DTM Lokal terlebih dahulu untuk menggunakan Profil Elevasi.
+                  {dtmRequiredFeature === "height"
+                    ? "Aktifkan Terrain 3D terlebih dahulu untuk menggunakan pengukuran Tinggi."
+                    : "Aktifkan DTM Lokal terlebih dahulu untuk menggunakan Profil Elevasi."}
                 </div>
                 <div style={{ display: "flex", justifyContent: "center", gap: 9, marginTop: 18, flexWrap: "wrap" }}>
                   <button
@@ -2717,7 +2720,7 @@ export default function MapView({
                       cursor: "pointer",
                     }}
                   >
-                    Aktifkan DTM
+                    {dtmRequiredFeature === "height" ? "Aktifkan Terrain 3D" : "Aktifkan DTM"}
                   </button>
                 </div>
               </div>
@@ -3430,6 +3433,15 @@ export default function MapView({
                       type="button"
                       onClick={() => {
                         setSelectedMeasureTool(tool.key);
+                        // Pengukuran tinggi membutuhkan sumber Terrain 3D/DTM aktif.
+                        if (tool.key === "height" && activeTerrain !== "dtm") {
+                          setDtmRequiredFeature("height");
+                          setShowDtmRequiredNotice(true);
+                          measureModeRef.current = null;
+                          setMeasureMode(null);
+                          return;
+                        }
+                        setShowDtmRequiredNotice(false);
                         // Menu tetap terbuka setelah memilih alat.
                         // Tutup kembali melalui tombol pengukuran utama.
                         const mode = tool.key;
@@ -3460,6 +3472,7 @@ export default function MapView({
                         featurePopupRef.current = null;
                       }}
                       aria-label={tool.label}
+                      data-tooltip={tool.key === "length" ? "Ukur panjang" : tool.key === "area" ? "Ukur luas" : "Ukur beda tinggi"}
                       aria-pressed={isSelected}
                       style={{
                         width: 132,
@@ -3676,6 +3689,7 @@ export default function MapView({
                 // Jangan mulai menggambar jalur atau menampilkan pesan error
                 // di pojok peta ketika sumber DTM belum diaktifkan.
                 if (activeTerrain !== "dtm") {
+                  setDtmRequiredFeature("profile");
                   setShowDtmRequiredNotice(true);
                   return;
                 }
@@ -3780,6 +3794,37 @@ export default function MapView({
               max-height: 36px !important;
               box-sizing: border-box !important;
               border-radius: 9px !important;
+            }
+
+            .map-floating-toolbar [aria-label="Pilihan alat ukur"] button {
+              position: relative;
+            }
+            .map-floating-toolbar [aria-label="Pilihan alat ukur"] button::after {
+              content: attr(data-tooltip);
+              position: absolute;
+              left: 50%;
+              bottom: calc(100% + 7px);
+              transform: translate(-50%, 3px);
+              opacity: 0;
+              visibility: hidden;
+              pointer-events: none;
+              z-index: 300;
+              padding: 5px 8px;
+              border-radius: 6px;
+              background: rgba(24, 45, 57, 0.96);
+              color: #ffffff;
+              font-size: 10px;
+              font-weight: 600;
+              line-height: 1.2;
+              white-space: nowrap;
+              box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+              transition: opacity 110ms ease, transform 110ms ease, visibility 110ms ease;
+            }
+            .map-floating-toolbar [aria-label="Pilihan alat ukur"] button:hover::after,
+            .map-floating-toolbar [aria-label="Pilihan alat ukur"] button:focus-visible::after {
+              opacity: 1;
+              visibility: visible;
+              transform: translate(-50%, 0);
             }
 
             @keyframes measure-menu-in {
