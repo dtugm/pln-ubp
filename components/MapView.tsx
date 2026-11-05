@@ -3367,6 +3367,7 @@ export default function MapView({
               <ElevationProfileWindow
                 samples={profileSamples}
                 onClose={() => setShowProfileWindow(false)}
+                isDarkMode={theme === "dark"}
               />
             )}
             {showMeasureMenu && (
