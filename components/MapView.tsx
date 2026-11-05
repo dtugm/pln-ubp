@@ -633,7 +633,7 @@ export default function MapView({
             ? activeMeasure === "height"
               ? heightLabel
               : activeMeasure === "profile"
-                ? `Profil elevasi · ${formatDistance(totalMeters)}`
+                ? "Profil Elevasi"
                 : activeMeasure === "area"
                   ? next.length >= 3 ? areaValueText : `Titik ${next.length}/3`
                   : `Panjang: ${formatDistance(totalMeters)}`
@@ -3376,20 +3376,31 @@ export default function MapView({
                 aria-label="Pilihan alat ukur"
                 style={{
                   position: "absolute",
-                  // Menu ringkas muncul di sisi kiri tombol pengukuran,
-                  // sejajar dengan bagian atas tombol utama.
-                  right: 54,
+                  // Panel menu berada di luar sisi kiri toolbar, tidak menimpa tombol.
+                  right: "calc(100% + 10px)",
                   top: 0,
+                  zIndex: 120,
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "stretch",
-                  gap: 7,
-                  padding: 0,
-                  border: "none",
-                  borderRadius: 0,
-                  background: "transparent",
-                  boxShadow: "none",
+                  gap: 6,
+                  width: 138,
+                  boxSizing: "border-box",
+                  padding: 7,
+                  border: theme === "dark"
+                    ? "1px solid rgba(125,166,184,0.24)"
+                    : "1px solid rgba(220,232,236,0.95)",
+                  borderRadius: 13,
+                  background: theme === "dark"
+                    ? "rgba(20,43,55,0.94)"
+                    : "rgba(255,255,255,0.94)",
+                  backdropFilter: "blur(10px)",
+                  WebkitBackdropFilter: "blur(10px)",
+                  boxShadow: theme === "dark"
+                    ? "0 6px 18px rgba(0,0,0,0.28)"
+                    : "0 6px 18px rgba(22,55,68,0.16)",
                   whiteSpace: "nowrap",
+                  animation: "measure-menu-in 140ms ease-out both",
                 }}
               >
                 {([
@@ -3433,11 +3444,6 @@ export default function MapView({
                         featurePopupRef.current?.remove();
                         featurePopupRef.current = null;
                       }}
-                      title={
-                        isImplemented
-                          ? `Ukur ${tool.label.toLowerCase()}`
-                          : `Menu ${tool.label.toLowerCase()} (fungsi pengukuran belum aktif)`
-                      }
                       aria-label={tool.label}
                       aria-pressed={isSelected}
                       style={{
@@ -3450,16 +3456,23 @@ export default function MapView({
                         justifyContent: "flex-start",
                         gap: 9,
                         padding: "0 11px",
-                        border: isSelected ? "1px solid #78c9bd" : "1px solid rgba(255,255,255,0.42)",
-                        borderRadius: 10,
-                        background: isSelected ? "#e8f6f4" : "#ffffff",
-                        color: "#29485d",
-                        fontSize: 15,
+                        border: isSelected
+                          ? "1px solid #42b8c5"
+                          : theme === "dark"
+                            ? "1px solid rgba(143,184,199,0.18)"
+                            : "1px solid rgba(220,232,236,0.9)",
+                        borderRadius: 9,
+                        background: isSelected
+                          ? theme === "dark" ? "rgba(49,133,145,0.28)" : "#e8f6f4"
+                          : theme === "dark" ? "rgba(255,255,255,0.055)" : "rgba(248,251,252,0.96)",
+                        color: theme === "dark" ? "#e5f0f4" : "#29485d",
+                        fontSize: 13,
                         fontWeight: 600,
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.14)",
+                        boxShadow: "none",
                         whiteSpace: "nowrap",
                         cursor: "pointer",
                         touchAction: "manipulation",
+                        transition: "background-color 120ms ease, border-color 120ms ease",
                       }}
                     >
                       {tool.icon === "length" ? (
@@ -3494,7 +3507,7 @@ export default function MapView({
             <button
               type="button"
               onClick={() => setShowMeasureMenu((open) => !open)}
-              title={showMeasureMenu ? "Tutup menu pengukuran" : "Alat pengukuran"}
+              title={showMeasureMenu ? undefined : "Alat pengukuran"}
               aria-label={showMeasureMenu ? "Tutup menu pengukuran" : "Buka menu pengukuran"}
               aria-expanded={showMeasureMenu}
               aria-pressed={!!measureMode}
@@ -3733,6 +3746,23 @@ export default function MapView({
             .map-floating-toolbar > [role="group"] button:focus-visible {
               outline: 2px solid #64b6c4;
               outline-offset: 1px;
+            }
+
+            @keyframes measure-menu-in {
+              from {
+                opacity: 0;
+                transform: translateX(4px);
+              }
+              to {
+                opacity: 1;
+                transform: translateX(0);
+              }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+              .map-floating-toolbar [aria-label="Pilihan alat ukur"] {
+                animation: none !important;
+              }
             }
 
             @media (max-width: 760px) {
