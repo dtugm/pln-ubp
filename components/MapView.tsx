@@ -3409,7 +3409,6 @@ export default function MapView({
                   { key: "height", label: "Tinggi", icon: "height" },
                 ] as const).map((tool) => {
                   const isSelected = selectedMeasureTool === tool.key;
-                  const isImplemented = true;
                   return (
                     <button
                       key={tool.key}
@@ -3724,8 +3723,10 @@ export default function MapView({
           
 
           <style jsx>{`
-            .map-floating-toolbar > button,
-            .map-floating-toolbar > [role="group"] button {
+            /* Aturan ukuran hanya untuk tombol utama toolbar.
+               Jangan terapkan ke tombol pilihan menu pengukuran karena
+               tombol menu membutuhkan lebar penuh agar highlight tidak terpotong. */
+            .map-floating-toolbar > button {
               flex: 0 0 36px;
               width: 36px !important;
               height: 36px !important;
@@ -3738,14 +3739,24 @@ export default function MapView({
               border-radius: 8px !important;
               box-shadow: none !important;
             }
-            .map-floating-toolbar > button:hover,
-            .map-floating-toolbar > [role="group"] button:hover {
+            .map-floating-toolbar > button:hover {
               background: #eef6f8 !important;
             }
             .map-floating-toolbar > button:focus-visible,
-            .map-floating-toolbar > [role="group"] button:focus-visible {
+            .map-floating-toolbar [aria-label="Pilihan alat ukur"] button:focus-visible {
               outline: 2px solid #64b6c4;
               outline-offset: 1px;
+            }
+            .map-floating-toolbar [aria-label="Pilihan alat ukur"] button {
+              flex: 0 0 36px;
+              width: 100% !important;
+              min-width: 0 !important;
+              max-width: none !important;
+              height: 36px !important;
+              min-height: 36px !important;
+              max-height: 36px !important;
+              box-sizing: border-box !important;
+              border-radius: 9px !important;
             }
 
             @keyframes measure-menu-in {
