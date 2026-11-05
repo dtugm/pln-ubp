@@ -3922,3 +3922,149 @@ button {
     background-size: 15px 15px !important;
   }
 }
+
+
+/* =========================================================
+   WEBGIS TAMBAKLOROK — CLEAN FLOATING TOOLBAR
+   Semua kontrol kanan memakai ukuran, bentuk, dan jarak seragam.
+   Statistik peta dan skala kiri bawah tidak diubah.
+   ========================================================= */
+
+/* Susun setiap kontrol kanan sebagai tombol terpisah. */
+.map-area-full .maplibregl-ctrl-bottom-right {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 7px !important;
+  right: 10px !important;
+  bottom: 10px !important;
+  margin: 0 !important;
+  z-index: 25 !important;
+}
+
+/* Wrapper kontrol tidak lagi membuat satu panel panjang. */
+.map-area-full .maplibregl-ctrl-bottom-right > .maplibregl-ctrl:not(.maplibregl-ctrl-attrib) {
+  float: none !important;
+  clear: both !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+/* Grup MapLibre (zoom/kompas) dibuat transparan dan renggang. */
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 7px !important;
+  width: auto !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Semua tombol custom dan bawaan diseragamkan. */
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button,
+.map-area-full .maplibregl-ctrl-bottom-right > .maplibregl-ctrl button,
+.map-area-full .maplibregl-ctrl-bottom-right button[aria-label="Google Street View"],
+.map-area-full .maplibregl-ctrl-bottom-right button[aria-label="Alat pengukuran"],
+.map-area-full .maplibregl-ctrl-bottom-right button[aria-label="Buka menu pengukuran"],
+.map-area-full .maplibregl-ctrl-bottom-right button[aria-label="Tutup menu pengukuran"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  flex: 0 0 38px !important;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  max-width: 38px !important;
+  max-height: 38px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid #e1e9ed !important;
+  border-radius: 11px !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 2px 8px rgba(26, 55, 70, 0.13) !important;
+  transition: background-color 120ms ease, box-shadow 120ms ease !important;
+}
+
+/* Hilangkan garis pemisah zoom lama karena tombol sekarang terpisah. */
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button + button {
+  border-top: 1px solid #e1e9ed !important;
+}
+
+/* Ikon bawaan MapLibre dan SVG custom dibuat seimbang. */
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  width: 18px !important;
+  height: 18px !important;
+  background-size: 18px 18px !important;
+}
+
+.map-area-full .maplibregl-ctrl-bottom-right > .maplibregl-ctrl button svg,
+.map-area-full .maplibregl-ctrl-bottom-right button[aria-label] svg {
+  width: 18px !important;
+  height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+}
+
+/* Hover ringan, tanpa efek mencolok. */
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button:hover,
+.map-area-full .maplibregl-ctrl-bottom-right > .maplibregl-ctrl button:hover {
+  background: #f4f9fb !important;
+  box-shadow: 0 3px 9px rgba(26, 55, 70, 0.16) !important;
+}
+
+/* Attribution tetap pill tersendiri di bagian paling bawah toolbar. */
+.map-area-full .maplibregl-ctrl-bottom-right > .maplibregl-ctrl-attrib {
+  align-self: flex-end !important;
+  margin: 2px 0 0 !important;
+}
+
+/* Mobile: sedikit lebih kecil, tetap mudah disentuh. */
+@media (max-width: 760px) {
+  .map-area-full .maplibregl-ctrl-bottom-right {
+    right: 8px !important;
+    bottom: 8px !important;
+    gap: 6px !important;
+  }
+
+  .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+    gap: 6px !important;
+  }
+
+  .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button,
+  .map-area-full .maplibregl-ctrl-bottom-right > .maplibregl-ctrl button,
+  .map-area-full .maplibregl-ctrl-bottom-right button[aria-label="Google Street View"],
+  .map-area-full .maplibregl-ctrl-bottom-right button[aria-label="Alat pengukuran"],
+  .map-area-full .maplibregl-ctrl-bottom-right button[aria-label="Buka menu pengukuran"],
+  .map-area-full .maplibregl-ctrl-bottom-right button[aria-label="Tutup menu pengukuran"] {
+    flex-basis: 36px !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+    border-radius: 10px !important;
+  }
+
+  .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon,
+  .map-area-full .maplibregl-ctrl-bottom-right > .maplibregl-ctrl button svg,
+  .map-area-full .maplibregl-ctrl-bottom-right button[aria-label] svg {
+    width: 17px !important;
+    height: 17px !important;
+    max-width: 17px !important;
+    max-height: 17px !important;
+    background-size: 17px 17px !important;
+  }
+}
