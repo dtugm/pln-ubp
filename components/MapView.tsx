@@ -572,9 +572,10 @@ export default function MapView({
             "text-ignore-placement": true,
           },
           paint: {
-            "text-color": "#164e49",
+            "text-color": "#E6007E",
             "text-halo-color": "rgba(255,255,255,0.98)",
-            "text-halo-width": 2.5,
+            "text-halo-width": 2.6,
+            "text-halo-blur": 0.25,
           },
         });
       }
@@ -683,9 +684,11 @@ export default function MapView({
               geometry: { type: "Point", coordinates: [lng, lat] },
             }] : [],
           });
-          setMeasureResult(next.length < 3
-            ? `Tambahkan minimal 3 titik batas area (${next.length}/3).`
-            : `Luas: ${areaValueText}`);
+          setMeasureResult(
+            next.length < 3
+              ? `Tambahkan minimal 3 titik batas area (${next.length}/3).`
+              : "",
+          );
           return;
         }
 
