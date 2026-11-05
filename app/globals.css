@@ -3834,3 +3834,91 @@ button {
     min-height: 32px !important;
   }
 }
+
+
+/* =========================================================
+   UKURAN KONTROL KANAN — dibuat lebih kecil dan konsisten
+   ========================================================= */
+
+/* Samakan ukuran semua tombol dalam grup kontrol kanan,
+   termasuk zoom, kompas, ukur, dan kontrol tambahan MapLibre. */
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group,
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button {
+  box-sizing: border-box !important;
+}
+
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button,
+.map-area-full .maplibregl-ctrl-bottom-right button[aria-label],
+.map-area-full .maplibregl-ctrl-bottom-right button[title],
+.map-area-full button[aria-label="Google Street View"],
+.map-area-full button[aria-label="Alat pengukuran"],
+.map-area-full button[aria-label="Buka menu pengukuran"],
+.map-area-full button[aria-label="Tutup menu pengukuran"] {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  max-width: 34px !important;
+  max-height: 34px !important;
+  padding: 0 !important;
+  border-radius: 9px !important;
+}
+
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  width: 16px !important;
+  height: 16px !important;
+  background-size: 16px 16px !important;
+}
+
+/* Ikon tombol custom (SVG) ikut diperkecil dan tetap proporsional. */
+.map-area-full .maplibregl-ctrl-bottom-right button[aria-label] svg,
+.map-area-full .maplibregl-ctrl-bottom-right button[title] svg,
+.map-area-full button[aria-label="Google Street View"] svg,
+.map-area-full button[aria-label="Alat pengukuran"] svg,
+.map-area-full button[aria-label="Buka menu pengukuran"] svg,
+.map-area-full button[aria-label="Tutup menu pengukuran"] svg {
+  width: 17px !important;
+  height: 17px !important;
+  max-width: 17px !important;
+  max-height: 17px !important;
+}
+
+/* Jarak antartombol dibuat lebih rapat, tetapi tetap mudah diklik. */
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+  border-radius: 9px !important;
+}
+
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button + button {
+  border-top: 1px solid #e7eef1 !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button,
+  .map-area-full .maplibregl-ctrl-bottom-right button[aria-label],
+  .map-area-full .maplibregl-ctrl-bottom-right button[title],
+  .map-area-full button[aria-label="Google Street View"],
+  .map-area-full button[aria-label="Alat pengukuran"],
+  .map-area-full button[aria-label="Buka menu pengukuran"],
+  .map-area-full button[aria-label="Tutup menu pengukuran"] {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    max-width: 32px !important;
+    max-height: 32px !important;
+  }
+
+  .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon,
+  .map-area-full .maplibregl-ctrl-bottom-right button[aria-label] svg,
+  .map-area-full .maplibregl-ctrl-bottom-right button[title] svg,
+  .map-area-full button[aria-label="Google Street View"] svg,
+  .map-area-full button[aria-label="Alat pengukuran"] svg,
+  .map-area-full button[aria-label="Buka menu pengukuran"] svg,
+  .map-area-full button[aria-label="Tutup menu pengukuran"] svg {
+    width: 15px !important;
+    height: 15px !important;
+    max-width: 15px !important;
+    max-height: 15px !important;
+    background-size: 15px 15px !important;
+  }
+}
