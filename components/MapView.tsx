@@ -2538,7 +2538,6 @@ export default function MapView({
           title={theme === "dark" ? "Mode terang" : "Mode gelap"}
         >
           <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
-          <span className="theme-toggle-label">{theme === "dark" ? "Terang" : "Gelap"}</span>
         </button>
 
         <div className="account" ref={accountRef} style={{ position: "relative", zIndex: 5001 }}>
@@ -2809,6 +2808,7 @@ export default function MapView({
                       style={{ marginBottom: 5 }}
                     >
                       <div
+                        className="digitasi-group-header"
                         style={{
                           width: "100%",
                           display: "flex",
@@ -2911,6 +2911,7 @@ export default function MapView({
                           </span>
 
                           <span
+                            className="digitasi-group-count"
                             style={{
                               fontSize: 10,
                               color: "#64748b",
@@ -3148,6 +3149,7 @@ export default function MapView({
                     </div>
 
                     <button
+                      className="terrain-choice"
                       type="button"
                       onClick={() => activateTerrain("aws")}
                       aria-pressed={activeTerrain === "aws"}
@@ -3169,6 +3171,7 @@ export default function MapView({
                     </button>
 
                     <button
+                      className="terrain-choice"
                       type="button"
                       onClick={() => activateTerrain("dtm")}
                       aria-pressed={activeTerrain === "dtm"}
@@ -3193,6 +3196,7 @@ export default function MapView({
                     </button>
 
                     <button
+                      className="terrain-disable"
                       type="button"
                       onClick={() => activateTerrain(null)}
                       disabled={!terrainOn}
