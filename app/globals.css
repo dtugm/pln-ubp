@@ -3236,7 +3236,7 @@ button {
 }
 
 /* =========================================================
-   MAPLIBRE ATTRIBUTION — tampilan putih, bersih, membulat
+   MAPLIBRE ATTRIBUTION — teks dan ikon sejajar rapi
    ========================================================= */
 
 .map-area-full .maplibregl-ctrl-bottom-right {
@@ -3245,17 +3245,59 @@ button {
   margin: 0 10px 10px 0 !important;
 }
 
+/* Jadikan attribution satu baris flex agar ikon tidak menimpa teks. */
 .map-area-full .maplibregl-ctrl-attrib,
 .map-area-full .maplibregl-ctrl-attrib.maplibregl-compact {
-  background: rgba(255, 255, 255, 0.97) !important;
-  border: none !important;
-  border-radius: 9px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  box-sizing: border-box !important;
+  width: max-content !important;
+  max-width: min(78vw, 460px) !important;
+  min-height: 30px !important;
+  padding: 5px 9px !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(220, 232, 236, 0.9) !important;
+  border-radius: 10px !important;
   box-shadow: 0 2px 8px rgba(22, 55, 68, 0.12) !important;
-  padding: 4px 7px !important;
-  color: #183746 !important;
+  color: #385968 !important;
   font-size: 10px !important;
-  line-height: 1.4 !important;
-  max-width: min(68vw, 460px);
+  line-height: 1.35 !important;
+  white-space: nowrap !important;
+}
+
+/* Teks berada di tengah ruangnya dan tidak melebar ke bawah ikon. */
+.map-area-full .maplibregl-ctrl-attrib-inner {
+  order: 1 !important;
+  display: block !important;
+  float: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: center !important;
+  color: #385968 !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+/* Ikon informasi mendapat ruang sendiri di sisi kanan. */
+.map-area-full .maplibregl-ctrl-attrib-button {
+  order: 2 !important;
+  position: static !important;
+  float: none !important;
+  flex: 0 0 18px !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
 }
 
 .map-area-full .maplibregl-ctrl-attrib a {
@@ -3263,19 +3305,24 @@ button {
   text-decoration: none !important;
 }
 
-.map-area-full .maplibregl-ctrl-attrib-button {
-  border: none !important;
-  box-shadow: none !important;
-  background-color: transparent !important;
-}
-
 @media (max-width: 760px) {
   .map-area-full .maplibregl-ctrl-bottom-right {
     margin: 0 8px 8px 0 !important;
   }
 
-  .map-area-full .maplibregl-ctrl-attrib {
-    max-width: 76vw;
+  .map-area-full .maplibregl-ctrl-attrib,
+  .map-area-full .maplibregl-ctrl-attrib.maplibregl-compact {
+    gap: 5px !important;
+    min-height: 28px !important;
+    padding: 4px 7px !important;
     font-size: 9px !important;
+  }
+
+  .map-area-full .maplibregl-ctrl-attrib-button {
+    flex-basis: 17px !important;
+    width: 17px !important;
+    height: 17px !important;
+    min-width: 17px !important;
+    min-height: 17px !important;
   }
 }
