@@ -3637,3 +3637,200 @@ button {
     min-height: 36px !important;
   }
 }
+
+
+/* =========================================================
+   REVISI TAMPILAN KONTROL PETA — sesuai referensi
+   - Skala dikembalikan ke posisi semula.
+   - Hanya grup tombol zoom dinaikkan.
+   - Tombol kontrol kanan diperkecil.
+   - Attribution OSM menjadi pill satu baris seperti referensi.
+   ========================================================= */
+
+/* Skala kiri bawah kembali ke posisi sebelumnya. */
+.map-area-full .maplibregl-ctrl-bottom-left {
+  margin: 0 0 12px 12px !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .maplibregl-ctrl-bottom-left {
+    margin: 0 0 8px 8px !important;
+  }
+}
+
+/* Naikkan grup kontrol MapLibre di kanan, tanpa menggeser attribution. */
+.map-area-full .maplibregl-ctrl-bottom-right > .maplibregl-ctrl:not(.maplibregl-ctrl-attrib) {
+  margin-bottom: 22px !important;
+}
+
+.map-area-full .maplibregl-ctrl-bottom-right > .maplibregl-ctrl:not(.maplibregl-ctrl-attrib):last-of-type {
+  margin-bottom: 22px !important;
+}
+
+/* Perkecil tombol-tombol di sisi kanan agar tampilan lebih ringan. */
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button,
+.map-area-full button[aria-label="Google Street View"],
+.map-area-full button[aria-label="Alat pengukuran"],
+.map-area-full button[aria-label="Buka menu pengukuran"],
+.map-area-full button[aria-label="Tutup menu pengukuran"] {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  max-width: 38px !important;
+  max-height: 38px !important;
+}
+
+.map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  width: 18px !important;
+  height: 18px !important;
+  background-size: 18px 18px !important;
+}
+
+/* Attribution terbuka: pill putih satu baris, teks di tengah,
+   ikon info berada di kanan dan tidak memotong teks. */
+.map-area-full
+.maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show {
+  display: block !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+  width: max-content !important;
+  min-width: 0 !important;
+  max-width: min(92vw, 360px) !important;
+  height: auto !important;
+  min-height: 34px !important;
+  overflow: visible !important;
+  margin: 0 4px 4px 0 !important;
+  padding: 7px 30px 7px 10px !important;
+  border: 1px solid #e1e9ed !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 2px 8px rgba(22, 55, 68, 0.12) !important;
+  color: #29485d !important;
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+  white-space: nowrap !important;
+}
+
+.map-area-full
+.maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show
+.maplibregl-ctrl-attrib-inner {
+  display: block !important;
+  box-sizing: border-box !important;
+  width: auto !important;
+  max-width: 100% !important;
+  height: auto !important;
+  overflow: visible !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #29485d !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  line-height: 1.35 !important;
+}
+
+.map-area-full
+.maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show
+.maplibregl-ctrl-attrib-button {
+  display: block !important;
+  position: absolute !important;
+  top: 50% !important;
+  right: 7px !important;
+  left: auto !important;
+  float: none !important;
+  width: 17px !important;
+  height: 17px !important;
+  min-width: 17px !important;
+  min-height: 17px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background-color: transparent !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 17px 17px !important;
+  box-shadow: none !important;
+  transform: translateY(-50%) !important;
+}
+
+/* Attribution tertutup: lingkaran dan tombol memakai pusat yang sama. */
+.map-area-full
+.maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) {
+  display: block !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+  width: 34px !important;
+  min-width: 34px !important;
+  max-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  overflow: hidden !important;
+  margin: 0 4px 4px 0 !important;
+  padding: 0 !important;
+  border: 1px solid #e1e9ed !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  box-shadow: 0 2px 8px rgba(22, 55, 68, 0.14) !important;
+}
+
+.map-area-full
+.maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show)
+.maplibregl-ctrl-attrib-button {
+  display: block !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  float: none !important;
+  box-sizing: border-box !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background-color: transparent !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 18px 18px !important;
+  box-shadow: none !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .maplibregl-ctrl-bottom-right > .maplibregl-ctrl:not(.maplibregl-ctrl-attrib) {
+    margin-bottom: 18px !important;
+  }
+
+  .map-area-full .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button,
+  .map-area-full button[aria-label="Google Street View"],
+  .map-area-full button[aria-label="Alat pengukuran"],
+  .map-area-full button[aria-label="Buka menu pengukuran"],
+  .map-area-full button[aria-label="Tutup menu pengukuran"] {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+  }
+
+  .map-area-full
+  .maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show {
+    min-height: 32px !important;
+    padding: 6px 28px 6px 9px !important;
+    font-size: 9px !important;
+  }
+
+  .map-area-full
+  .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) {
+    width: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+  }
+}
