@@ -3493,3 +3493,147 @@ button {
     min-height: 36px !important;
   }
 }
+
+
+/* =========================================================
+   FINAL FIX — OSM INFO BUTTON + POSISI ZOOM
+   Mengatasi ikon tidak tepat di tengah dan attribution terpotong.
+   ========================================================= */
+
+/* Naikkan seluruh kelompok skala/indikator kiri bawah lebih jauh. */
+.map-area-full .maplibregl-ctrl-bottom-left {
+  margin-bottom: 32px !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full .maplibregl-ctrl-bottom-left {
+    margin-bottom: 24px !important;
+  }
+}
+
+/* Attribution TERBUKA: gunakan alur normal MapLibre agar teks tidak terpotong. */
+.map-area-full
+.maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show {
+  display: block !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: min(90vw, 460px) !important;
+  height: auto !important;
+  min-height: 32px !important;
+  overflow: visible !important;
+  padding: 6px 8px !important;
+  margin: 0 4px 4px 0 !important;
+  border: 1px solid #dce8ec !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 2px 8px rgba(22, 55, 68, 0.12) !important;
+  font-size: 10px !important;
+  line-height: 1.4 !important;
+  white-space: normal !important;
+}
+
+.map-area-full
+.maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show
+.maplibregl-ctrl-attrib-inner {
+  display: inline !important;
+  float: none !important;
+  width: auto !important;
+  max-width: none !important;
+  height: auto !important;
+  overflow: visible !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: left !important;
+  white-space: normal !important;
+  line-height: 1.4 !important;
+}
+
+.map-area-full
+.maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show
+.maplibregl-ctrl-attrib-button {
+  display: inline-block !important;
+  position: relative !important;
+  float: right !important;
+  vertical-align: middle !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  margin: 0 0 0 7px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background-color: transparent !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 18px 18px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Attribution TERTUTUP: lingkaran dan tombol memakai ukuran identik,
+   sehingga glyph info tepat di pusat lingkaran. */
+.map-area-full
+.maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) {
+  display: block !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+  float: none !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  max-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  margin: 0 4px 4px 0 !important;
+  border: 1px solid #dce8ec !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  box-shadow: 0 2px 8px rgba(22, 55, 68, 0.14) !important;
+}
+
+.map-area-full
+.maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show)
+.maplibregl-ctrl-attrib-button {
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  float: none !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background-color: transparent !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-size: 18px 18px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+@media (max-width: 760px) {
+  .map-area-full
+  .maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show {
+    max-width: min(88vw, 400px) !important;
+    min-height: 30px !important;
+    padding: 5px 7px !important;
+    font-size: 9px !important;
+  }
+
+  .map-area-full
+  .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) {
+    width: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+  }
+}
