@@ -3704,6 +3704,15 @@ export default function MapView({
               outline-offset: 1px;
             }
 
+            @media (max-width: 760px) {
+              .map-tools-stack {
+                top: 12px !important;
+                right: 10px !important;
+                left: auto !important;
+                bottom: auto !important;
+              }
+            }
+
 
             /* Basemap panel styles (kept in the same styled-jsx block). */
 
@@ -3813,7 +3822,17 @@ export default function MapView({
                     }
                   
           `}</style>
-<div className="map-tools-stack">
+<div
+            className="map-tools-stack"
+            style={{
+              position: "absolute",
+              top: 20,
+              right: 16,
+              left: "auto",
+              bottom: "auto",
+              zIndex: 60,
+            }}
+          >
             <div className="basemap-control">
               <button
                 type="button"
