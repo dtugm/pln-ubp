@@ -650,7 +650,7 @@ export default function MapView({
                 ? "Profil Elevasi"
                 : activeMeasure === "area"
                   ? next.length >= 3 ? areaValueText : `Titik ${next.length}/3`
-                  : `Panjang: ${formatDistance(totalMeters)}`
+                  : formatDistance(totalMeters)
             : activeMeasure === "height"
               ? "Klik titik pertama, lalu titik kedua"
               : activeMeasure === "area"
@@ -860,7 +860,7 @@ export default function MapView({
               : "Elevasi profil belum terbaca. Pastikan DTM aktif dan tile elevasi tersedia.",
           );
         } else {
-          setMeasureResult(`Panjang: ${formatDistance(totalMeters)}`);
+          setMeasureResult(formatDistance(totalMeters));
         }
         return;
       }
