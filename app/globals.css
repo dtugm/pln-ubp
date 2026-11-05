@@ -3236,7 +3236,7 @@ button {
 }
 
 /* =========================================================
-   MAPLIBRE ATTRIBUTION — teks dan ikon sejajar rapi
+   MAPLIBRE ATTRIBUTION — teks dan ikon berdampingan
    ========================================================= */
 
 .map-area-full .maplibregl-ctrl-bottom-right {
@@ -3245,18 +3245,20 @@ button {
   margin: 0 10px 10px 0 !important;
 }
 
-/* Jadikan attribution satu baris flex agar ikon tidak menimpa teks. */
+/* Kotak mengikuti lebar isi, bukan melebar memenuhi ruang kontrol. */
 .map-area-full .maplibregl-ctrl-attrib,
 .map-area-full .maplibregl-ctrl-attrib.maplibregl-compact {
-  display: flex !important;
+  display: inline-flex !important;
+  flex-direction: row !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 7px !important;
+  gap: 5px !important;
   box-sizing: border-box !important;
-  width: max-content !important;
-  max-width: min(78vw, 460px) !important;
+  width: fit-content !important;
+  min-width: 0 !important;
+  max-width: min(90vw, 460px) !important;
   min-height: 30px !important;
-  padding: 5px 9px !important;
+  padding: 5px 8px !important;
   background: rgba(255, 255, 255, 0.98) !important;
   border: 1px solid rgba(220, 232, 236, 0.9) !important;
   border-radius: 10px !important;
@@ -3267,27 +3269,34 @@ button {
   white-space: nowrap !important;
 }
 
-/* Teks berada di tengah ruangnya dan tidak melebar ke bawah ikon. */
+/* Teks hanya selebar tulisannya agar ikon langsung berada di sebelahnya. */
 .map-area-full .maplibregl-ctrl-attrib-inner {
+  display: inline-block !important;
+  flex: 0 1 auto !important;
   order: 1 !important;
-  display: block !important;
   float: none !important;
+  width: auto !important;
+  max-width: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
   text-align: center !important;
+  white-space: nowrap !important;
   color: #385968 !important;
   font-size: inherit !important;
   line-height: inherit !important;
 }
 
-/* Ikon informasi mendapat ruang sendiri di sisi kanan. */
+/* Ikon informasi tepat setelah teks, bukan di ujung kotak. */
 .map-area-full .maplibregl-ctrl-attrib-button {
-  order: 2 !important;
   position: static !important;
-  float: none !important;
+  display: inline-flex !important;
   flex: 0 0 18px !important;
-  display: block !important;
+  order: 2 !important;
+  float: none !important;
+  clear: none !important;
   box-sizing: border-box !important;
+  align-items: center !important;
+  justify-content: center !important;
   width: 18px !important;
   height: 18px !important;
   min-width: 18px !important;
@@ -3312,7 +3321,7 @@ button {
 
   .map-area-full .maplibregl-ctrl-attrib,
   .map-area-full .maplibregl-ctrl-attrib.maplibregl-compact {
-    gap: 5px !important;
+    gap: 4px !important;
     min-height: 28px !important;
     padding: 4px 7px !important;
     font-size: 9px !important;
