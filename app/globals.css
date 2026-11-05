@@ -4329,3 +4329,140 @@ button {
     font-size: 16px;
   }
 }
+
+
+/* =========================================================
+   DARK MODE DETAIL FIX — remaining light surfaces
+   OSM basemap, attribution and digitized geometry remain unchanged.
+   ========================================================= */
+
+.app-shell.theme-dark .digitasi-group-header {
+  background: #203944 !important;
+  border-color: #365562 !important;
+  color: #e2edf1 !important;
+}
+.app-shell.theme-dark .digitasi-group-header button {
+  color: #e2edf1 !important;
+}
+.app-shell.theme-dark .digitasi-group-header button > span:first-child {
+  color: #9db5bf !important;
+}
+.app-shell.theme-dark .digitasi-group-count {
+  background: #294b58 !important;
+  color: #c4e6ec !important;
+}
+
+.app-shell.theme-dark .layer-list-scroll {
+  scrollbar-color: #45616d #172d38;
+  scrollbar-width: thin;
+}
+.app-shell.theme-dark .layer-list-scroll::-webkit-scrollbar,
+.app-shell.theme-dark .layer-panel::-webkit-scrollbar {
+  width: 8px;
+}
+.app-shell.theme-dark .layer-list-scroll::-webkit-scrollbar-track,
+.app-shell.theme-dark .layer-panel::-webkit-scrollbar-track {
+  background: #172d38;
+}
+.app-shell.theme-dark .layer-list-scroll::-webkit-scrollbar-thumb,
+.app-shell.theme-dark .layer-panel::-webkit-scrollbar-thumb {
+  background: #45616d;
+  border: 2px solid #172d38;
+  border-radius: 20px;
+}
+
+.app-shell.theme-dark .terrain-choice {
+  background: #1b3440 !important;
+  border-color: #3a5966 !important;
+  color: #e1edf1 !important;
+}
+.app-shell.theme-dark .terrain-choice[aria-pressed="true"] {
+  background: #214956 !important;
+  border-color: #4bb8c8 !important;
+  color: #e8fbfd !important;
+}
+.app-shell.theme-dark .terrain-choice > span:first-child {
+  background: #294956 !important;
+  color: #d4e9ee !important;
+}
+.app-shell.theme-dark .terrain-disable {
+  background: #203944 !important;
+  border-color: #3a5966 !important;
+  color: #d8e8ed !important;
+}
+
+.app-shell.theme-dark .zoom-level-indicator {
+  background: rgba(20, 40, 50, .92) !important;
+  border-color: #385461 !important;
+  color: #e3edf1 !important;
+}
+.app-shell.theme-dark .zoom-level-indicator * {
+  color: inherit;
+}
+
+.app-shell.theme-dark .global-search-results,
+.app-shell.theme-dark .search-suggestions,
+.app-shell.theme-dark [role="listbox"] {
+  background: #172d38 !important;
+  border-color: #34515e !important;
+  color: #e3edf1 !important;
+}
+.app-shell.theme-dark .global-search-results *,
+.app-shell.theme-dark .search-suggestions *,
+.app-shell.theme-dark [role="listbox"] * {
+  border-color: #294653;
+}
+.app-shell.theme-dark .global-search-results button:hover,
+.app-shell.theme-dark .search-suggestions button:hover,
+.app-shell.theme-dark [role="option"]:hover {
+  background: #244653 !important;
+}
+
+.app-shell.theme-dark .theme-toggle {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border-radius: 12px;
+}
+.app-shell.theme-dark .theme-toggle > span:first-child {
+  font-size: 20px;
+}
+.app-shell.theme-dark .theme-toggle-label {
+  display: none !important;
+}
+.theme-toggle {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border-radius: 12px;
+}
+.theme-toggle > span:first-child {
+  font-size: 20px;
+}
+.theme-toggle-label {
+  display: none !important;
+}
+
+/* Darken native select/input surfaces inside the map interface only. */
+.app-shell.theme-dark .layer-panel input:not([type="checkbox"]),
+.app-shell.theme-dark .layer-panel select,
+.app-shell.theme-dark .layer-panel textarea {
+  background-color: #1b3440;
+  border-color: #3a5966;
+  color: #e3edf1;
+}
+.app-shell.theme-dark .layer-panel input::placeholder,
+.app-shell.theme-dark .layer-panel textarea::placeholder {
+  color: #91a8b3;
+}
+
+/* Keep OSM attribution intentionally white even when the UI is dark. */
+.app-shell.theme-dark .maplibregl-ctrl-attrib,
+.app-shell.theme-dark .maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show {
+  background: rgba(255,255,255,.97) !important;
+  color: #29485d !important;
+}
