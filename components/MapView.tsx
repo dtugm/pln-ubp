@@ -3435,9 +3435,9 @@ export default function MapView({
                       key={tool.key}
                       type="button"
                       onClick={() => {
-                        setSelectedMeasureTool(tool.key);
                         // Pengukuran tinggi membutuhkan sumber Terrain 3D/DTM aktif.
                         if (tool.key === "height" && activeTerrain !== "dtm") {
+                          setSelectedMeasureTool(null);
                           setDtmRequiredFeature("height");
                           setShowDtmRequiredNotice(true);
                           measureModeRef.current = null;
@@ -3445,10 +3445,11 @@ export default function MapView({
                           return;
                         }
                         setShowDtmRequiredNotice(false);
-                        // Menu tetap terbuka setelah memilih alat.
-                        // Tutup kembali melalui tombol pengukuran utama.
+                        // Klik alat yang sedang aktif akan mematikannya dan menghapus highlight.
+                        // Klik alat lain akan mengaktifkan pilihan baru.
                         const mode = tool.key;
                         const shouldStop = selectedMeasureTool === mode && measureModeRef.current === mode;
+                        setSelectedMeasureTool(shouldStop ? null : mode);
                         measureModeRef.current = shouldStop ? null : mode;
                         setMeasureMode(shouldStop ? null : mode);
                         measurePointsRef.current = [];
@@ -3549,10 +3550,10 @@ export default function MapView({
                 alignItems: "center",
                 justifyContent: "center",
                 padding: 0,
-                border: showMeasureMenu || measureMode || selectedMeasureTool !== null ? "1px solid #78c9bd" : "1px solid rgba(255,255,255,0.42)",
+                border: showMeasureMenu || measureMode ? "1px solid #78c9bd" : "1px solid rgba(255,255,255,0.42)",
                 borderRadius: 10,
-                background: showMeasureMenu || measureMode || selectedMeasureTool !== null ? "#29485d" : "rgba(255,255,255,0.28)",
-                color: showMeasureMenu || measureMode || selectedMeasureTool !== null ? "#ffffff" : "#29485d",
+                background: showMeasureMenu || measureMode ? "#29485d" : "rgba(255,255,255,0.28)",
+                color: showMeasureMenu || measureMode ? "#ffffff" : "#29485d",
                 boxShadow: "none",
                 cursor: "pointer",
                 touchAction: "manipulation",
