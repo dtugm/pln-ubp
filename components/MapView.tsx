@@ -525,7 +525,19 @@ export default function MapView({
           id: "measure-area-outline",
           type: "line",
           source: "measure-area",
-          paint: { "line-color": "#087f8c", "line-width": 3 },
+          paint: { "line-color": "#E6007E", "line-width": 3.5 },
+        });
+      }
+      if (!map.getLayer("measure-line-casing")) {
+        map.addLayer({
+          id: "measure-line-casing",
+          type: "line",
+          source: "measure-line",
+          paint: {
+            "line-color": "#ffffff",
+            "line-width": 7,
+            "line-opacity": 0.92,
+          },
         });
       }
       if (!map.getLayer("measure-line-layer")) {
@@ -534,8 +546,8 @@ export default function MapView({
           type: "line",
           source: "measure-line",
           paint: {
-            "line-color": "#087f8c",
-            "line-width": 3,
+            "line-color": "#E6007E",
+            "line-width": 3.5,
             "line-opacity": 1,
           },
         });
@@ -3744,7 +3756,14 @@ export default function MapView({
               box-shadow: none !important;
             }
             .map-floating-toolbar > button:hover {
-              background: #eef6f8 !important;
+              background: rgba(41,72,93,0.14) !important;
+              filter: brightness(0.97);
+              transform: none !important;
+              box-shadow: none !important;
+            }
+            .map-floating-toolbar > button:active {
+              background: rgba(41,72,93,0.20) !important;
+              transform: none !important;
             }
             .map-floating-toolbar > button:focus-visible,
             .map-floating-toolbar [aria-label="Pilihan alat ukur"] button:focus-visible {
