@@ -396,6 +396,20 @@ export default function MapView({
 
   const [showStatsPanel, setShowStatsPanel] = useState(true);
 
+  // Tema antarmuka WebGIS; pilihan pengguna disimpan di browser.
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    const savedTheme = window.localStorage.getItem("pln-webgis-theme");
+    if (savedTheme === "dark" || savedTheme === "light") {
+      setTheme(savedTheme);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("pln-webgis-theme", theme);
+  }, [theme]);
+
   const [basemap, setBasemap] = useState<"osm" | "google" | "none">("osm");
 
   const [orthophotoOn, setOrthophotoOn] = useState(false);
@@ -2412,7 +2426,7 @@ export default function MapView({
   }
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell ${theme === "dark" ? "theme-dark" : ""}`}>
       <header className="topbar" style={{ position: "relative", zIndex: 5000 }}> 
         <div className="app-brand">
           <img
@@ -2514,6 +2528,18 @@ export default function MapView({
             </div>
           )}
         </form>
+
+        <button
+          type="button"
+          className="theme-toggle"
+          onClick={() => setTheme((current) => current === "light" ? "dark" : "light")}
+          aria-label={theme === "dark" ? "Aktifkan mode terang" : "Aktifkan mode gelap"}
+          aria-pressed={theme === "dark"}
+          title={theme === "dark" ? "Mode terang" : "Mode gelap"}
+        >
+          <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+          <span className="theme-toggle-label">{theme === "dark" ? "Terang" : "Gelap"}</span>
+        </button>
 
         <div className="account" ref={accountRef} style={{ position: "relative", zIndex: 5001 }}>
           <button
