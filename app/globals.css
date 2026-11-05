@@ -4068,3 +4068,264 @@ button {
     background-size: 17px 17px !important;
   }
 }
+
+
+
+/* =========================================================
+   WEBGIS DARK MODE
+   Hanya mengubah antarmuka aplikasi. Canvas/basemap OSM dan
+   warna geometri digitasi sengaja tidak diberi filter.
+   ========================================================= */
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #f7fbfc;
+  color: #29485d;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, color .16s ease;
+}
+.theme-toggle > span:first-child {
+  font-size: 17px;
+  line-height: 1;
+}
+.theme-toggle:hover {
+  background: #eaf7f9;
+  border-color: #b9dce3;
+}
+.theme-toggle:focus-visible {
+  outline: 2px solid #28a9bd;
+  outline-offset: 2px;
+}
+
+.app-shell.theme-dark {
+  --cyan: #193e4b;
+  --turq: #35b8ca;
+  --teal: #58c6d5;
+  --deep: #b7eaf0;
+  --ink: #e3edf1;
+  --muted: #9aadb7;
+  --line: #294653;
+  --pale: #142b35;
+  background: #101e27;
+  color: #e3edf1;
+}
+
+.app-shell.theme-dark .topbar,
+.app-shell.theme-dark .sidebar,
+.app-shell.theme-dark .layer-panel {
+  background: #142630 !important;
+  border-color: #294653 !important;
+  color: #e3edf1 !important;
+}
+
+.app-shell.theme-dark .topbar {
+  box-shadow: 0 2px 12px rgba(0,0,0,.18);
+}
+.app-shell.theme-dark .brand-copy strong,
+.app-shell.theme-dark .account-copy strong,
+.app-shell.theme-dark .panel-heading h2 {
+  color: #e5f2f5 !important;
+}
+.app-shell.theme-dark .brand-copy span,
+.app-shell.theme-dark .account-copy span,
+.app-shell.theme-dark .section-label,
+.app-shell.theme-dark .panel-bottom {
+  color: #9db1bb !important;
+}
+.app-shell.theme-dark .brand-divider {
+  border-color: #34515e !important;
+}
+.app-shell.theme-dark .global-search {
+  background: #1b3440 !important;
+  border-color: #34515e !important;
+}
+.app-shell.theme-dark .global-search input {
+  color: #edf7f9 !important;
+}
+.app-shell.theme-dark .global-search input::placeholder {
+  color: #91a8b3 !important;
+}
+.app-shell.theme-dark .global-search > span {
+  color: #9bb3be !important;
+}
+.app-shell.theme-dark .global-search button {
+  background: #24515f !important;
+  color: #d8f5f8 !important;
+}
+.app-shell.theme-dark .avatar {
+  background: #24515f !important;
+  color: #d9f6f8 !important;
+}
+.app-shell.theme-dark .logout-button,
+.app-shell.theme-dark .theme-toggle {
+  background: #1b3440 !important;
+  border-color: #34515e !important;
+  color: #dcebf0 !important;
+}
+.app-shell.theme-dark .theme-toggle:hover,
+.app-shell.theme-dark .logout-button:hover {
+  background: #254653 !important;
+}
+.app-shell.theme-dark .nav-item {
+  color: #b1c3cb !important;
+}
+.app-shell.theme-dark .nav-item.active {
+  background: #1d4652 !important;
+  color: #80dce6 !important;
+}
+.app-shell.theme-dark .sidebar-bottom,
+.app-shell.theme-dark .layer-tabs,
+.app-shell.theme-dark .layer-row {
+  border-color: #294653 !important;
+}
+.app-shell.theme-dark .layer-count {
+  background: #1c4652 !important;
+  color: #86dce5 !important;
+}
+.app-shell.theme-dark .layer-tabs button {
+  color: #9aadb7 !important;
+}
+.app-shell.theme-dark .layer-tabs button.selected,
+.app-shell.theme-dark .layer-tabs button.terrain-active {
+  color: #7bd8e2 !important;
+  border-bottom-color: #45bdce !important;
+}
+.app-shell.theme-dark .layer-row {
+  color: #d0dfe4 !important;
+}
+.app-shell.theme-dark .data-note {
+  background: #1a3540 !important;
+  border-color: #2d5260 !important;
+}
+.app-shell.theme-dark .data-note p {
+  color: #b1c5cd !important;
+}
+.app-shell.theme-dark .data-note > span {
+  background: #24515f !important;
+  color: #b9f0f4 !important;
+}
+.app-shell.theme-dark .floating-layer-button,
+.app-shell.theme-dark .floating-layer-panel {
+  background: #172d38 !important;
+  border-color: #34515e !important;
+  color: #e3edf1 !important;
+  box-shadow: 0 8px 28px rgba(0,0,0,.28) !important;
+}
+.app-shell.theme-dark .floating-layer-button:hover {
+  background: #203d49 !important;
+}
+.app-shell.theme-dark .floating-layer-button .layer-count {
+  background: #24515f !important;
+  color: #a5eaf0 !important;
+}
+.app-shell.theme-dark .close-layer-panel {
+  background: #244653 !important;
+  color: #dff5f7 !important;
+}
+.app-shell.theme-dark .basemap-card-toggle {
+  background: #172d38 !important;
+  border-color: #45606b !important;
+  color: #e5f2f5 !important;
+}
+/* Thumbnail basemap sengaja tidak diberi filter atau overlay gelap. */
+.app-shell.theme-dark .basemap-card-preview,
+.app-shell.theme-dark .basemap-preview {
+  filter: none !important;
+}
+.app-shell.theme-dark .basemap-options-revised {
+  background: #172d38 !important;
+  border-color: #34515e !important;
+  box-shadow: 0 8px 26px rgba(0,0,0,.3) !important;
+}
+.app-shell.theme-dark .basemap-option {
+  background: #1d3540 !important;
+  border-color: #34515e !important;
+  color: #dcebf0 !important;
+}
+.app-shell.theme-dark .basemap-option.active,
+.app-shell.theme-dark .basemap-disable-option.active {
+  background: #234d59 !important;
+  border-color: #4bb8c8 !important;
+  color: #e5fbfd !important;
+}
+.app-shell.theme-dark .basemap-disable-option {
+  background: #1b3440 !important;
+  border-color: #34515e !important;
+  color: #dcebf0 !important;
+}
+.app-shell.theme-dark .stats-strip {
+  background: rgba(20, 40, 50, .91) !important;
+  border-color: #385461 !important;
+  color: #e3edf1 !important;
+  box-shadow: 0 6px 22px rgba(0,0,0,.24) !important;
+}
+.app-shell.theme-dark .stats-strip > div {
+  border-color: #385461 !important;
+}
+.app-shell.theme-dark .stats-strip span {
+  color: #a8bbc4 !important;
+}
+.app-shell.theme-dark .stats-strip strong {
+  color: #e6f5f7 !important;
+}
+.app-shell.theme-dark .stats-toggle-handle {
+  background: #203d49 !important;
+  border-color: #45616c !important;
+  color: #e5f4f6 !important;
+}
+.app-shell.theme-dark .map-floating-toolbar {
+  background: rgba(20, 40, 50, .78) !important;
+  border-color: rgba(116, 157, 170, .42) !important;
+}
+.app-shell.theme-dark .map-floating-toolbar button {
+  color: #d8edf1 !important;
+}
+.app-shell.theme-dark .map-floating-toolbar button:hover {
+  background: rgba(69, 120, 135, .42) !important;
+}
+/* OSM attribution tetap terang agar mudah dibaca dan sesuai permintaan. */
+.app-shell.theme-dark .maplibregl-ctrl-attrib,
+.app-shell.theme-dark .maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show {
+  background: rgba(255,255,255,.97) !important;
+  color: #29485d !important;
+  border-color: #dce8ec !important;
+}
+.app-shell.theme-dark .maplibregl-ctrl-attrib a {
+  color: #29485d !important;
+}
+.app-shell.theme-dark .maplibregl-popup-content {
+  background: #172d38 !important;
+  color: #e3edf1 !important;
+}
+.app-shell.theme-dark .maplibregl-popup-tip {
+  border-top-color: #172d38 !important;
+  border-bottom-color: #172d38 !important;
+}
+.app-shell.theme-dark .maplibregl-popup-close-button {
+  color: #dcebf0 !important;
+}
+.app-shell.theme-dark .theme-toggle-label {
+  display: inline;
+}
+
+@media (max-width: 760px) {
+  .theme-toggle {
+    min-height: 34px;
+    padding: 0 9px;
+    gap: 5px;
+    font-size: 11px;
+  }
+  .theme-toggle > span:first-child {
+    font-size: 16px;
+  }
+}
