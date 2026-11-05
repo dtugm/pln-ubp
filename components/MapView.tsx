@@ -3701,6 +3701,115 @@ export default function MapView({
               outline: 2px solid #64b6c4;
               outline-offset: 1px;
             }
+
+
+            /* Basemap panel styles (kept in the same styled-jsx block). */
+
+                    .basemap-control {
+                      position: relative !important;
+                    }
+                    .basemap-options-revised {
+                      position: absolute !important;
+                      right: calc(100% + 8px) !important;
+                      top: 0 !important;
+                      z-index: 1000 !important;
+                      display: grid !important;
+                      grid-template-columns: repeat(
+                        3,
+                        minmax(0, 72px)
+                      ) !important;
+                      grid-template-rows: auto auto !important;
+                      align-items: stretch !important;
+                      justify-content: center !important;
+                      gap: 6px !important;
+                      padding: 7px !important;
+                      max-height: none !important;
+                      overflow: visible !important;
+                      width: max-content;
+                      max-width: calc(100vw - 24px);
+                      background: #fff;
+                      border: 1px solid #d9e5e9;
+                      border-radius: 12px;
+                      box-shadow: 0 5px 18px rgba(24, 57, 70, 0.15);
+                    }
+                    .basemap-options-revised :global(.basemap-option) {
+                      grid-column: auto !important;
+                      display: flex !important;
+                      flex-direction: column !important;
+                      align-items: center !important;
+                      justify-content: flex-start !important;
+                      width: 72px !important;
+                      min-width: 0 !important;
+                      max-width: 72px !important;
+                      padding: 4px !important;
+                      gap: 4px !important;
+                      text-align: center !important;
+                      white-space: normal !important;
+                      line-height: 1.15 !important;
+                      font-size: 10px !important;
+                    }
+                    .basemap-options-revised :global(.basemap-preview) {
+                      display: block !important;
+                      width: 62px !important;
+                      height: 43px !important;
+                      flex: 0 0 43px !important;
+                      margin: 0 !important;
+                      background-size: cover !important;
+                      background-position: center !important;
+                      border-radius: 7px !important;
+                    }
+                    .basemap-options-revised :global(.basemap-disable-option) {
+                      grid-column: 1 / -1 !important;
+                      flex-direction: row !important;
+                      justify-content: center !important;
+                      width: 100% !important;
+                      max-width: none !important;
+                      min-height: 30px !important;
+                      padding: 7px 10px !important;
+                      gap: 7px !important;
+                      border: 1px solid #dbe5e9 !important;
+                      background: #f8fbfc !important;
+                      font-size: 11px !important;
+                    }
+                    .basemap-options-revised
+                      :global(.basemap-disable-option.active) {
+                      border-color: #31b6d1 !important;
+                      background: #effbfd !important;
+                    }
+                    .basemap-options-revised :global(.basemap-disable-icon) {
+                      font-size: 15px;
+                      line-height: 1;
+                    }
+                    @media (max-width: 760px) {
+                      .basemap-options-revised {
+                        top: calc(100% + 6px) !important;
+                        right: 0 !important;
+                        left: auto !important;
+                        grid-template-columns: repeat(
+                          3,
+                          minmax(0, 60px)
+                        ) !important;
+                        grid-template-rows: auto auto !important;
+                        gap: 4px !important;
+                        padding: 5px !important;
+                      }
+                      .basemap-options-revised :global(.basemap-option) {
+                        width: 60px !important;
+                        max-width: 60px !important;
+                        font-size: 9px !important;
+                      }
+                      .basemap-options-revised :global(.basemap-preview) {
+                        width: 52px !important;
+                        height: 36px !important;
+                        flex-basis: 36px !important;
+                      }
+                      .basemap-options-revised
+                        :global(.basemap-disable-option) {
+                        width: 100% !important;
+                        max-width: none !important;
+                      }
+                    }
+                  
           `}</style>
 <div className="map-tools-stack">
             <div className="basemap-control">
@@ -3822,112 +3931,7 @@ export default function MapView({
                     </button>
                   </div>
 
-                  <style jsx>{`
-                    .basemap-control {
-                      position: relative !important;
-                    }
-                    .basemap-options-revised {
-                      position: absolute !important;
-                      right: calc(100% + 8px) !important;
-                      top: 0 !important;
-                      z-index: 1000 !important;
-                      display: grid !important;
-                      grid-template-columns: repeat(
-                        3,
-                        minmax(0, 72px)
-                      ) !important;
-                      grid-template-rows: auto auto !important;
-                      align-items: stretch !important;
-                      justify-content: center !important;
-                      gap: 6px !important;
-                      padding: 7px !important;
-                      max-height: none !important;
-                      overflow: visible !important;
-                      width: max-content;
-                      max-width: calc(100vw - 24px);
-                      background: #fff;
-                      border: 1px solid #d9e5e9;
-                      border-radius: 12px;
-                      box-shadow: 0 5px 18px rgba(24, 57, 70, 0.15);
-                    }
-                    .basemap-options-revised :global(.basemap-option) {
-                      grid-column: auto !important;
-                      display: flex !important;
-                      flex-direction: column !important;
-                      align-items: center !important;
-                      justify-content: flex-start !important;
-                      width: 72px !important;
-                      min-width: 0 !important;
-                      max-width: 72px !important;
-                      padding: 4px !important;
-                      gap: 4px !important;
-                      text-align: center !important;
-                      white-space: normal !important;
-                      line-height: 1.15 !important;
-                      font-size: 10px !important;
-                    }
-                    .basemap-options-revised :global(.basemap-preview) {
-                      display: block !important;
-                      width: 62px !important;
-                      height: 43px !important;
-                      flex: 0 0 43px !important;
-                      margin: 0 !important;
-                      background-size: cover !important;
-                      background-position: center !important;
-                      border-radius: 7px !important;
-                    }
-                    .basemap-options-revised :global(.basemap-disable-option) {
-                      grid-column: 1 / -1 !important;
-                      flex-direction: row !important;
-                      justify-content: center !important;
-                      width: 100% !important;
-                      max-width: none !important;
-                      min-height: 30px !important;
-                      padding: 7px 10px !important;
-                      gap: 7px !important;
-                      border: 1px solid #dbe5e9 !important;
-                      background: #f8fbfc !important;
-                      font-size: 11px !important;
-                    }
-                    .basemap-options-revised
-                      :global(.basemap-disable-option.active) {
-                      border-color: #31b6d1 !important;
-                      background: #effbfd !important;
-                    }
-                    .basemap-options-revised :global(.basemap-disable-icon) {
-                      font-size: 15px;
-                      line-height: 1;
-                    }
-                    @media (max-width: 760px) {
-                      .basemap-options-revised {
-                        top: calc(100% + 6px) !important;
-                        right: 0 !important;
-                        left: auto !important;
-                        grid-template-columns: repeat(
-                          3,
-                          minmax(0, 60px)
-                        ) !important;
-                        grid-template-rows: auto auto !important;
-                        gap: 4px !important;
-                        padding: 5px !important;
-                      }
-                      .basemap-options-revised :global(.basemap-option) {
-                        width: 60px !important;
-                        max-width: 60px !important;
-                        font-size: 9px !important;
-                      }
-                      .basemap-options-revised :global(.basemap-preview) {
-                        width: 52px !important;
-                        height: 36px !important;
-                        flex-basis: 36px !important;
-                      }
-                      .basemap-options-revised
-                        :global(.basemap-disable-option) {
-                        width: 100% !important;
-                        max-width: none !important;
-                      }
-                    }
-                  `}</style>
+
                 </>
               )}
             </div>
