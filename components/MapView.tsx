@@ -927,47 +927,6 @@ export default function MapView({
 
           .maplibregl-popup.soft-attribute-popup .maplibregl-popup-tip { border-top-color: #fff; }
 
-          /* Kontrol kanan hanya berisi tombol zoom + dan −. */
-          .maplibregl-ctrl-bottom-right {
-            right: 0 !important;
-            bottom: 0 !important;
-          }
-          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
-            display: flex !important;
-            flex-direction: column !important;
-            overflow: hidden !important;
-            width: 44px !important;
-            margin: 0 10px 10px 0 !important;
-            padding: 0 !important;
-            border: 1px solid #d7e0e5 !important;
-            border-radius: 10px !important;
-            background: #fff !important;
-            box-shadow: 0 2px 8px rgba(22,55,68,.16) !important;
-          }
-          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button {
-            box-sizing: border-box !important;
-            display: block !important;
-            width: 44px !important;
-            height: 44px !important;
-            min-width: 44px !important;
-            min-height: 44px !important;
-            max-width: 44px !important;
-            max-height: 44px !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border: 0 !important;
-            border-radius: 0 !important;
-            background-color: #fff !important;
-          }
-          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button + button {
-            border-top: 1px solid #e7eef1 !important;
-          }
-          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
-            width: 20px !important;
-            height: 20px !important;
-            background-size: 20px 20px !important;
-          }
-
         `;
 
         document.head.appendChild(popupStyle);
@@ -3234,8 +3193,8 @@ export default function MapView({
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: 8,
-              width: 48,
+              gap: 7,
+              width: 38,
             }}
           >
             {measureResult && !(showProfileWindow && selectedMeasureTool === "profile") && (
@@ -3403,7 +3362,7 @@ export default function MapView({
                       style={{
                         width: 132,
                         minWidth: 132,
-                        height: 44,
+                        height: 38,
                         display: "flex",
                         flexDirection: "row",
                         alignItems: "center",
@@ -3459,8 +3418,8 @@ export default function MapView({
               aria-expanded={showMeasureMenu}
               aria-pressed={!!measureMode}
               style={{
-                width: 44,
-                height: 44,
+                width: 38,
+                height: 38,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -3474,7 +3433,7 @@ export default function MapView({
                 touchAction: "manipulation",
               }}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3 17.5 17.5 3 21 6.5 6.5 21 3 17.5Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
                 <path d="m7 13 2 2m1-6 2 2m1-6 2 2m-6 10 2 2" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
@@ -3496,8 +3455,8 @@ export default function MapView({
                 }
               }}
               style={{
-                width: 44,
-                height: 44,
+                width: 38,
+                height: 38,
                 display: "grid",
                 placeItems: "center",
                 padding: 0,
@@ -3510,7 +3469,7 @@ export default function MapView({
                 touchAction: "manipulation",
               }}
             >
-              <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="4.5" r="2" fill="currentColor" stroke="none" />
                 <path d="M10 8.5 7.8 12l2.5 2 1.1-2 1.3 3.5-2.8 5M14 9l2.4 3.2 2.1.8M12 8l2.2 1.2 1.3 3.1M9.7 14l-2.5 5.5" />
               </svg>
@@ -3520,14 +3479,14 @@ export default function MapView({
               role="group"
               aria-label="Kontrol zoom peta"
               style={{
-                width: 44,
+                width: 38,
                 overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
                 border: "1px solid #d7e0e5",
                 borderRadius: 10,
                 background: "#ffffff",
-                boxShadow: "0 2px 8px rgba(22,55,68,0.16)",
+                boxShadow: "0 2px 8px rgba(22,55,68,0.13)",
               }}
             >
               <button
@@ -3536,8 +3495,8 @@ export default function MapView({
                 title="Perbesar"
                 onClick={() => mapRef.current?.zoomIn({ duration: 250 })}
                 style={{
-                  width: 44,
-                  height: 44,
+                  width: 38,
+                  height: 38,
                   display: "grid",
                   placeItems: "center",
                   padding: 0,
@@ -3545,7 +3504,7 @@ export default function MapView({
                   borderBottom: "1px solid #e7eef1",
                   background: "#ffffff",
                   color: "#334155",
-                  fontSize: 25,
+                  fontSize: 22,
                   lineHeight: 1,
                   cursor: "pointer",
                 }}
@@ -3558,15 +3517,15 @@ export default function MapView({
                 title="Perkecil"
                 onClick={() => mapRef.current?.zoomOut({ duration: 250 })}
                 style={{
-                  width: 44,
-                  height: 44,
+                  width: 38,
+                  height: 38,
                   display: "grid",
                   placeItems: "center",
                   padding: 0,
                   border: 0,
                   background: "#ffffff",
                   color: "#334155",
-                  fontSize: 25,
+                  fontSize: 22,
                   lineHeight: 1,
                   cursor: "pointer",
                 }}
@@ -3582,8 +3541,8 @@ export default function MapView({
               title="Reset arah utara"
               onClick={() => mapRef.current?.easeTo({ bearing: 0, pitch: 0, duration: 300 })}
               style={{
-                width: 44,
-                height: 44,
+                width: 38,
+                height: 38,
                 display: "grid",
                 placeItems: "center",
                 padding: 0,
@@ -3596,7 +3555,7 @@ export default function MapView({
                 touchAction: "manipulation",
               }}
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />
                 <path d="m14.8 8.2-2 5-5 2 2-5 5-2Z" fill="currentColor" stroke="none" />
                 <path d="M12 3v2M21 12h-2" />
@@ -3651,8 +3610,8 @@ export default function MapView({
                 featurePopupRef.current = null;
               }}
               style={{
-                width: 44,
-                height: 44,
+                width: 38,
+                height: 38,
                 display: "grid",
                 placeItems: "center",
                 padding: 0,
@@ -3665,7 +3624,7 @@ export default function MapView({
                 touchAction: "manipulation",
               }}
             >
-              <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M3 19h18M4 16l4-5 4 2 5-8 3 3" />
                 <circle cx="8" cy="11" r="1" />
                 <circle cx="12" cy="13" r="1" />
