@@ -3236,77 +3236,64 @@ button {
 }
 
 /* =========================================================
-   MAPLIBRE ATTRIBUTION — teks dan ikon berdampingan
+   MAPLIBRE ATTRIBUTION — teks dan ikon sejajar secara presisi
    ========================================================= */
 
-.map-area-full .maplibregl-ctrl-bottom-right {
-  right: 0 !important;
-  bottom: 0 !important;
-  margin: 0 10px 10px 0 !important;
-}
-
-/* Kotak mengikuti lebar isi, bukan melebar memenuhi ruang kontrol. */
-.map-area-full .maplibregl-ctrl-attrib,
 .map-area-full .maplibregl-ctrl-attrib.maplibregl-compact {
-  display: inline-flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 5px !important;
+  position: relative !important;
+  display: inline-block !important;
   box-sizing: border-box !important;
-  width: fit-content !important;
+  width: auto !important;
   min-width: 0 !important;
   max-width: min(90vw, 460px) !important;
   min-height: 30px !important;
-  padding: 5px 8px !important;
+  padding: 0 30px 0 9px !important;
+  overflow: visible !important;
   background: rgba(255, 255, 255, 0.98) !important;
   border: 1px solid rgba(220, 232, 236, 0.9) !important;
   border-radius: 10px !important;
   box-shadow: 0 2px 8px rgba(22, 55, 68, 0.12) !important;
   color: #385968 !important;
   font-size: 10px !important;
-  line-height: 1.35 !important;
+  line-height: 28px !important;
   white-space: nowrap !important;
 }
 
-/* Teks hanya selebar tulisannya agar ikon langsung berada di sebelahnya. */
-.map-area-full .maplibregl-ctrl-attrib-inner {
+/* Teks berada di tengah secara vertikal; ruang kanan disediakan untuk ikon. */
+.map-area-full .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-inner {
   display: inline-block !important;
-  flex: 0 1 auto !important;
-  order: 1 !important;
   float: none !important;
-  width: auto !important;
-  max-width: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
   text-align: center !important;
-  white-space: nowrap !important;
+  vertical-align: middle !important;
   color: #385968 !important;
-  font-size: inherit !important;
-  line-height: inherit !important;
+  line-height: 28px !important;
+  white-space: nowrap !important;
 }
 
-/* Ikon informasi tepat setelah teks, bukan di ujung kotak. */
-.map-area-full .maplibregl-ctrl-attrib-button {
-  position: static !important;
-  display: inline-flex !important;
-  flex: 0 0 18px !important;
-  order: 2 !important;
+/* Ikon ditempatkan absolut di tengah sisi kanan kotak, tidak ikut menggeser teks. */
+.map-area-full .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button {
+  display: block !important;
+  position: absolute !important;
+  top: 50% !important;
+  right: 6px !important;
+  left: auto !important;
   float: none !important;
-  clear: none !important;
-  box-sizing: border-box !important;
-  align-items: center !important;
-  justify-content: center !important;
   width: 18px !important;
   height: 18px !important;
   min-width: 18px !important;
   min-height: 18px !important;
   margin: 0 !important;
   padding: 0 !important;
+  transform: translateY(-50%) !important;
   border: 0 !important;
   border-radius: 50% !important;
   box-shadow: none !important;
   background-color: transparent !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-size: 18px 18px !important;
 }
 
 .map-area-full .maplibregl-ctrl-attrib a {
@@ -3315,23 +3302,23 @@ button {
 }
 
 @media (max-width: 760px) {
-  .map-area-full .maplibregl-ctrl-bottom-right {
-    margin: 0 8px 8px 0 !important;
-  }
-
-  .map-area-full .maplibregl-ctrl-attrib,
   .map-area-full .maplibregl-ctrl-attrib.maplibregl-compact {
-    gap: 4px !important;
     min-height: 28px !important;
-    padding: 4px 7px !important;
+    padding: 0 27px 0 7px !important;
     font-size: 9px !important;
+    line-height: 26px !important;
   }
 
-  .map-area-full .maplibregl-ctrl-attrib-button {
-    flex-basis: 17px !important;
+  .map-area-full .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-inner {
+    line-height: 26px !important;
+  }
+
+  .map-area-full .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button {
+    right: 5px !important;
     width: 17px !important;
     height: 17px !important;
     min-width: 17px !important;
     min-height: 17px !important;
+    background-size: 17px 17px !important;
   }
 }
