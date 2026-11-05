@@ -927,6 +927,47 @@ export default function MapView({
 
           .maplibregl-popup.soft-attribute-popup .maplibregl-popup-tip { border-top-color: #fff; }
 
+          /* Kontrol kanan hanya berisi tombol zoom + dan −. */
+          .maplibregl-ctrl-bottom-right {
+            right: 0 !important;
+            bottom: 0 !important;
+          }
+          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            width: 44px !important;
+            margin: 0 10px 10px 0 !important;
+            padding: 0 !important;
+            border: 1px solid #d7e0e5 !important;
+            border-radius: 10px !important;
+            background: #fff !important;
+            box-shadow: 0 2px 8px rgba(22,55,68,.16) !important;
+          }
+          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button {
+            box-sizing: border-box !important;
+            display: block !important;
+            width: 44px !important;
+            height: 44px !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+            max-width: 44px !important;
+            max-height: 44px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            background-color: #fff !important;
+          }
+          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button + button {
+            border-top: 1px solid #e7eef1 !important;
+          }
+          .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+            width: 20px !important;
+            height: 20px !important;
+            background-size: 20px 20px !important;
+          }
+
         `;
 
         document.head.appendChild(popupStyle);
@@ -3185,6 +3226,7 @@ export default function MapView({
           </div>
 
           <div
+            className="map-floating-toolbar"
             style={{
               position: "absolute",
               right: 10,
@@ -3193,8 +3235,14 @@ export default function MapView({
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: 7,
-              width: 38,
+              gap: 2,
+              width: 48,
+              boxSizing: "border-box",
+              padding: 5,
+              border: "1px solid #dce6eb",
+              borderRadius: 14,
+              background: "rgba(255,255,255,0.97)",
+              boxShadow: "0 3px 12px rgba(28,55,70,0.14)",
             }}
           >
             {measureResult && !(showProfileWindow && selectedMeasureTool === "profile") && (
@@ -3362,7 +3410,7 @@ export default function MapView({
                       style={{
                         width: 132,
                         minWidth: 132,
-                        height: 38,
+                        height: 36,
                         display: "flex",
                         flexDirection: "row",
                         alignItems: "center",
@@ -3418,8 +3466,8 @@ export default function MapView({
               aria-expanded={showMeasureMenu}
               aria-pressed={!!measureMode}
               style={{
-                width: 38,
-                height: 38,
+                width: 36,
+                height: 36,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -3455,8 +3503,8 @@ export default function MapView({
                 }
               }}
               style={{
-                width: 38,
-                height: 38,
+                width: 36,
+                height: 36,
                 display: "grid",
                 placeItems: "center",
                 padding: 0,
@@ -3479,14 +3527,7 @@ export default function MapView({
               role="group"
               aria-label="Kontrol zoom peta"
               style={{
-                width: 38,
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column",
-                border: "1px solid #d7e0e5",
-                borderRadius: 10,
-                background: "#ffffff",
-                boxShadow: "0 2px 8px rgba(22,55,68,0.13)",
+                display: "contents",
               }}
             >
               <button
@@ -3495,15 +3536,15 @@ export default function MapView({
                 title="Perbesar"
                 onClick={() => mapRef.current?.zoomIn({ duration: 250 })}
                 style={{
-                  width: 38,
-                  height: 38,
+                  width: 36,
+                  height: 36,
                   display: "grid",
                   placeItems: "center",
                   padding: 0,
                   border: 0,
-                  borderBottom: "1px solid #e7eef1",
-                  background: "#ffffff",
-                  color: "#334155",
+                  borderRadius: 8,
+                  background: "transparent",
+                  color: "#29485d",
                   fontSize: 22,
                   lineHeight: 1,
                   cursor: "pointer",
@@ -3517,14 +3558,15 @@ export default function MapView({
                 title="Perkecil"
                 onClick={() => mapRef.current?.zoomOut({ duration: 250 })}
                 style={{
-                  width: 38,
-                  height: 38,
+                  width: 36,
+                  height: 36,
                   display: "grid",
                   placeItems: "center",
                   padding: 0,
                   border: 0,
-                  background: "#ffffff",
-                  color: "#334155",
+                  borderRadius: 8,
+                  background: "transparent",
+                  color: "#29485d",
                   fontSize: 22,
                   lineHeight: 1,
                   cursor: "pointer",
@@ -3541,8 +3583,8 @@ export default function MapView({
               title="Reset arah utara"
               onClick={() => mapRef.current?.easeTo({ bearing: 0, pitch: 0, duration: 300 })}
               style={{
-                width: 38,
-                height: 38,
+                width: 36,
+                height: 36,
                 display: "grid",
                 placeItems: "center",
                 padding: 0,
@@ -3610,8 +3652,8 @@ export default function MapView({
                 featurePopupRef.current = null;
               }}
               style={{
-                width: 38,
-                height: 38,
+                width: 36,
+                height: 36,
                 display: "grid",
                 placeItems: "center",
                 padding: 0,
@@ -3633,7 +3675,34 @@ export default function MapView({
             </button>
           </div>
 
-          <div className="map-tools-stack">
+          
+
+          <style jsx>{`
+            .map-floating-toolbar > button,
+            .map-floating-toolbar > [role="group"] button {
+              flex: 0 0 36px;
+              width: 36px !important;
+              height: 36px !important;
+              min-width: 36px !important;
+              min-height: 36px !important;
+              max-width: 36px !important;
+              max-height: 36px !important;
+              box-sizing: border-box !important;
+              border: 0 !important;
+              border-radius: 8px !important;
+              box-shadow: none !important;
+            }
+            .map-floating-toolbar > button:hover,
+            .map-floating-toolbar > [role="group"] button:hover {
+              background: #eef6f8 !important;
+            }
+            .map-floating-toolbar > button:focus-visible,
+            .map-floating-toolbar > [role="group"] button:focus-visible {
+              outline: 2px solid #64b6c4;
+              outline-offset: 1px;
+            }
+          `}</style>
+<div className="map-tools-stack">
             <div className="basemap-control">
               <button
                 type="button"
