@@ -736,7 +736,10 @@ export default function MapView({
             : next.length >= 2
               ? [{
                   type: "Feature" as const,
-                  properties: { label: lineLabel, offset: [0, 0] },
+                  properties: {
+                    label: lineLabel,
+                    offset: activeMeasure === "profile" ? [0, -1.6] : [0, 0],
+                  },
                   geometry: { type: "Point" as const, coordinates: labelCoordinate },
                 }]
               : [];
@@ -3415,7 +3418,8 @@ export default function MapView({
                       type="button"
                       onClick={() => {
                         setSelectedMeasureTool(tool.key);
-                        setShowMeasureMenu(false);
+                        // Menu tetap terbuka setelah memilih alat.
+                        // Tutup kembali melalui tombol pengukuran utama.
                         const mode = tool.key;
                         const shouldStop = selectedMeasureTool === mode && measureModeRef.current === mode;
                         measureModeRef.current = shouldStop ? null : mode;
