@@ -3230,7 +3230,7 @@ export default function MapView({
             style={{
               position: "absolute",
               right: 10,
-              bottom: 48,
+              bottom: 62,
               zIndex: 40,
               display: "flex",
               flexDirection: "column",
@@ -3239,10 +3239,12 @@ export default function MapView({
               width: 48,
               boxSizing: "border-box",
               padding: 5,
-              border: "1px solid #dce6eb",
+              border: "1px solid rgba(220,230,235,0.82)",
               borderRadius: 14,
-              background: "rgba(255,255,255,0.97)",
-              boxShadow: "0 3px 12px rgba(28,55,70,0.14)",
+              background: "rgba(255,255,255,0.90)",
+              backdropFilter: "blur(6px)",
+              WebkitBackdropFilter: "blur(6px)",
+              boxShadow: "0 3px 12px rgba(28,55,70,0.11)",
             }}
           >
             {measureResult && !(showProfileWindow && selectedMeasureTool === "profile") && (
