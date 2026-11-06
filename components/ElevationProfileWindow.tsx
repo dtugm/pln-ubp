@@ -62,6 +62,7 @@ export default function ElevationProfileWindow({ samples, onClose, isDarkMode = 
         boxSizing: "border-box",
         background: "transparent",
         fontFamily: "inherit",
+        pointerEvents: "none",
       }}
     >
       <section
@@ -77,6 +78,7 @@ export default function ElevationProfileWindow({ samples, onClose, isDarkMode = 
           color: isDarkMode ? "#e3edf1" : "#29485d",
           border: isDarkMode ? "1px solid #35515e" : "1px solid #dce8ec",
           boxShadow: isDarkMode ? "0 14px 40px rgba(0,0,0,0.42)" : "0 14px 40px rgba(22,55,68,0.22)",
+          pointerEvents: "auto",
         }}
       >
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
