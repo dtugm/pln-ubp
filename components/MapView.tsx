@@ -308,7 +308,8 @@ export default function MapView({
   const [streetViewPicking, setStreetViewPicking] = useState(false);
   const [measureMode, setMeasureMode] = useState<"length" | "width" | "height" | "area" | "profile" | null>(null);
   const [measureResult, setMeasureResult] = useState("");
-  const [profileSamples, setProfileSamples] = useState<{ distance: number; elevation: number | null }[]>([]);
+  const [profileSamples, setProfileSamples] = useState<{ distance: number; elevation: number | null; lng?: number; lat?: number }[]>([]);
+  const profileHoverMarkerRef = useRef<Marker | null>(null);
   const [showProfileWindow, setShowProfileWindow] = useState(false);
   const [showMeasureMenu, setShowMeasureMenu] = useState(false);
   const [selectedMeasureTool, setSelectedMeasureTool] = useState<"length" | "area" | "height" | "profile" | null>(null);
@@ -362,6 +363,12 @@ export default function MapView({
         map.setLayoutProperty("measure-line-label", "visibility", "visible");
       }
     };
+  }, [showProfileWindow, selectedMeasureTool]);
+
+  useEffect(() => {
+    if (showProfileWindow && selectedMeasureTool === "profile") return;
+    profileHoverMarkerRef.current?.remove();
+    profileHoverMarkerRef.current = null;
   }, [showProfileWindow, selectedMeasureTool]);
 
   const [digitasiVisibility, setDigitasiVisibility] = useState<
@@ -801,7 +808,7 @@ export default function MapView({
               vertexDistances.push(vertexDistances[vertexDistances.length - 1] + segment.length);
             }
 
-            const liveSamples: { distance: number; elevation: number | null }[] = [];
+            const liveSamples: { distance: number; elevation: number | null; lng: number; lat: number }[] = [];
             for (let sampleIndex = 0; sampleIndex <= intervalCount; sampleIndex++) {
               const targetDistance = (totalMeters * sampleIndex) / intervalCount;
               let segmentIndex = segments.findIndex(
@@ -830,13 +837,15 @@ export default function MapView({
                   typeof terrainElevation === "number" && Number.isFinite(terrainElevation)
                     ? terrainElevation
                     : null,
+                lng,
+                lat,
               });
             }
 
             const validLiveSamples = liveSamples.filter(
               (sample) => sample.elevation !== null && Number.isFinite(sample.elevation),
             );
-            const clickedSamples: { distance: number; elevation: number | null }[] = [];
+            const clickedSamples: { distance: number; elevation: number | null; lng: number; lat: number }[] = [];
             let clickedDistance = 0;
             next.forEach((point, index) => {
               if (index > 0) clickedDistance += segmentDistance(next[index - 1], point);
@@ -846,6 +855,8 @@ export default function MapView({
                   typeof point[2] === "number" && Number.isFinite(point[2])
                     ? point[2]
                     : null,
+                lng: point[0],
+                lat: point[1],
               });
             });
 
@@ -3387,7 +3398,27 @@ export default function MapView({
             {showProfileWindow && selectedMeasureTool === "profile" && profileSamples.length >= 2 && (
               <ElevationProfileWindow
                 samples={profileSamples}
-                onClose={() => setShowProfileWindow(false)}
+                onHover={(sample) => {
+                  const map = mapRef.current;
+                  if (!sample || typeof sample.lng !== "number" || typeof sample.lat !== "number" || !map) {
+                    profileHoverMarkerRef.current?.remove();
+                    profileHoverMarkerRef.current = null;
+                    return;
+                  }
+                  if (!profileHoverMarkerRef.current) {
+                    profileHoverMarkerRef.current = new Marker({
+                      color: "#f59e0b",
+                      scale: 0.9,
+                    }).setLngLat([sample.lng, sample.lat]).addTo(map);
+                  } else {
+                    profileHoverMarkerRef.current.setLngLat([sample.lng, sample.lat]);
+                  }
+                }}
+                onClose={() => {
+                  profileHoverMarkerRef.current?.remove();
+                  profileHoverMarkerRef.current = null;
+                  setShowProfileWindow(false);
+                }}
                 isDarkMode={theme === "dark"}
               />
             )}
