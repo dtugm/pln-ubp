@@ -778,7 +778,7 @@ export default function MapView({
                 {
                   type: "Feature" as const,
                   properties: {
-                    label: `Awal: ${first[2] == null ? "N/A" : `${first[2].toFixed(2)} m`}`,
+                    label: `Titik 1: ${first[2] == null ? "N/A" : `${first[2].toFixed(2)} m`}`,
                     offset: [0, -1.5],
                   },
                   geometry: {
@@ -789,7 +789,7 @@ export default function MapView({
                 {
                   type: "Feature" as const,
                   properties: {
-                    label: `Akhir: ${last[2] == null ? "N/A" : `${last[2].toFixed(2)} m`}`,
+                    label: `Titik 2: ${last[2] == null ? "N/A" : `${last[2].toFixed(2)} m`}`,
                     offset: [0, 1.5],
                   },
                   geometry: {
