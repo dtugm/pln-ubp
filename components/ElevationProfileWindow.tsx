@@ -12,8 +12,8 @@ type ElevationProfileSample = {
 
 type ElevationProfileWindowProps = {
   samples: ElevationProfileSample[];
+  activeDistance?: number | null;
   onClose: () => void;
-  onHover?: (sample: ElevationProfileSample | null) => void;
   isDarkMode?: boolean;
 };
 
@@ -22,12 +22,12 @@ const formatDistance = (distance: number) =>
 
 export default function ElevationProfileWindow({
   samples,
+  activeDistance,
   onClose,
-  onHover,
   isDarkMode = false,
 }: ElevationProfileWindowProps) {
+  const [graphHoverDistance, setGraphHoverDistance] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
-  const [activeDistance, setActiveDistance] = useState<number | null>(null);
 
   const valid = useMemo(
     () => samples.filter(
@@ -51,10 +51,11 @@ export default function ElevationProfileWindow({
     ? `${x(valid[0].distance)},${chart.bottom} ${linePoints} ${x(valid[valid.length - 1].distance)},${chart.bottom}`
     : "";
 
-  const activeSample = activeDistance === null || valid.length === 0
+  const shownDistance = activeDistance ?? graphHoverDistance;
+  const activeSample = shownDistance === null || valid.length === 0
     ? null
     : valid.reduce((closest, sample) =>
-        Math.abs(sample.distance - activeDistance) < Math.abs(closest.distance - activeDistance)
+        Math.abs(sample.distance - shownDistance) < Math.abs(closest.distance - shownDistance)
           ? sample
           : closest,
       valid[0]);
@@ -63,33 +64,12 @@ export default function ElevationProfileWindow({
     if (!svgRef.current || valid.length === 0) return;
     const rect = svgRef.current.getBoundingClientRect();
     const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
-    const distance = ((ratio * 900 - chart.left) / (chart.right - chart.left)) * totalDistance;
-    const clampedDistance = Math.max(0, Math.min(totalDistance, distance));
-    setActiveDistance(clampedDistance);
-
-    let rightIndex = valid.findIndex((sample) => sample.distance >= clampedDistance);
-    if (rightIndex < 0) rightIndex = valid.length - 1;
-    const leftSample = valid[Math.max(0, rightIndex - 1)];
-    const rightSample = valid[rightIndex];
-    const span = rightSample.distance - leftSample.distance;
-    const t = span > 0 ? Math.max(0, Math.min(1, (clampedDistance - leftSample.distance) / span)) : 0;
-    const interpolated: ElevationProfileSample = {
-      distance: clampedDistance,
-      elevation: leftSample.elevation + (rightSample.elevation - leftSample.elevation) * t,
-      ...(typeof leftSample.lng === "number" && typeof rightSample.lng === "number"
-        ? { lng: leftSample.lng + (rightSample.lng - leftSample.lng) * t }
-        : {}),
-      ...(typeof leftSample.lat === "number" && typeof rightSample.lat === "number"
-        ? { lat: leftSample.lat + (rightSample.lat - leftSample.lat) * t }
-        : {}),
-    };
-    onHover?.(interpolated);
+    const viewX = ratio * 900;
+    const distance = ((viewX - chart.left) / (chart.right - chart.left)) * totalDistance;
+    setGraphHoverDistance(Math.max(0, Math.min(totalDistance, distance)));
   };
 
-  const handlePointerLeave = () => {
-    setActiveDistance(null);
-    onHover?.(null);
-  };
+  const handlePointerLeave = () => setGraphHoverDistance(null);
 
   if (typeof document === "undefined") return null;
 
@@ -114,8 +94,8 @@ export default function ElevationProfileWindow({
     >
       <section
         style={{
-          position: "relative", width: "min(640px, calc(100vw - 32px))",
-          maxHeight: "min(58vh, 460px)", overflowY: "auto",
+          position: "relative", width: "min(800px, calc(100vw - 32px))",
+          maxHeight: "min(62vh, 500px)", overflowY: "auto",
           boxSizing: "border-box", padding: "14px 16px 12px", borderRadius: 16,
           background: isDarkMode ? "rgba(20,38,48,0.97)" : "#ffffff",
           color: isDarkMode ? "#e3edf1" : "#29485d",
@@ -127,9 +107,9 @@ export default function ElevationProfileWindow({
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 750, letterSpacing: "-0.025em", color: isDarkMode ? "#e3edf1" : "#24495e" }}>Profil Elevasi</div>
-            <div style={{ fontSize: 12, color: isDarkMode ? "#9aadb7" : "#718596", marginTop: 4 }}>Arahkan kursor ke grafik untuk melihat posisi pada peta</div>
+            <div style={{ fontSize: 12, color: isDarkMode ? "#9aadb7" : "#718596", marginTop: 4 }}>Arahkan kursor ke garis magenta pada peta untuk melihat posisi elevasi</div>
           </div>
-          <button type="button" aria-label="Tutup jendela profil elevasi" onClick={() => { onHover?.(null); onClose(); }}
+          <button type="button" aria-label="Tutup jendela profil elevasi" onClick={onClose}
             style={{ flex: "0 0 auto", width: 30, height: 30, border: isDarkMode ? "1px solid #35515e" : "1px solid #dbe6ea", borderRadius: 11, background: isDarkMode ? "#203b48" : "#f3f8fa", color: isDarkMode ? "#e3edf1" : "#29485d", cursor: "pointer", fontSize: 20, lineHeight: 1 }}>×</button>
         </header>
 
@@ -156,7 +136,7 @@ export default function ElevationProfileWindow({
             )}
 
             <div style={{ width: "100%", overflow: "hidden", borderRadius: 11, background: isDarkMode ? "#142630" : "#fcfefe", border: isDarkMode ? "1px solid #294653" : "1px solid #edf3f5", padding: "6px 6px 1px", boxSizing: "border-box" }}>
-              <svg ref={svgRef} viewBox="0 0 900 250" role="img" aria-label="Grafik elevasi; arahkan kursor untuk melihat posisi pada peta"
+              <svg ref={svgRef} viewBox="0 0 900 250" role="img" aria-label="Grafik elevasi; arahkan kursor ke garis magenta pada peta"
                 onPointerMove={handlePointerMove} onPointerLeave={handlePointerLeave}
                 style={{ display: "block", width: "100%", height: "auto", cursor: "crosshair", touchAction: "pan-y" }}>
                 {[0, 1, 2, 3, 4].map((i) => {
@@ -183,7 +163,7 @@ export default function ElevationProfileWindow({
             <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 6, fontSize: 10, color: isDarkMode ? "#9aadb7" : "#718596" }}>
               <span style={{ width: 7, height: 7, borderRadius: 99, background: "#078a9b", display: "inline-block" }} />
               <span>Profil elevasi</span><span style={{ marginLeft: 8, width: 7, height: 7, borderRadius: 99, background: "#f59e0b", display: "inline-block" }} />
-              <span>Posisi kursor pada peta</span>
+              <span>Posisi kursor pada garis magenta di peta</span>
             </div>
           </>
         )}
