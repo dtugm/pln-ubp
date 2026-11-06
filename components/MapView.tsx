@@ -308,14 +308,14 @@ export default function MapView({
   const [streetViewPicking, setStreetViewPicking] = useState(false);
   const [measureMode, setMeasureMode] = useState<"length" | "width" | "height" | "area" | "profile" | null>(null);
   const [measureResult, setMeasureResult] = useState("");
-  const [profileSamples, setProfileSamples] = useState<{ distance: number; elevation: number | null; lng?: number; lat?: number }[]>([]);
-  const profileHoverMarkerRef = useRef<Marker | null>(null);
+  const [profileSamples, setProfileSamples] = useState<{ distance: number; elevation: number | null }[]>([]);
   const [showProfileWindow, setShowProfileWindow] = useState(false);
   const [showMeasureMenu, setShowMeasureMenu] = useState(false);
   const [selectedMeasureTool, setSelectedMeasureTool] = useState<"length" | "area" | "height" | "profile" | null>(null);
   const measureModeRef = useRef<"length" | "width" | "height" | "area" | "profile" | null>(null);
   const measurePointsRef = useRef<[number, number, number | null][]>([]);
   const measureMarkersRef = useRef<Marker[]>([]);
+  const measureClickEventsRef = useRef<WeakSet<Event>>(new WeakSet());
   const featurePopupRef = useRef<maplibregl.Popup | null>(null);
   const accountRef = useRef<HTMLDivElement>(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -363,12 +363,6 @@ export default function MapView({
         map.setLayoutProperty("measure-line-label", "visibility", "visible");
       }
     };
-  }, [showProfileWindow, selectedMeasureTool]);
-
-  useEffect(() => {
-    if (showProfileWindow && selectedMeasureTool === "profile") return;
-    profileHoverMarkerRef.current?.remove();
-    profileHoverMarkerRef.current = null;
   }, [showProfileWindow, selectedMeasureTool]);
 
   const [digitasiVisibility, setDigitasiVisibility] = useState<
@@ -600,6 +594,12 @@ export default function MapView({
     map.on("click", (event) => {
       const activeMeasure = measureModeRef.current;
       if (activeMeasure) {
+        // Tandai native click agar handler popup layer tetap mengabaikan klik ini,
+        // termasuk klik kedua ketika mode Tinggi langsung dinonaktifkan.
+        event.preventDefault();
+        if (event.originalEvent) {
+          measureClickEventsRef.current.add(event.originalEvent as Event);
+        }
         const { lng, lat } = event.lngLat;
         const sampled = map.queryTerrainElevation([lng, lat]);
         const elevation =
@@ -808,7 +808,7 @@ export default function MapView({
               vertexDistances.push(vertexDistances[vertexDistances.length - 1] + segment.length);
             }
 
-            const liveSamples: { distance: number; elevation: number | null; lng: number; lat: number }[] = [];
+            const liveSamples: { distance: number; elevation: number | null }[] = [];
             for (let sampleIndex = 0; sampleIndex <= intervalCount; sampleIndex++) {
               const targetDistance = (totalMeters * sampleIndex) / intervalCount;
               let segmentIndex = segments.findIndex(
@@ -837,15 +837,13 @@ export default function MapView({
                   typeof terrainElevation === "number" && Number.isFinite(terrainElevation)
                     ? terrainElevation
                     : null,
-                lng,
-                lat,
               });
             }
 
             const validLiveSamples = liveSamples.filter(
               (sample) => sample.elevation !== null && Number.isFinite(sample.elevation),
             );
-            const clickedSamples: { distance: number; elevation: number | null; lng: number; lat: number }[] = [];
+            const clickedSamples: { distance: number; elevation: number | null }[] = [];
             let clickedDistance = 0;
             next.forEach((point, index) => {
               if (index > 0) clickedDistance += segmentDistance(next[index - 1], point);
@@ -855,8 +853,6 @@ export default function MapView({
                   typeof point[2] === "number" && Number.isFinite(point[2])
                     ? point[2]
                     : null,
-                lng: point[0],
-                lat: point[1],
               });
             });
 
@@ -1431,9 +1427,13 @@ export default function MapView({
           if (handledDigitasiClickEvents.has(event as object)) return;
           handledDigitasiClickEvents.add(event as object);
 
-          // Saat Measure aktif, klik layer hanya menjadi input titik ukur.
-          // Jangan munculkan popup atribut yang menutupi peta.
-          if (measureModeRef.current !== null) {
+          // Saat Measure aktif, atau native click ini sudah dipakai untuk
+          // menyelesaikan pengukuran, jangan munculkan popup atribut.
+          const nativeClick = event.originalEvent as Event | undefined;
+          if (
+            measureModeRef.current !== null ||
+            (nativeClick && measureClickEventsRef.current.has(nativeClick))
+          ) {
             event.preventDefault();
             return;
           }
@@ -3309,116 +3309,10 @@ export default function MapView({
               boxShadow: "0 3px 12px rgba(28,55,70,0.09)",
             }}
           >
-            {measureResult && !(showProfileWindow && selectedMeasureTool === "profile") && (
-              <div
-                role="status"
-                aria-live="polite"
-                style={{
-                  position: "fixed",
-                  left: 16,
-                  bottom: 88,
-                  zIndex: 2147482000,
-                  width: "min(360px, calc(100vw - 32px))",
-                  boxSizing: "border-box",
-                  padding: "10px 13px",
-                  borderRadius: 12,
-                  background: measureResult.startsWith("Aktifkan DTM Lokal:")
-                    ? "rgba(255, 242, 242, 0.98)"
-                    : "rgba(255,255,255,0.97)",
-                  color: measureResult.startsWith("Aktifkan DTM Lokal:") ? "#8f3d43" : "#29485d",
-                  border: measureResult.startsWith("Aktifkan DTM Lokal:")
-                    ? "1px solid #f0c3c5"
-                    : "1px solid #d8e5e8",
-                  boxShadow: "0 4px 16px rgba(22,55,68,0.16)",
-                  fontSize: 12,
-                  lineHeight: 1.5,
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div>{measureResult.replace("Aktifkan DTM Lokal: ", "")}</div>
-                    {measureResult.startsWith("Aktifkan DTM Lokal:") && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          activateTerrain("dtm");
-                          setMeasureResult("");
-                        }}
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 7,
-                          marginTop: 9,
-                          padding: "7px 12px",
-                          border: "1px solid #c94b50",
-                          borderRadius: 8,
-                          background: "#c94b50",
-                          color: "#ffffff",
-                          fontSize: 12,
-                          fontWeight: 700,
-                          cursor: "pointer",
-                        }}
-                      >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="m3 20 7-14 4 8 2-3 5 9H3Z" />
-                        </svg>
-                        Aktifkan DTM
-                      </button>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    aria-label="Hapus hasil pengukuran"
-                    onClick={() => {
-                      setMeasureResult("");
-                      setProfileSamples([]);
-                      setShowProfileWindow(false);
-                      measurePointsRef.current = [];
-                      measureModeRef.current = null;
-                      setMeasureMode(null);
-                      setSelectedMeasureTool(null);
-                      const map = mapRef.current;
-                      (map?.getSource("measure-line") as maplibregl.GeoJSONSource | undefined)?.setData({
-                        type: "Feature",
-                        properties: { label: "" },
-                        geometry: { type: "LineString", coordinates: [] },
-                      });
-                      (map?.getSource("measure-label-point") as maplibregl.GeoJSONSource | undefined)?.setData({
-                        type: "FeatureCollection", features: [],
-                      });
-                      (map?.getSource("measure-area") as maplibregl.GeoJSONSource | undefined)?.setData({
-                        type: "FeatureCollection", features: [],
-                      });
-                    }}
-                    style={{ border: 0, background: "transparent", color: "#718096", cursor: "pointer", fontSize: 16, lineHeight: 1 }}
-                  >×</button>
-                </div>
-              </div>
-            )}
             {showProfileWindow && selectedMeasureTool === "profile" && profileSamples.length >= 2 && (
               <ElevationProfileWindow
                 samples={profileSamples}
-                onHover={(sample) => {
-                  const map = mapRef.current;
-                  if (!sample || typeof sample.lng !== "number" || typeof sample.lat !== "number" || !map) {
-                    profileHoverMarkerRef.current?.remove();
-                    profileHoverMarkerRef.current = null;
-                    return;
-                  }
-                  if (!profileHoverMarkerRef.current) {
-                    profileHoverMarkerRef.current = new Marker({
-                      color: "#f59e0b",
-                      scale: 0.9,
-                    }).setLngLat([sample.lng, sample.lat]).addTo(map);
-                  } else {
-                    profileHoverMarkerRef.current.setLngLat([sample.lng, sample.lat]);
-                  }
-                }}
-                onClose={() => {
-                  profileHoverMarkerRef.current?.remove();
-                  profileHoverMarkerRef.current = null;
-                  setShowProfileWindow(false);
-                }}
+                onClose={() => setShowProfileWindow(false)}
                 isDarkMode={theme === "dark"}
               />
             )}
