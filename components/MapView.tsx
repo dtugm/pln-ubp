@@ -308,7 +308,13 @@ export default function MapView({
   const [streetViewPicking, setStreetViewPicking] = useState(false);
   const [measureMode, setMeasureMode] = useState<"length" | "width" | "height" | "area" | "profile" | null>(null);
   const [measureResult, setMeasureResult] = useState("");
-  const [profileSamples, setProfileSamples] = useState<{ distance: number; elevation: number | null }[]>([]);
+  const [profileSamples, setProfileSamples] = useState<{
+    distance: number;
+    elevation: number | null;
+    lng?: number;
+    lat?: number;
+  }[]>([]);
+  const [profileMapHoverDistance, setProfileMapHoverDistance] = useState<number | null>(null);
   const [showProfileWindow, setShowProfileWindow] = useState(false);
   const [showMeasureMenu, setShowMeasureMenu] = useState(false);
   const [selectedMeasureTool, setSelectedMeasureTool] = useState<"length" | "area" | "height" | "profile" | null>(null);
@@ -364,6 +370,47 @@ export default function MapView({
       }
     };
   }, [showProfileWindow, selectedMeasureTool]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !showProfileWindow || selectedMeasureTool !== "profile" || profileSamples.length < 2) {
+      setProfileMapHoverDistance(null);
+      return;
+    }
+
+    const onLineMove = (event: maplibregl.MapMouseEvent) => {
+      const { lng, lat } = event.lngLat;
+      let nearest = profileSamples[0];
+      let nearestDistance = Number.POSITIVE_INFINITY;
+
+      for (const sample of profileSamples) {
+        if (typeof sample.lng !== "number" || typeof sample.lat !== "number") continue;
+        const meanLat = ((sample.lat + lat) / 2) * (Math.PI / 180);
+        const dx = (sample.lng - lng) * Math.cos(meanLat);
+        const dy = sample.lat - lat;
+        const distanceSquared = dx * dx + dy * dy;
+        if (distanceSquared < nearestDistance) {
+          nearestDistance = distanceSquared;
+          nearest = sample;
+        }
+      }
+
+      if (Number.isFinite(nearestDistance)) {
+        setProfileMapHoverDistance(nearest.distance);
+      }
+    };
+
+    const onLineLeave = () => setProfileMapHoverDistance(null);
+
+    map.on("mousemove", "measure-line-layer", onLineMove);
+    map.on("mouseleave", "measure-line-layer", onLineLeave);
+
+    return () => {
+      map.off("mousemove", "measure-line-layer", onLineMove);
+      map.off("mouseleave", "measure-line-layer", onLineLeave);
+    };
+  }, [showProfileWindow, selectedMeasureTool, profileSamples]);
+
 
   const [digitasiVisibility, setDigitasiVisibility] = useState<
     Record<DigitasiKey, boolean>
@@ -808,7 +855,7 @@ export default function MapView({
               vertexDistances.push(vertexDistances[vertexDistances.length - 1] + segment.length);
             }
 
-            const liveSamples: { distance: number; elevation: number | null }[] = [];
+            const liveSamples: { distance: number; elevation: number | null; lng: number; lat: number }[] = [];
             for (let sampleIndex = 0; sampleIndex <= intervalCount; sampleIndex++) {
               const targetDistance = (totalMeters * sampleIndex) / intervalCount;
               let segmentIndex = segments.findIndex(
@@ -837,13 +884,15 @@ export default function MapView({
                   typeof terrainElevation === "number" && Number.isFinite(terrainElevation)
                     ? terrainElevation
                     : null,
+                lng,
+                lat,
               });
             }
 
             const validLiveSamples = liveSamples.filter(
               (sample) => sample.elevation !== null && Number.isFinite(sample.elevation),
             );
-            const clickedSamples: { distance: number; elevation: number | null }[] = [];
+            const clickedSamples: { distance: number; elevation: number | null; lng: number; lat: number }[] = [];
             let clickedDistance = 0;
             next.forEach((point, index) => {
               if (index > 0) clickedDistance += segmentDistance(next[index - 1], point);
@@ -853,6 +902,8 @@ export default function MapView({
                   typeof point[2] === "number" && Number.isFinite(point[2])
                     ? point[2]
                     : null,
+                lng: point[0],
+                lat: point[1],
               });
             });
 
@@ -3312,7 +3363,11 @@ export default function MapView({
             {showProfileWindow && selectedMeasureTool === "profile" && profileSamples.length >= 2 && (
               <ElevationProfileWindow
                 samples={profileSamples}
-                onClose={() => setShowProfileWindow(false)}
+                activeDistance={profileMapHoverDistance}
+                onClose={() => {
+                  setProfileMapHoverDistance(null);
+                  setShowProfileWindow(false);
+                }}
                 isDarkMode={theme === "dark"}
               />
             )}
@@ -3636,6 +3691,7 @@ export default function MapView({
                     : "Profil elevasi: klik minimal dua titik pada peta, lalu klik dua kali untuk menyelesaikan dan melihat grafik.",
                 );
                 setProfileSamples([]);
+                setProfileMapHoverDistance(null);
                 setShowProfileWindow(false);
 
                 const map = mapRef.current;
