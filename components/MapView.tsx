@@ -463,7 +463,21 @@ export default function MapView({
   const [orthophotoOn, setOrthophotoOn] = useState(false);
 
   const [terrainOn, setTerrainOn] = useState(false);
-  const [activeLayerTab, setActiveLayerTab] = useState<"data" | "terrain">("data");
+  const [activeLayerTab, setActiveLayerTab] = useState<"data" | "terrain" | "layout">("data");
+  const [showLayoutPdf, setShowLayoutPdf] = useState<string | null>(null);
+
+  const LAYOUT_PDFS = [
+    {
+      name: "GENERAL PIPING LAYOUT OPSI 1",
+      file: "GENERAL PIPING LAYOUT OPSI 1.pdf",
+    },
+    {
+      name: "GENERAL PIPING LAYOUT OPSI 2",
+      file: "GENERAL PIPING LAYOUT OPSI 2.pdf",
+    },
+  ];
+  const R2_LAYOUT_BASE =
+    "https://pub-b1a30761571c4deda99b775a859ed84c.r2.dev/dokumen";
   const [activeTerrain, setActiveTerrain] = useState<"aws" | "dtm" | null>(null);
   const [showDtmRequiredNotice, setShowDtmRequiredNotice] = useState(false);
   const [dtmRequiredFeature, setDtmRequiredFeature] = useState<"profile" | "height">("profile");
@@ -2843,6 +2857,15 @@ export default function MapView({
                 >
                   Terrain 3D
                 </button>
+
+                <button
+                  type="button"
+                  className={activeLayerTab === "layout" ? "selected" : ""}
+                  onClick={() => setActiveLayerTab("layout")}
+                  aria-pressed={activeLayerTab === "layout"}
+                >
+                  Layout
+                </button>
               </div>
 
               <div className="layer-list-scroll">
@@ -3225,7 +3248,7 @@ export default function MapView({
                   );
                 })}
                   </>
-                ) : (
+                ) : activeLayerTab === "terrain" ? (
                   <div style={{ display: "grid", gap: 10, padding: "4px 2px 12px" }}>
                     <div style={{ padding: "2px 2px 0", fontSize: 11, fontWeight: 800, letterSpacing: "1.2px", color: "#168aa4" }}>
                       TERRAIN 3D
@@ -3293,6 +3316,31 @@ export default function MapView({
                     </button>
 
                   </div>
+                ) : (
+                  <div style={{ display: "grid", gap: 12, padding: "5px 2px 14px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "#168aa4", fontSize: 10, fontWeight: 800, letterSpacing: 1 }}>
+                      <span>LAYOUT PETA</span>
+                      <span style={{ background: "#eaf5f7", borderRadius: 20, padding: "3px 8px" }}>2 PDF</span>
+                    </div>
+
+                    {LAYOUT_PDFS.map((pdf) => (
+                      <div key={pdf.file} style={{ display: "flex", flexDirection: "column", gap: 10, padding: 13, border: "1px solid #dfe9ed", borderRadius: 12, background: theme === "dark" ? "#183342" : "#fff" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ display: "grid", placeItems: "center", width: 42, height: 42, borderRadius: 10, background: "#fff0f0", color: "#d84b4b", fontWeight: 800, fontSize: 11 }}>PDF</div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <strong style={{ display: "block", color: theme === "dark" ? "#e7f0f4" : "#29485d", fontSize: 12 }}>{pdf.name}</strong>
+                            <span style={{ display: "block", marginTop: 4, color: "#84939d", fontSize: 10 }}>Dokumen PDF</span>
+                          </div>
+                        </div>
+                        <button type="button" onClick={() => setShowLayoutPdf(pdf.file)} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, width: "100%", minHeight: 37, padding: "8px 10px", border: "1px solid #168fa0", borderRadius: 8, background: "#edf9fa", color: "#087f90", fontSize: 11, fontWeight: 750, cursor: "pointer" }}>
+                          Buka dan Bandingkan
+                        </button>
+                      </div>
+                    ))}
+                    <div style={{ padding: 10, borderRadius: 9, background: theme === "dark" ? "#203f4d" : "#f1f7f9", color: theme === "dark" ? "#c1d4dc" : "#718795", fontSize: 10, lineHeight: 1.5 }}>
+                      Pilih layout untuk membuka PDF berdampingan dengan WebGIS.
+                    </div>
+                  </div>
                 )}
               </div>
 
@@ -3302,6 +3350,24 @@ export default function MapView({
 
         </div> */}
             </aside>
+          )}
+
+          {showLayoutPdf && (
+            <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", justifyContent: "flex-end", pointerEvents: "none" }}>
+              <div style={{ width: "min(58vw, 1050px)", minWidth: 360, height: "100%", display: "flex", flexDirection: "column", background: "#fff", borderLeft: "1px solid #dce6eb", boxShadow: "-8px 0 28px rgba(24,52,68,.18)", pointerEvents: "auto" }}>
+                <div style={{ minHeight: 58, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "9px 14px", borderBottom: "1px solid #e5edf0" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <strong style={{ display: "block", color: "#29485d", fontSize: 12 }}>{showLayoutPdf.replace(".pdf", "")}</strong>
+                    <span style={{ color: "#84939d", fontSize: 10 }}>PDF Layout · WebGIS tetap aktif</span>
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <a href={`${R2_LAYOUT_BASE}/${encodeURIComponent(showLayoutPdf)}`} target="_blank" rel="noopener noreferrer" title="Buka PDF di tab baru" style={{ display: "grid", placeItems: "center", width: 32, height: 32, border: "1px solid #e1e9ed", borderRadius: 8, color: "#405b6b", textDecoration: "none" }}>↗</a>
+                    <button type="button" onClick={() => setShowLayoutPdf(null)} aria-label="Tutup PDF" style={{ width: 32, height: 32, border: "1px solid #e1e9ed", borderRadius: 8, background: "#f7fafb", color: "#405b6b", fontSize: 20, cursor: "pointer" }}>×</button>
+                  </div>
+                </div>
+                <iframe title={showLayoutPdf} src={`${R2_LAYOUT_BASE}/${encodeURIComponent(showLayoutPdf)}#toolbar=1&navpanes=0&view=FitH`} style={{ flex: 1, width: "100%", minHeight: 0, border: 0, background: "#eef2f4" }} />
+              </div>
+            </div>
           )}
 
           <div ref={mapContainer} className="map-container" />
