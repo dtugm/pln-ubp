@@ -3337,9 +3337,9 @@ export default function MapView({
                         </button>
                       </div>
                     ))}
-                    <div style={{ padding: 10, borderRadius: 9, background: theme === "dark" ? "#203f4d" : "#f1f7f9", color: theme === "dark" ? "#c1d4dc" : "#718795", fontSize: 10, lineHeight: 1.5 }}>
+                    {/* <div style={{ padding: 10, borderRadius: 9, background: theme === "dark" ? "#203f4d" : "#f1f7f9", color: theme === "dark" ? "#c1d4dc" : "#718795", fontSize: 10, lineHeight: 1.5 }}>
                       Pilih layout untuk membuka PDF berdampingan dengan WebGIS.
-                    </div>
+                    </div> */}
                   </div>
                 )}
               </div>
