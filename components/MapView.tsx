@@ -3333,7 +3333,7 @@ export default function MapView({
                           </div>
                         </div>
                         <button type="button" onClick={() => setShowLayoutPdf(pdf.file)} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, width: "100%", minHeight: 37, padding: "8px 10px", border: "1px solid #168fa0", borderRadius: 8, background: "#edf9fa", color: "#087f90", fontSize: 11, fontWeight: 750, cursor: "pointer" }}>
-                          Buka dan Bandingkan
+                          Buka
                         </button>
                       </div>
                     ))}
