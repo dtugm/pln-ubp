@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const R2_DATA_BASE =
   "https://pub-b1a30761571c4deda99b775a859ed84c.r2.dev/data";
@@ -32,21 +34,34 @@ export async function GET(
   context: { params: Promise<{ geojson: string }> },
 ) {
   try {
-    // Next.js versi baru mengirim params sebagai Promise.
     const params = await context.params;
     const filename = params?.geojson;
 
     if (!filename || !ALLOWED_FILES.has(filename)) {
       return NextResponse.json(
-        { error: "File GeoJSON tidak diizinkan.", filename: filename ?? null },
-        { status: 404 },
+        {
+          error: "File GeoJSON tidak diizinkan.",
+          filename: filename ?? null,
+        },
+        {
+          status: 404,
+          headers: { "Cache-Control": "no-store" },
+        },
       );
     }
 
-    const upstreamUrl = `${R2_DATA_BASE}/${encodeURIComponent(filename)}`;
+    // Query versi menghindari penggunaan URL upstream yang pernah dicache.
+    const upstreamUrl =
+      `${R2_DATA_BASE}/${encodeURIComponent(filename)}?v=${Date.now()}`;
+
     const upstream = await fetch(upstreamUrl, {
-      headers: { Accept: "application/geo+json, application/json" },
-      next: { revalidate: 3600 },
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        Accept: "application/geo+json, application/json",
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
+      },
     });
 
     if (!upstream.ok) {
@@ -56,7 +71,10 @@ export async function GET(
           error: `Gagal mengambil ${filename} dari Cloudflare R2.`,
           upstreamStatus: upstream.status,
         },
-        { status: 502 },
+        {
+          status: 502,
+          headers: { "Cache-Control": "no-store" },
+        },
       );
     }
 
@@ -64,17 +82,26 @@ export async function GET(
       status: 200,
       headers: {
         "Content-Type": "application/geo+json; charset=utf-8",
-        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+        "Cache-Control":
+          "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+        "CDN-Cache-Control": "no-store",
+        "Vercel-CDN-Cache-Control": "no-store",
+        Pragma: "no-cache",
+        Expires: "0",
       },
     });
   } catch (error) {
     console.error("Proxy GeoJSON R2 gagal:", error);
     return NextResponse.json(
       {
-        error: "Server WebGIS tidak berhasil mengambil data dari Cloudflare R2.",
+        error:
+          "Server WebGIS tidak berhasil mengambil data dari Cloudflare R2.",
         detail: error instanceof Error ? error.message : String(error),
       },
-      { status: 502 },
+      {
+        status: 502,
+        headers: { "Cache-Control": "no-store" },
+      },
     );
   }
 }
