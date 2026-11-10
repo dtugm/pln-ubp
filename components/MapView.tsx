@@ -63,6 +63,14 @@ type PhotonFeature = {
 
 const R2_DATA_BASE = "/api/data";
 
+// Versi URL dibuat ulang setiap halaman WebGIS dimuat.
+// Ini membantu mencegah browser/CDN memakai URL GeoJSON versi sebelumnya.
+const DATA_VERSION = Date.now();
+
+function getGeoJSONUrl(file: string): string {
+  return `${R2_DATA_BASE}/${encodeURIComponent(file)}?v=${DATA_VERSION}`;
+}
+
 
 // Cache GeoJSON utuh per file. Data yang sudah dimuat untuk layer utama
 // akan dipakai kembali; layer lain baru diambil sekali saat pertama diklik.
@@ -73,7 +81,9 @@ function getFullGeoJSON(file: string): Promise<any> {
   if (cached) return cached;
 
   const request = (async () => {
-    const response = await fetch(`${R2_DATA_BASE}/${encodeURIComponent(file)}`);
+    const response = await fetch(getGeoJSONUrl(file), {
+      cache: "no-store",
+    });
     if (!response.ok) throw new Error(`Gagal mengambil ${file}: HTTP ${response.status}`);
     return response.json();
   })();
@@ -1194,7 +1204,7 @@ export default function MapView({
 
         const pointId = `digitasi-${item.key}-point`;
 
-        const dataUrl = `${R2_DATA_BASE}/${encodeURIComponent(item.file)}`;
+        const dataUrl = getGeoJSONUrl(item.file);
 
         let sourceData: any = dataUrl;
 
@@ -1208,7 +1218,9 @@ export default function MapView({
           ].includes(item.key)
         ) {
           try {
-            const response = await fetch(dataUrl);
+            const response = await fetch(dataUrl, {
+              cache: "no-store",
+            });
 
             if (!response.ok)
               throw new Error(
